@@ -1,0 +1,120 @@
+/* Estilos da Sidebar - Arquivo compartilhado */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 280px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  z-index: 10;
+}
+
+.sidebar h1 {
+  font-size: 22px;
+  margin: 0;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.mobile-nav {
+  display: none;
+}
+
+.mobile-nav-toggle {
+  background: var(--sidebar-item-bg);
+  color: var(--sidebar-text);
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.mobile-nav-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--sidebar-item-hover);
+  border-radius: 8px;
+  padding: 8px;
+  margin-top: 5px;
+  width: 150px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.mobile-nav-menu a {
+  display: block;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.mobile-nav-menu a:hover {
+  background: var(--accent-blue);
+}
+
+.desktop-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.btn-sidebar {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--sidebar-item-bg);
+  color: var(--sidebar-text);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border: none;
+  font-size: 16px;
+  text-decoration: none;
+  text-align: center;
+}
+
+.btn-sidebar:hover {
+  background: var(--sidebar-item-hover);
+}
+
+.btn-sidebar.active {
+  background: var(--accent-blue);
+}
+
+/* Estilos responsivos para mobile */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 16px;
+    z-index: 100;
+  }
+
+  .sidebar h1 {
+    font-size: 18px;
+  }
+
+  .desktop-nav {
+    display: none;
+  }
+
+  .mobile-nav {
+    display: block;
+    position: relative;
+  }
+}
+

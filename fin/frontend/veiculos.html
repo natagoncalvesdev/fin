@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controle de Veículos</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
+  <link rel="stylesheet" href="sidebar.css">
+  <script src="js/fin-sdk.js"></script>
+  <script src="sidebar.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    /* Estilos copiados de index.html para a sidebar e layout principal */
+    :root {
+      --bg-main: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+      --bg-section: #ffffff;
+      --text-primary: #1a202c;
+      --text-secondary: #718096;
+      --border-color: #e2e8f0;
+      --sidebar-bg: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
+      --sidebar-text: #f7fafc;
+      --sidebar-item-bg: rgba(255, 255, 255, 0.08);
+      --sidebar-item-hover: rgba(255, 255, 255, 0.15);
+      --accent-blue: #4299e1;
+      --accent-blue-hover: #3182ce;
+      --accent-green: #48bb78;
+      --accent-red: #fc8181;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    * { box-sizing: border-box; }
+
+    /* Scrollbar personalizado */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #cbd5e0 0%, #94a3b8 100%);
+      border-radius: 10px;
+      border: 2px solid #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+      background-attachment: fixed;
+      display: flex;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 280px;
+      background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
+      color: var(--sidebar-text);
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      z-index: 10;
+      box-shadow: var(--shadow-xl);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar h1 {
+      font-size: 24px;
+      margin: 0;
+      letter-spacing: 0.02em;
+      text-align: center;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .btn-sidebar {
+      padding: 14px 18px;
+      border-radius: 12px;
+      background: var(--sidebar-item-bg);
+      color: var(--sidebar-text);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: none;
+      font-size: 15px;
+      font-weight: 500;
+      backdrop-filter: blur(10px);
+    }
+    
+    .btn-sidebar:hover {
+      background: var(--sidebar-item-hover);
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    a.btn-sidebar {
+      text-decoration: none; /* Remove o sublinhado dos links */
+    }
+
+    .btn-sidebar.active {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
+      box-shadow: 0 4px 14px rgba(66, 153, 225, 0.4);
+      transform: translateX(4px);
+    }
+
+    .mobile-nav { display: none; } /* Oculto no desktop */
+
+    .desktop-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .content {
+      flex: 1;
+      padding: 40px;
+      margin-left: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    /* Fim dos estilos copiados */
+
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .header h1 {
+      margin: 0;
+    }
+
+    .content > h1 {
+      margin: 0;
+    }
+
+    .header .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-sm);
+      letter-spacing: 0.01em;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: linear-gradient(135deg, var(--accent-blue-hover) 0%, var(--accent-blue) 100%);
+    }
+    .btn-secondary {
+      background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+      color: #fff;
+    }
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: linear-gradient(135deg, #4a5568 0%, #718096 100%);
+    }
+    .btn-add {
+      background: linear-gradient(135deg, var(--accent-green) 0%, #38a169 100%);
+      color: #fff;
+    }
+    .btn-add:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: linear-gradient(135deg, #38a169 0%, var(--accent-green) 100%);
+    }
+    .btn-danger {
+      background: linear-gradient(135deg, var(--accent-red) 0%, #e53e3e 100%);
+      color: #fff;
+    }
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: linear-gradient(135deg, #e53e3e 0%, var(--accent-red) 100%);
+    }
+    .btn-confirm {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
+      color: #fff;
+    }
+    .btn-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: linear-gradient(135deg, var(--accent-blue-hover) 0%, var(--accent-blue) 100%);
+    }
+    .btn-cancel {
+      background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+      color: #fff;
+    }
+    .btn-cancel:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: linear-gradient(135deg, #4a5568 0%, #718096 100%);
+    }
+
+    select {
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 2px solid var(--border-color) !important;
+      background: var(--bg-section) !important;
+      color: var(--text-primary) !important;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: var(--accent-blue) !important;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .page-content {
+      display: flex; /* Renomeado de main-content */
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .section {
+      background: var(--bg-section);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .section:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+
+    .section h3 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .vehicle-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .vehicle-item {
+      padding: 16px;
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .vehicle-item:hover {
+      background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+      transform: translateX(4px);
+      box-shadow: var(--shadow-sm);
+      border-color: var(--accent-blue);
+    }
+    .info-text { font-size: 13px; color: var(--text-secondary); }
+
+    .vehicle-details-view, .vehicle-list-view {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-row { display: flex; flex-wrap: wrap; gap: 12px; }
+    .form-row input {
+      flex: 1;
+      min-width: 160px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 2px solid var(--border-color);
+      background: var(--bg-section);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .form-row input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .stat-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-green) 100%);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--accent-blue);
+    }
+
+    .stat-card:hover::before {
+      transform: scaleX(1);
+    }
+    .stat-card .icon { font-size: 24px; } /* Mantido para compatibilidade com outras seções */
+    .stat-card .info { display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .stat-card .info small { font-size: 13px; color: var(--text-secondary); }
+    .stat-card .info strong { font-size: 22px; font-weight: 600; }
+    .stat-card.orange strong { color: #f97316; }
+    .stat-card.blue .icon { color: var(--accent-blue); }
+    .stat-card.red .icon { color: var(--accent-red); }
+    .stat-card.red strong { color: var(--accent-red); }
+    .stat-card.blue strong { color: var(--accent-blue); }
+    .stat-card.green strong { color: var(--accent-green); }
+    /* Modal Styles */
+    .modal-body-details p {
+      margin: 8px 0;
+      font-size: 16px;
+    }
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      display: none; justify-content: center; align-items: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-overlay.visible { display: flex; }
+    .modal-content {
+      background: var(--bg-section); padding: 32px; border-radius: 20px;
+      width: 90%; max-width: 400px;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid var(--border-color);
+      display: flex; flex-direction: column; gap: 20px;
+      animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-content h3 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+    .modal-content .form-row label {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-top: 8px;
+    }
+    .modal-content input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-main); }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 12px; }
+  </style>
+  <style> /* Estilos para tabela de histórico e ações */
+    .table-wrapper {
+      overflow-x: auto;
+      width: 100%;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 16px;
+      text-align: left;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--border-color);
+    }
+    th {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    tr {
+      transition: all 0.2s ease;
+    }
+    tbody tr:hover {
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      transform: scale(1.01);
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tbody tr {
+        cursor: pointer;
+    }
+    .btn-icon-inline {
+      border: none; background: none; cursor: pointer; font-size: 16px; padding: 5px;
+      color: var(--text-secondary);
+    }
+    .btn-icon-inline:hover { color: var(--accent-blue); }
+    .btn-icon-inline.delete:hover { color: var(--accent-red); }
+  </style>
+  <style> /* Estilos do footer da sidebar */
+    .footer-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: auto; /* Empurra para o final do container */
+    }
+    .footer-actions .btn-add {
+      flex: 1; /* Faz os botões terem o mesmo tamanho */
+      border: none;
+      border-radius: 10px; /* Cantos arredondados */
+      padding: 12px 14px; /* Espaçamento interno */
+      font-weight: 600;
+      color: #ffffff;
+    }
+  </style>
+  <style> /* Estilos para Mobile */
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: fixed;
+        top: 0;
+        left: 0;
+        flex-direction: row;
+        justify-content: space-between; /* Espaça o título e o menu */
+        align-items: center;
+        padding: 12px 16px;
+        gap: 16px;
+        z-index: 100;
+      }
+
+      /* Esconde elementos do desktop */
+      .sidebar h1 { font-size: 18px; } /* Deixa o título um pouco menor */
+      .desktop-nav { display: none; }
+      .footer-actions { display: none; }
+
+      /* Mostra e estiliza o menu mobile */
+      .mobile-nav {
+        display: block;
+        position: relative;
+      }
+      .mobile-nav-toggle {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--sidebar-text);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 12px 18px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+      }
+
+      .mobile-nav-toggle:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(1.05);
+      }
+
+      .mobile-nav-menu a {
+        display: block;
+        color: var(--sidebar-text);
+        text-decoration: none;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .mobile-nav-menu a:hover {
+        background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
+        transform: translateX(4px);
+      }
+
+      .mobile-nav-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0; /* Alinha o menu à direita */
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+        border-radius: 12px;
+        padding: 12px;
+        margin-top: 8px;
+        width: 180px;
+        box-shadow: var(--shadow-xl);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+      }
+
+      .content {
+        margin-left: 0;
+        margin-top: 80px; /* Espaço para a barra superior fixa */
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="content">
+    <h1>🚗 Controle de Veículos</h1>
+
+    <div id="general-stats-section" class="section">
+      <h4>Estatísticas Gerais (<span id="geral-stats-month-year"></span>)</h4>
+      <div class="stats-grid">
+        <div class="stat-card red">
+          <div class="info"><small>Custo Total</small><strong id="geral-stat-custo-total">R$ 0,00</strong></div>
+        </div>
+        <div class="stat-card orange">
+            <div class="info"><small>Combustível Total</small><strong id="geral-stat-combustivel-total">R$ 0,00</strong></div>
+          </div>
+        <div class="stat-card blue">
+          <div class="info"><small>KM Rodados</small><strong id="geral-stat-km-total">0 km</strong></div>
+        </div>
+        <div class="stat-card green">
+          <div class="info"><small>Média KM/L</small><strong id="geral-stat-kml-media">0.0</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- Tela de Listagem de Veículos (Padrão) -->
+      <div id="vehicle-list-view" class="section">
+        <h3>Meus Veículos</h3>
+        <div class="header">
+          <div class="controls">
+            <select id="selectAno"></select>
+            <select id="selectMes"></select>
+            <button class="btn btn-add" onclick="abrirModalAddVeiculo()">Adicionar</button>
+          </div>
+        </div>
+        <div id="listaVeiculos" class="vehicle-list" style="margin-top: 16px;">
+          <p class="info-text">Carregando veículos...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tela de Detalhes do Veículo (Oculta por padrão) -->
+    <div id="vehicle-details-view" style="display: none; flex-direction: column; gap: 24px;">
+      <div class="section">
+        <h4>Estatísticas do mês (<span id="stats-vehicle-name"></span>)</h4>
+        <div class="stats-grid">
+          <div class="stat-card red">
+            <div class="info"><small>Custo Total</small><strong id="stat-custo-total">R$ 0,00</strong></div>
+          </div>
+          <div class="stat-card orange">
+            <div class="info"><small>Combustível Total</small><strong id="stat-combustivel-total">R$ 0,00</strong></div>
+          </div>
+          <div class="stat-card blue">
+            <div class="info"><small>KM Rodados</small><strong id="stat-km-total">0 km</strong></div>
+          </div>
+          <div class="stat-card green">
+            <div class="info"><small>Média KM/L</small><strong id="stat-kml-media">0.0</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 id="vehicle-name-details">Abastecimentos</h3>
+              <button class="btn btn-secondary" onclick="voltarParaListaVeiculos()">Voltar</button>
+          </div>
+          <div class="header" style="flex-wrap: nowrap;">
+              <div class="controls">
+                <select id="selectAnoDetalhes"></select>
+                <select id="selectMesDetalhes"></select>
+              </div>
+          </div>
+          
+          <div class="form-row">
+              <input id="veiculoKmAtual" type="number" placeholder="KM Atual">
+              <input id="veiculoLitros" type="number" placeholder="Litros">
+              <input id="veiculoValor" type="number" placeholder="Valor Total (R$)">
+              <button class="btn btn-primary" onclick="registrarAbastecimento()">Registrar</button>
+          </div>
+      </div>
+
+      <div class="section">
+        <h4>Histórico de Abastecimentos do Mês</h4>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr><th>Data</th><th>KM</th><th>Valor</th><th>KM/L</th></tr>
+                </thead>
+                <tbody id="tabelaHistoricoAbastecimento">
+                </tbody>
+            </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Manutenção do Veículo</h3>
+        <div class="form-row">
+            <input id="manutencaoDescricao" type="text" placeholder="Descrição (ex: Troca de óleo)">
+            <input id="manutencaoValor" type="number" placeholder="Valor Gasto (R$)">
+            <select id="manutencaoTipo">
+              <option value="Preventiva">Manutenção Preventiva</option>
+              <option value="Conserto">Conserto</option>
+            </select>
+            <button class="btn btn-primary" onclick="registrarManutencao()">Registrar</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h4>Histórico de Manutenções do Mês</h4>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th></tr>
+                </thead>
+                <tbody id="tabelaHistoricoManutencao"></tbody>
+            </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal para Adicionar Veículo -->
+  <div id="addVeiculoModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Adicionar Novo Veículo</h3>
+      <input id="addVeiculoNome" placeholder="Nome/Modelo (ex: Gol G5)">
+      <input id="addVeiculoKmInicial" type="number" placeholder="Quilometragem Inicial">
+      <div class="modal-actions">
+        <button class="btn btn-cancel" onclick="fecharModalAddVeiculo()">Cancelar</button>
+        <button class="btn btn-confirm" onclick="salvarNovoVeiculo()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Editar Abastecimento -->
+  <div id="editAbastecimentoModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Editar Abastecimento</h3>
+      <div id="editModalBodyDetails" class="modal-body-details"></div>
+      <div class="form-row" style="flex-direction: column; gap: 4px;">
+        <label for="editVeiculoData" style="font-size: 14px; color: var(--text-secondary);">Data</label>
+        <input id="editVeiculoData" type="date">
+
+        <label for="editVeiculoKmAtual" style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">Quilometragem</label>
+        <input id="editVeiculoKmAtual" type="number" placeholder="KM Atual">
+
+        <label for="editVeiculoLitros" style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">Litros</label>
+        <input id="editVeiculoLitros" type="number" placeholder="Litros">
+
+        <label for="editVeiculoValor" style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">Valor</label>
+        <input id="editVeiculoValor" type="number" placeholder="Valor Total (R$)">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-danger" onclick="removerAbastecimento()">Excluir</button>
+        <button class="btn btn-confirm" onclick="salvarEdicaoAbastecimento()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Editar Manutenção -->
+  <div id="editManutencaoModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Editar Manutenção</h3>
+      <div class="form-row" style="flex-direction: column; gap: 4px;">
+        <label for="editManutencaoData">Data</label>
+        <input id="editManutencaoData" type="date">
+
+        <label for="editManutencaoDescricao">Descrição</label>
+        <input id="editManutencaoDescricao" type="text" placeholder="Descrição da manutenção">
+
+        <label for="editManutencaoTipo">Tipo</label>
+        <select id="editManutencaoTipo" style="width: 100%; color: var(--text-primary);">
+          <option value="Preventiva">Manutenção Preventiva</option>
+          <option value="Conserto">Conserto</option>
+        </select>
+
+        <label for="editManutencaoValor">Valor</label>
+        <input id="editManutencaoValor" type="number" placeholder="Valor Gasto (R$)">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-danger" onclick="removerManutencao()">Excluir</button>
+        <button class="btn btn-confirm" onclick="salvarEdicaoManutencao()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+    const ANO_BASE = 2025;
+    const ANO_LIMITE = ANO_BASE + 10;
+
+    const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+    const formatar = valor => moeda.format(Number(valor) || 0);
+
+    let currentUser = null;
+    let anoAtual = "";
+    let mesAtual = "";
+    let veiculoSelecionadoId = null;
+    let ultimoAbastecimentoCache = null;
+    let unsubscribeVeiculos = null;
+    let abastecimentoParaEditarId = null;
+    let manutencaoParaEditarId = null;
+
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileNavMenu');
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    const selectAno = document.getElementById("selectAno");
+    const selectMes = document.getElementById("selectMes");
+    const selectAnoDetalhes = document.getElementById("selectAnoDetalhes");
+    const selectMesDetalhes = document.getElementById("selectMesDetalhes");
+
+    // --- INICIALIZAÇÃO E AUTENTICAÇÃO ---
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        db.collection('users').doc(currentUser.uid).get().then(doc => {
+          if (doc.exists) {
+            const userData = doc.data();
+            // Lógica de administrador pode ser adicionada aqui se necessário no futuro.
+          }
+        }).catch(error => {
+          console.error("Erro ao buscar dados do usuário:", error);
+        });
+
+        inicializarSeletoresData();
+        escutarVeiculos();
+        calcularEstatisticasGerais();
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    // Adiciona a funcionalidade de fechar modais ao clicar no overlay
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', function(event) { if (event.target === this) this.classList.remove('visible'); });
+      });
+    });
+
+    function inicializarSeletoresData() {
+      // Popula anos
+      for (let ano = ANO_BASE; ano <= ANO_LIMITE; ano++) {
+        const option = document.createElement("option");
+        option.value = String(ano);
+        option.textContent = String(ano);
+        selectAno.appendChild(option.cloneNode(true));
+        selectAnoDetalhes.appendChild(option);
+      }
+
+      // Popula meses
+      MESES.forEach(mes => {
+        const option = document.createElement("option");
+        option.value = mes;
+        option.textContent = mes;
+        selectMes.appendChild(option.cloneNode(true));
+        selectMesDetalhes.appendChild(option);
+      });
+
+      // Define data atual
+      const hoje = new Date();
+      let anoCorrente = hoje.getFullYear();
+      // Garante que o ano corrente esteja dentro do intervalo, senão usa o ANO_BASE
+      const anosDisponiveis = Array.from(selectAno.options).map(o => parseInt(o.value));
+      if (!anosDisponiveis.includes(anoCorrente)) {
+        const anoMaisProximo = anosDisponiveis.reduce((prev, curr) => 
+            Math.abs(curr - anoCorrente) < Math.abs(prev - anoCorrente) ? curr : prev);
+        anoCorrente = anoMaisProximo;
+      }
+      
+      anoAtual = String(anoCorrente);
+      mesAtual = MESES[hoje.getMonth()];
+
+      selectAno.value = anoAtual;
+      selectMes.value = mesAtual;
+
+      selectAnoDetalhes.value = anoAtual;
+      selectMesDetalhes.value = mesAtual;
+
+      selectAno.addEventListener("change", atualizarPeriodo);
+      selectMes.addEventListener("change", atualizarPeriodo);
+      selectAnoDetalhes.addEventListener("change", atualizarPeriodo);
+      selectMesDetalhes.addEventListener("change", atualizarPeriodo);
+    }
+
+    function atualizarPeriodo(event) {
+        const source = event.target;
+        anoAtual = source.id.includes('Detalhes') ? selectAnoDetalhes.value : selectAno.value;
+        mesAtual = source.id.includes('Detalhes') ? selectMesDetalhes.value : selectMes.value;
+
+        // Sincroniza os dois pares de seletores
+        selectAno.value = anoAtual; selectMes.value = mesAtual;
+        selectAnoDetalhes.value = anoAtual; selectMesDetalhes.value = mesAtual;
+
+        // Se um veículo estiver selecionado, atualiza sua view
+        if (veiculoSelecionadoId) {
+            renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('vehicle-name-details').textContent);
+        }
+        // Atualiza as estatísticas gerais sempre que o período mudar
+        calcularEstatisticasGerais();
+    }
+
+    async function calcularEstatisticasGerais() {
+      if (!currentUser) return;
+
+      document.getElementById('geral-stats-month-year').textContent = `${mesAtual}/${anoAtual}`;
+
+      let custoTotalGeral = 0;
+      let kmTotalGeral = 0;
+      let litrosTotalGeral = 0;
+      let combustivelTotalGeral = 0;
+      let manutencaoTotalGeral = 0;
+      let somaKmPorLitroGeral = 0;
+      let quantidadeAbastecimentosGeral = 0;
+
+      const veiculosRef = db.collection('users').doc(currentUser.uid).collection('veiculos');
+      const veiculosSnapshot = await veiculosRef.get();
+
+      if (!veiculosSnapshot.empty) {
+        const promises = veiculosSnapshot.docs.map(veiculoDoc => {
+          return veiculoDoc.ref.collection('abastecimentos')
+            .where('ano', '==', anoAtual)
+            .where('mes', '==', mesAtual)
+            .get();
+        });
+
+        const snapshotsPorVeiculo = await Promise.all(promises);
+
+        snapshotsPorVeiculo.forEach(snapshot => {
+          snapshot.forEach(doc => {
+            const abastecimento = doc.data();
+            combustivelTotalGeral += Number(abastecimento.valor || 0);
+            kmTotalGeral += Number(abastecimento.kmRodado || 0);
+            litrosTotalGeral += Number(abastecimento.litros || 0);
+            if (abastecimento.kmPorLitro && abastecimento.kmPorLitro > 0) {
+              somaKmPorLitroGeral += Number(abastecimento.kmPorLitro);
+              quantidadeAbastecimentosGeral++;
+            }
+          });
+        });
+
+        const manutencaoPromises = veiculosSnapshot.docs.map(veiculoDoc => {
+          return veiculoDoc.ref.collection('manutencoes')
+            .where('ano', '==', anoAtual)
+            .where('mes', '==', mesAtual)
+            .get();
+        });
+        const manutencaoSnapshots = await Promise.all(manutencaoPromises);
+        manutencaoSnapshots.forEach(snapshot => {
+            snapshot.forEach(doc => manutencaoTotalGeral += Number(doc.data().valor || 0));
+        });
+      }
+
+      custoTotalGeral = combustivelTotalGeral + manutencaoTotalGeral;
+      const mediaKmLGeral = quantidadeAbastecimentosGeral > 0 ? (somaKmPorLitroGeral / quantidadeAbastecimentosGeral).toFixed(1) : '0.0';
+
+      document.getElementById('geral-stat-custo-total').textContent = formatar(custoTotalGeral);
+      document.getElementById('geral-stat-combustivel-total').textContent = formatar(combustivelTotalGeral);
+      document.getElementById('geral-stat-km-total').textContent = `${Math.round(kmTotalGeral)} km`;
+      document.getElementById('geral-stat-kml-media').textContent = mediaKmLGeral;
+    }
+    
+    // --- LÓGICA DE VEÍCULOS ---
+
+    function escutarVeiculos() {
+      if (unsubscribeVeiculos) unsubscribeVeiculos();
+      if (!currentUser) return;
+
+      const veiculosRef = db.collection('users').doc(currentUser.uid).collection('veiculos').orderBy('nome');
+      unsubscribeVeiculos = veiculosRef.onSnapshot(snapshot => {
+        const lista = document.getElementById('listaVeiculos');
+        lista.innerHTML = '';
+        if (snapshot.empty) {
+          lista.innerHTML = '<p class="info-text">Nenhum veículo cadastrado.</p>';
+          return;
+        }
+        snapshot.forEach(doc => {
+          const veiculo = doc.data();
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'vehicle-item';
+          itemDiv.textContent = veiculo.nome;
+          itemDiv.addEventListener('click', () => renderizarDetalhesVeiculo(doc.id, veiculo.nome));
+          lista.appendChild(itemDiv);
+        });
+      }, error => {
+        console.error("Erro ao buscar veículos:", error);
+        document.getElementById('listaVeiculos').innerHTML = '<p class="info-text">Erro ao carregar veículos.</p>';
+      });
+    }
+
+    async function renderizarDetalhesVeiculo(veiculoId, veiculoNome) {
+      veiculoSelecionadoId = veiculoId;
+      document.getElementById('vehicle-name-details').textContent = `Abastecimentos - ${veiculoNome}`;
+      document.getElementById('stats-vehicle-name').textContent = veiculoNome;
+
+      // Limpa campos e estatísticas
+      document.getElementById('veiculoKmAtual').value = '';
+      document.getElementById('veiculoLitros').value = '';
+      document.getElementById('veiculoValor').value = '';
+      document.getElementById('stat-custo-total').textContent = formatar(0);
+      document.getElementById('stat-combustivel-total').textContent = formatar(0);
+      document.getElementById('stat-km-total').textContent = '0 km';
+      document.getElementById('stat-kml-media').textContent = '0.0';
+      document.getElementById('tabelaHistoricoAbastecimento').innerHTML = '<tr><td colspan="5" class="info-text" style="text-align:center;">Nenhum abastecimento neste mês.</td></tr>';
+      document.getElementById('tabelaHistoricoManutencao').innerHTML = '<tr><td colspan="4" class="info-text" style="text-align:center;">Nenhuma manutenção neste mês.</td></tr>';
+
+      // Busca o último abastecimento para cálculo do próximo registro
+      const ultimoAbastecimentoRef = db.collection('users').doc(currentUser.uid).collection('veiculos').doc(veiculoId)
+        .collection('abastecimentos').orderBy('kmAtual', 'desc').limit(1);
+      const ultimoSnapshot = await ultimoAbastecimentoRef.get();
+      ultimoAbastecimentoCache = null;
+      if (!ultimoSnapshot.empty) {
+        ultimoAbastecimentoCache = ultimoSnapshot.docs[0].data();
+      } else {
+        const veiculoDoc = await db.collection('users').doc(currentUser.uid).collection('veiculos').doc(veiculoId).get();
+        if (veiculoDoc.exists) {
+          ultimoAbastecimentoCache = { kmAtual: veiculoDoc.data().kmInicial };
+        }
+      }
+
+      // Busca abastecimentos do mês selecionado para as estatísticas
+      const abastecimentosMesRef = db.collection('users').doc(currentUser.uid).collection('veiculos').doc(veiculoId)
+        .collection('abastecimentos').where('ano', '==', anoAtual).where('mes', '==', mesAtual).orderBy('data', 'desc');
+      
+      const snapshotMes = await abastecimentosMesRef.get();
+      let combustivelTotalMes = 0, kmTotalMes = 0, litrosTotalMes = 0;
+      let somaKmPorLitroMes = 0;
+      let quantidadeAbastecimentosMes = 0;
+      const tabelaHistorico = document.getElementById('tabelaHistoricoAbastecimento');
+      tabelaHistorico.innerHTML = '';
+
+      if (!snapshotMes.empty) {
+        snapshotMes.forEach(doc => {
+          const abastecimento = doc.data();
+          const id = doc.id;
+          combustivelTotalMes += Number(abastecimento.valor || 0);
+          kmTotalMes += Number(abastecimento.kmRodado || 0);
+          litrosTotalMes += Number(abastecimento.litros || 0);
+          if (abastecimento.kmPorLitro && abastecimento.kmPorLitro > 0) {
+            somaKmPorLitroMes += Number(abastecimento.kmPorLitro);
+            quantidadeAbastecimentosMes++;
+          }
+
+          const dataFormatada = abastecimento.data?.toDate().toLocaleDateString('pt-BR') || 'N/A';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${dataFormatada}</td>
+            <td>${Math.round(abastecimento.kmAtual)} km</td>
+            <td>${formatar(abastecimento.valor)}</td>
+            <td>${(abastecimento.kmPorLitro || 0).toFixed(2)}</td>
+          `;
+          tr.addEventListener('click', () => abrirModalEditarAbastecimento(id));
+          tabelaHistorico.appendChild(tr);
+        });
+      } else {
+        tabelaHistorico.innerHTML = '<tr><td colspan="4" class="info-text" style="text-align:center;">Nenhum abastecimento neste mês.</td></tr>';
+      }
+
+      // Busca manutenções do mês
+      const manutencoesMesRef = db.collection('users').doc(currentUser.uid).collection('veiculos').doc(veiculoId)
+        .collection('manutencoes').where('ano', '==', anoAtual).where('mes', '==', mesAtual).orderBy('data', 'desc');
+      const snapshotManutencoes = await manutencoesMesRef.get();
+      let manutencaoTotalMes = 0;
+      const tabelaManutencao = document.getElementById('tabelaHistoricoManutencao');
+      tabelaManutencao.innerHTML = '';
+
+      if (!snapshotManutencoes.empty) {
+        snapshotManutencoes.forEach(doc => {
+            const manutencao = doc.data();
+            manutencaoTotalMes += Number(manutencao.valor || 0);
+            const dataFormatada = manutencao.data?.toDate().toLocaleDateString('pt-BR') || 'N/A';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${dataFormatada}</td>
+                <td>${manutencao.descricao}</td>
+                <td>${manutencao.tipo}</td>
+                <td>${formatar(manutencao.valor)}</td>
+            `;
+            tr.addEventListener('click', () => abrirModalEditarManutencao(doc.id));
+            tabelaManutencao.appendChild(tr);
+        });
+      } else {
+        tabelaManutencao.innerHTML = '<tr><td colspan="4" class="info-text" style="text-align:center;">Nenhuma manutenção neste mês.</td></tr>';
+      }
+
+      // Calcula totais e médias
+      const custoTotalMes = combustivelTotalMes + manutencaoTotalMes;
+      const mediaKmL = quantidadeAbastecimentosMes > 0 ? (somaKmPorLitroMes / quantidadeAbastecimentosMes).toFixed(1) : '0.0';
+
+      // Atualiza os cards de estatísticas
+      document.getElementById('stat-custo-total').textContent = formatar(custoTotalMes);
+      document.getElementById('stat-combustivel-total').textContent = formatar(combustivelTotalMes);
+      document.getElementById('stat-km-total').textContent = `${Math.round(kmTotalMes)} km`;
+      document.getElementById('stat-kml-media').textContent = mediaKmL;
+
+      calcularEstatisticasGerais(); // Recalcula estatísticas gerais
+      // Troca a view
+      document.getElementById('general-stats-section').style.display = 'none'; // Esconde as estatísticas gerais
+      document.querySelector('.page-content').style.display = 'none'; // Esconde a lista de veículos
+      document.getElementById('vehicle-details-view').style.display = 'flex';
+    }
+
+    async function registrarAbastecimento() {
+      if (!veiculoSelecionadoId) return;
+      const kmAtualInput = Number(document.getElementById('veiculoKmAtual').value);
+      const litros = Number(document.getElementById('veiculoLitros').value);
+      const valor = Number(document.getElementById('veiculoValor').value);
+
+      if (!kmAtualInput || !litros || !valor) {
+        return alert("Por favor, preencha todos os campos do abastecimento.");
+      }
+
+      if (!ultimoAbastecimentoCache || kmAtualInput <= ultimoAbastecimentoCache.kmAtual) {
+        return alert("A quilometragem atual deve ser maior que a do último registro.");
+      }
+
+      const kmRodado = kmAtualInput - ultimoAbastecimentoCache.kmAtual;
+      const kmPorLitro = kmRodado / ultimoAbastecimentoCache.litros;
+
+      const novoAbastecimento = {
+        kmAtual: kmAtualInput,
+        litros,
+        valor,
+        kmRodado,
+        kmPorLitro,
+        data: firebase.firestore.FieldValue.serverTimestamp(),
+        mes: mesAtual,
+        ano: anoAtual
+      };
+
+      try {
+        const ref = db.collection('users').doc(currentUser.uid).collection('veiculos').doc(veiculoSelecionadoId).collection('abastecimentos');
+        await ref.add(novoAbastecimento);
+        alert(`Abastecimento registrado!\nConsumo: ${kmPorLitro.toFixed(2)} km/L`);
+        renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('vehicle-name-details').textContent);
+      } catch (error) {
+        console.error("Erro ao registrar abastecimento:", error);
+        alert("Ocorreu um erro ao salvar. Tente novamente.");
+      }
+    }
+
+    async function registrarManutencao() {
+        if (!veiculoSelecionadoId) return;
+        const descricaoInput = document.getElementById('manutencaoDescricao');
+        const valorInput = document.getElementById('manutencaoValor');
+        const tipoInput = document.getElementById('manutencaoTipo');
+
+        const descricao = descricaoInput.value.trim();
+        const valor = Number(valorInput.value);
+        const tipo = tipoInput.value;
+
+        if (!descricao || !valor) {
+            return alert("Por favor, preencha a descrição e o valor da manutenção.");
+        }
+
+        const novaManutencao = {
+            descricao, valor, tipo,
+            data: firebase.firestore.FieldValue.serverTimestamp(),
+            mes: mesAtual,
+            ano: anoAtual
+        };
+
+        try {
+            const ref = db.collection('users').doc(currentUser.uid).collection('veiculos').doc(veiculoSelecionadoId).collection('manutencoes');
+            await ref.add(novaManutencao);
+            alert("Manutenção registrada com sucesso!");
+            // Limpa os campos do formulário após o registro
+            descricaoInput.value = '';
+            valorInput.value = '';
+            tipoInput.value = 'Preventiva'; // Reseta para o valor padrão
+            renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('stats-vehicle-name').textContent);
+        } catch (error) {
+            console.error("Erro ao registrar manutenção:", error);
+            alert("Ocorreu um erro ao salvar. Tente novamente.");
+        }
+    }
+
+    function voltarParaListaVeiculos() {
+      veiculoSelecionadoId = null;
+      ultimoAbastecimentoCache = null;
+      document.getElementById('vehicle-details-view').style.display = 'none'; // Esconde detalhes
+      document.getElementById('general-stats-section').style.display = 'flex'; // Mostra as estatísticas gerais
+      document.querySelector('.page-content').style.display = 'flex'; // Mostra a lista de veículos
+    }
+
+    async function salvarNovoVeiculo() {
+      const nome = document.getElementById('addVeiculoNome').value.trim();
+      const kmInicial = Number(document.getElementById('addVeiculoKmInicial').value);
+
+      if (!nome || !kmInicial) {
+        return alert("Preencha o nome e a quilometragem inicial do veículo.");
+      }
+
+      try {
+        const veiculosRef = db.collection('users').doc(currentUser.uid).collection('veiculos');
+        await veiculosRef.add({ nome, kmInicial });
+        alert("Veículo cadastrado com sucesso!");
+        fecharModalAddVeiculo();
+      } catch (error) {
+        console.error("Erro ao salvar veículo:", error);
+        alert("Não foi possível salvar o veículo. Tente novamente.");
+      }
+    }
+
+    // --- CONTROLES DE MODAL ---
+    function abrirModalAddVeiculo() { 
+        document.getElementById('addVeiculoNome').value = '';
+        document.getElementById('addVeiculoKmInicial').value = '';
+        document.getElementById('addVeiculoModal').classList.add('visible'); 
+    }
+    function fecharModalAddVeiculo() { document.getElementById('addVeiculoModal').classList.remove('visible'); }
+
+    async function abrirModalEditarAbastecimento(id) {
+        if (!veiculoSelecionadoId) return;
+        const abastecimentoRef = db.collection('users').doc(currentUser.uid).collection('veiculos').doc(veiculoSelecionadoId).collection('abastecimentos').doc(id);
+        const doc = await abastecimentoRef.get();
+        if (!doc.exists) {
+            return alert("Erro: Registro de abastecimento não encontrado.");
+        }
+        const abastecimento = doc.data();
+        abastecimentoParaEditarId = id;
+
+        const modalBodyDetails = document.getElementById('editModalBodyDetails');
+        modalBodyDetails.innerHTML = `
+          <p><strong>Litros:</strong> ${abastecimento.litros.toFixed(2)} L</p>
+          <p><strong>KM Rodado:</strong> ${Math.round(abastecimento.kmRodado || 0)} km</p>
+          <p><strong>Média:</strong> ${(abastecimento.kmPorLitro || 0).toFixed(2)} km/L</p>
+        `;
+
+        const data = abastecimento.data.toDate();
+        const dataFormatada = data.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+        document.getElementById('editVeiculoData').value = dataFormatada;
+        document.getElementById('editVeiculoKmAtual').value = abastecimento.kmAtual;
+        document.getElementById('editVeiculoLitros').value = abastecimento.litros;
+        document.getElementById('editVeiculoValor').value = abastecimento.valor;
+        document.getElementById('editAbastecimentoModal').classList.add('visible');
+    }
+    function fecharModalEditarAbastecimento() {
+        document.getElementById('editAbastecimentoModal').classList.remove('visible');
+        abastecimentoParaEditarId = null;
+    }
+
+    async function abrirModalEditarManutencao(id) {
+        if (!veiculoSelecionadoId) return;
+        const manutencaoRef = db.collection('users').doc(currentUser.uid).collection('veiculos').doc(veiculoSelecionadoId).collection('manutencoes').doc(id);
+        const doc = await manutencaoRef.get();
+        if (!doc.exists) {
+            return alert("Erro: Registro de manutenção não encontrado.");
+        }
+        const manutencao = doc.data();
+        manutencaoParaEditarId = id;
+
+        const data = manutencao.data.toDate();
+        const dataFormatada = data.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+        document.getElementById('editManutencaoData').value = dataFormatada;
+        document.getElementById('editManutencaoDescricao').value = manutencao.descricao;
+        document.getElementById('editManutencaoTipo').value = manutencao.tipo;
+        document.getElementById('editManutencaoValor').value = manutencao.valor;
+
+        document.getElementById('editManutencaoModal').classList.add('visible');
+    }
+
+    function fecharModalEditarManutencao() {
+        document.getElementById('editManutencaoModal').classList.remove('visible');
+        manutencaoParaEditarId = null;
+    }
+
+    async function salvarEdicaoManutencao() {
+        if (!manutencaoParaEditarId || !veiculoSelecionadoId) return;
+
+        const novaDataString = document.getElementById('editManutencaoData').value;
+        const novaDescricao = document.getElementById('editManutencaoDescricao').value.trim();
+        const novoTipo = document.getElementById('editManutencaoTipo').value;
+        const novoValor = Number(document.getElementById('editManutencaoValor').value);
+
+        if (!novaDataString || !novaDescricao || !novoValor) {
+            return alert("Todos os campos são obrigatórios.");
+        }
+
+        const manutencaoRef = db.collection('users').doc(currentUser.uid).collection('veiculos').doc(veiculoSelecionadoId).collection('manutencoes').doc(manutencaoParaEditarId);
+        const novaData = new Date(novaDataString + 'T12:00:00');
+
+        await manutencaoRef.update({
+            data: firebase.firestore.Timestamp.fromDate(novaData),
+            descricao: novaDescricao,
+            tipo: novoTipo,
+            valor: novoValor,
+            mes: MESES[novaData.getMonth()],
+            ano: String(novaData.getFullYear())
+        });
+
+        alert("Manutenção atualizada com sucesso!");
+        fecharModalEditarManutencao();
+        renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('stats-vehicle-name').textContent);
+    }
+
+    async function salvarEdicaoAbastecimento() {
+        if (!abastecimentoParaEditarId || !veiculoSelecionadoId) return;
+
+        const novaDataString = document.getElementById('editVeiculoData').value;
+        const novoKm = Number(document.getElementById('editVeiculoKmAtual').value);
+        const novoLitros = Number(document.getElementById('editVeiculoLitros').value);
+        const novoValor = Number(document.getElementById('editVeiculoValor').value);
+
+        if (!novaDataString || !novoKm || !novoLitros || !novoValor) {
+            return alert("Todos os campos são obrigatórios.");
+        }
+
+        const veiculoRef = db.collection('users').doc(currentUser.uid).collection('veiculos').doc(veiculoSelecionadoId);
+        const abastecimentoRef = veiculoRef.collection('abastecimentos').doc(abastecimentoParaEditarId);
+
+        const batch = db.batch();
+
+        // Converte a data do input para um objeto Date do JS e depois para timestamp do Firestore
+        const novaData = new Date(novaDataString + 'T12:00:00'); // Adiciona meio-dia para evitar problemas de fuso
+        const novoMes = MESES[novaData.getMonth()];
+        const novoAno = String(novaData.getFullYear());
+
+        // 1. Encontrar o abastecimento anterior para recalcular o KM rodado deste item
+        const abastecimentoAnteriorSnapshot = await veiculoRef.collection('abastecimentos')
+            .where('data', '<', (await abastecimentoRef.get()).data().data).orderBy('data', 'desc').limit(1).get();
+        
+        let kmAnterior, litrosAnterior;
+        if (!abastecimentoAnteriorSnapshot.empty) {
+            const anteriorDados = abastecimentoAnteriorSnapshot.docs[0].data();
+            kmAnterior = anteriorDados.kmAtual;
+            litrosAnterior = anteriorDados.litros;
+        } else {
+            // Se não houver anterior, busca o KM inicial do veículo como fallback
+            const veiculoDoc = await veiculoRef.get();
+            if (veiculoDoc.exists) {
+                kmAnterior = veiculoDoc.data().kmInicial;
+                litrosAnterior = novoLitros; // Se não houver anterior, usa a litragem atual como fallback
+            } else {
+                return alert("Erro: Veículo não encontrado para recalcular.");
+            }
+        }
+
+        const novoKmRodado = novoKm - kmAnterior;
+        const novoKmPorLitro = novoKmRodado / litrosAnterior;
+
+        batch.update(abastecimentoRef, {
+            kmAtual: novoKm,
+            litros: novoLitros,
+            valor: novoValor,
+            data: firebase.firestore.Timestamp.fromDate(novaData),
+            mes: novoMes,
+            ano: novoAno,
+            kmRodado: novoKmRodado,
+            kmPorLitro: novoKmPorLitro
+        });
+
+        // 2. Encontrar o abastecimento seguinte para recalcular o KM rodado dele
+        const abastecimentoSeguinteSnapshot = await veiculoRef.collection('abastecimentos')
+            .where('data', '>', (await abastecimentoRef.get()).data().data).orderBy('data', 'asc').limit(1).get();
+
+        if (!abastecimentoSeguinteSnapshot.empty) {
+            const seguinteDoc = abastecimentoSeguinteSnapshot.docs[0];
+            const seguinteDados = seguinteDoc.data();
+            const seguinteKmRodado = seguinteDados.kmAtual - novoKm;
+            const seguinteKmPorLitro = seguinteKmRodado / novoLitros;
+            batch.update(seguinteDoc.ref, { kmRodado: seguinteKmRodado, kmPorLitro: seguinteKmPorLitro });
+        }
+
+        try {
+            await batch.commit();
+            alert("Abastecimento atualizado com sucesso!");
+            fecharModalEditarAbastecimento();
+            calcularEstatisticasGerais(); // Atualiza as estatísticas gerais
+            renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('vehicle-name-details').textContent);
+        } catch (error) {
+            console.error("Erro ao salvar edição:", error);
+            alert("Ocorreu um erro ao salvar a edição.");
+        }
+    }
+
+    async function removerAbastecimento(id) {
+        const idParaRemover = id || abastecimentoParaEditarId;
+        if (!idParaRemover || !confirm("Tem certeza que deseja excluir este registro de abastecimento? Esta ação não pode ser desfeita.")) {
+            return;
+        }
+
+        const veiculoRef = db.collection('users').doc(currentUser.uid).collection('veiculos').doc(veiculoSelecionadoId);
+        const abastecimentoRef = veiculoRef.collection('abastecimentos').doc(idParaRemover);
+        const abastecimentoDoc = await abastecimentoRef.get();
+        if (!abastecimentoDoc.exists) return;
+
+        const abastecimentoRemovido = abastecimentoDoc.data();
+        const batch = db.batch();
+        batch.delete(abastecimentoRef);
+
+        // Encontra o abastecimento seguinte para recalcular seu KM rodado
+        const abastecimentoSeguinteSnapshot = await veiculoRef.collection('abastecimentos')
+            .where('data', '>', abastecimentoRemovido.data).orderBy('data', 'asc').limit(1).get();
+        
+        if (!abastecimentoSeguinteSnapshot.empty) {
+            const seguinteDoc = abastecimentoSeguinteSnapshot.docs[0];
+            const seguinteDados = seguinteDoc.data();
+
+            // Encontra o abastecimento anterior ao que foi removido
+            const anteriorAoRemovidoSnapshot = await veiculoRef.collection('abastecimentos')
+                .where('data', '<', abastecimentoRemovido.data).orderBy('data', 'desc').limit(1).get();
+
+            let kmAnterior;
+            if (!anteriorAoRemovidoSnapshot.empty) {
+                kmAnterior = anteriorAoRemovidoSnapshot.docs[0].data().kmAtual;
+            } else {
+                // Se não houver, usa o KM inicial do veículo
+                const veiculoDoc = await veiculoRef.get();
+                kmAnterior = veiculoDoc.data().kmInicial;
+            }
+
+            // Recalcula o KM rodado e o consumo do abastecimento seguinte
+            const novoKmRodadoSeguinte = seguinteDados.kmAtual - kmAnterior;
+            const novoKmPorLitroSeguinte = novoKmRodadoSeguinte / abastecimentoRemovido.litros;
+
+            batch.update(seguinteDoc.ref, {
+                kmRodado: novoKmRodadoSeguinte,
+                kmPorLitro: novoKmPorLitroSeguinte
+            });
+        }
+
+        await batch.commit();
+        
+        fecharModalEditarAbastecimento();
+        calcularEstatisticasGerais(); // Atualiza as estatísticas gerais
+        renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('vehicle-name-details').textContent);
+    }
+
+    async function removerManutencao() {
+        const idParaRemover = manutencaoParaEditarId;
+        if (!idParaRemover || !confirm("Tem certeza que deseja excluir este registro de manutenção?")) {
+            return;
+        }
+
+        const manutencaoRef = db.collection('users').doc(currentUser.uid).collection('veiculos').doc(veiculoSelecionadoId).collection('manutencoes').doc(idParaRemover);
+        
+        await manutencaoRef.delete();
+
+        
+        fecharModalEditarManutencao();
+        calcularEstatisticasGerais();
+        renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('stats-vehicle-name').textContent);
+    }
+
+  </script>
+</body>
+</html>

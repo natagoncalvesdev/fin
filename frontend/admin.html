@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel ADM - Controle Financeiro</title>
+  <link rel="icon" href="img/icone.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="css/theme.css" />
+  <script src="js/fin-sdk.js"></script>
+  <style>
+    body {
+      background-color: var(--brand-bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .admin-container {
+      background: var(--brand-white);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .admin-logo {
+      display: block;
+      max-width: 180px;
+      width: 60%;
+      height: auto;
+      margin: 0 auto 8px;
+    }
+    h1 {
+      margin: 0;
+      color: var(--brand-dark);
+      font-weight: 700;
+    }
+    .form-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-sizing: border-box;
+      background: var(--brand-bg);
+      color: var(--text-primary);
+      font-family: var(--font-family);
+    }
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .button-group .btn-add,
+    .button-group .btn-cancel {
+      flex: 1;
+      min-width: 140px;
+    }
+    .btn-back {
+      width: 100%;
+    }
+    #error-message {
+      color: #DC2626;
+      margin-top: 15px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <img src="img/logo.png" alt="Controle" class="admin-logo" />
+    <h1>Painel Administrativo</h1>
+    <p id="user-info" style="color: var(--text-secondary);"></p>
+
+    <div class="form-group">
+      <label for="selectAnoAdmin">Selecione o Ano para Importar/Exportar</label>
+      <select id="selectAnoAdmin"></select>
+    </div>
+
+    <div class="button-group">
+      <button id="import-button" class="btn-add" onclick="document.getElementById('file-input').click();">Importar Ano</button>
+      <input type="file" id="file-input" accept=".json" style="display: none;" onchange="importarDados(event)">
+      <button id="export-button" class="btn-cancel">Exportar Ano</button>
+    </div>
+
+    <button id="back-button" class="btn-cancel btn-back" onclick="window.location.href='index.html'">Voltar</button>
+    <p id="error-message"></p>
+  </div>
+
+  <script>
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const MESES = [
+      "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+      "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
+    ];
+    const ANO_BASE = 2025;
+    const ANO_LIMITE = ANO_BASE + 10;
+
+    let currentUser = null;
+    let anoAtualAdmin = "";
+
+    const selectAnoAdmin = document.getElementById("selectAnoAdmin");
+    const exportButton = document.getElementById('export-button');
+    const importButton = document.getElementById('import-button');
+    const userInfoDisplay = document.getElementById('user-info');
+    const errorMessage = document.getElementById('error-message');
+
+    function popularListaAnosAdmin() {
+      selectAnoAdmin.innerHTML = "";
+      for (let ano = ANO_BASE; ano <= ANO_LIMITE; ano++) {
+        const option = document.createElement("option");
+        option.value = String(ano);
+        option.textContent = String(ano);
+        selectAnoAdmin.appendChild(option);
+      }
+      const hoje = new Date();
+      let anoCorrente = hoje.getFullYear();
+      if (anoCorrente < ANO_BASE || anoCorrente > ANO_LIMITE) {
+        anoCorrente = ANO_BASE;
+      }
+      selectAnoAdmin.value = String(anoCorrente);
+      anoAtualAdmin = String(anoCorrente);
+    }
+
+    async function garantirEstruturaUsuario(ano) {
+      if (!currentUser || !/^[0-9]{4}$/.test(String(ano))) return;
+
+      const anoRef = db.collection('users').doc(currentUser.uid).collection('anos').doc(String(ano));
+      const anoDoc = await anoRef.get();
+
+      if (!anoDoc.exists) {
+        await anoRef.set({ ano: Number(ano) });
+      }
+    }
+
+    async function exportarDados() {
+      if (!anoAtualAdmin || !currentUser) {
+        errorMessage.textContent = "Selecione um ano para exportar.";
+        errorMessage.style.display = 'block';
+        return;
+      }
+
+      exportButton.disabled = true;
+      exportButton.textContent = 'Exportando...';
+      errorMessage.style.display = 'none';
+
+      try {
+        const dadosCompletosDoAno = {
+          ano: anoAtualAdmin,
+          dadosMeses: {}
+        };
+
+        for (const mes of MESES) {
+          const mesRef = db.collection('users').doc(currentUser.uid).collection('anos').doc(anoAtualAdmin).collection('meses').doc(mes);
+          const doc = await mesRef.get();
+          if (doc.exists) {
+            dadosCompletosDoAno.dadosMeses[mes] = doc.data();
+          }
+        }
+
+        const jsonString = JSON.stringify(dadosCompletosDoAno, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dados_financeiros_${anoAtualAdmin}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        alert(`Dados do ano ${anoAtualAdmin} exportados com sucesso!`);
+
+      } catch (error) {
+        console.error("Erro ao exportar dados:", error);
+        errorMessage.textContent = "Ocorreu um erro ao exportar os dados. Tente novamente.";
+        errorMessage.style.display = 'block';
+      } finally {
+        exportButton.disabled = false;
+        exportButton.textContent = 'Exportar Ano';
+      }
+    }
+
+    function importarDados(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      importButton.disabled = true;
+      importButton.textContent = 'Importando...';
+      errorMessage.style.display = 'none';
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const dados = JSON.parse(e.target.result);
+
+          if (!dados.ano || !dados.dadosMeses || typeof dados.dadosMeses !== 'object') {
+            throw new Error("Formato de arquivo inválido.");
+          }
+
+          if (!confirm(`Você tem certeza que deseja importar os dados para o ano ${dados.ano}? Todos os dados existentes para este ano serão substituídos.`)) {
+            return;
+          }
+
+          await garantirEstruturaUsuario(dados.ano);
+
+          const batch = db.batch();
+          for (const mes in dados.dadosMeses) {
+            if (MESES.includes(mes)) {
+              const mesRef = db.collection('users').doc(currentUser.uid).collection('anos').doc(dados.ano).collection('meses').doc(mes);
+              batch.set(mesRef, dados.dadosMeses[mes]);
+            }
+          }
+
+          await batch.commit();
+          alert(`Dados do ano ${dados.ano} importados com sucesso!`);
+
+        } catch (error) {
+          console.error("Erro ao importar dados:", error);
+          errorMessage.textContent = "Erro ao importar arquivo: " + error.message;
+          errorMessage.style.display = 'block';
+        } finally {
+          event.target.value = null;
+          importButton.disabled = false;
+          importButton.textContent = 'Importar Ano';
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    selectAnoAdmin.addEventListener("change", (e) => {
+      anoAtualAdmin = e.target.value;
+      errorMessage.style.display = 'none';
+    });
+    exportButton.addEventListener('click', exportarDados);
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        db.collection('users').doc(currentUser.uid).get().then(doc => {
+          if (doc.exists) {
+            const userData = doc.data();
+            if (userData.adm === true) {
+              userInfoDisplay.textContent = `Logado como: ${userData.name || currentUser.email} (ADM)`;
+              popularListaAnosAdmin();
+            } else {
+              alert("Acesso negado. Você não tem permissões de administrador.");
+              window.location.href = 'index.html';
+            }
+          } else {
+            alert("Acesso negado. Dados de usuário não encontrados.");
+            window.location.href = 'index.html';
+          }
+        }).catch(error => {
+          console.error("Erro ao verificar permissões de ADM:", error);
+          alert("Erro ao verificar permissões. Redirecionando.");
+          window.location.href = 'index.html';
+        });
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+</body>
+</html>

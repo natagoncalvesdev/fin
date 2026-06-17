@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relatório - Controle Financeiro</title>
+  <link rel="icon" href="img/icone.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="sidebar.css?v=4">
+  <script src="js/fin-run-once.js"></script>
+  <script src="js/fin-sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="sidebar.js?v=4"></script>
+  <style>
+    :root {
+      --bg-main: #F8FAFC;
+      --bg-section: #FFFFFF;
+      --text-primary: #0F172A;
+      --text-secondary: #64748B;
+      --border-color: #E2E8F0;
+      --sidebar-bg: #0F172A;
+      --sidebar-text: #F8FAFC;
+      --sidebar-item-bg: rgba(255, 255, 255, 0.08);
+      --sidebar-item-hover: rgba(255, 255, 255, 0.14);
+      --accent: #F59E0B;
+      --accent-2: #10B981;
+      --accent-3: #EF4444;
+      --accent-blue: #10B981;
+      --accent-blue-hover: #059669;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.08);
+      --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    /* Scrollbar personalizado */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #cbd5e0 0%, #94a3b8 100%);
+      border-radius: 10px;
+      border: 2px solid #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      height: 100vh;
+      background: #F8FAFC;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .content {
+      flex: 1;
+      padding: 40px;
+      margin-left: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      overflow-y: auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .header h2 {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #0F172A 0%, #10B981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+    }
+
+    .section {
+      background: var(--bg-section);
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .section:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+
+    .section h3 {
+      margin-top: 0;
+      margin-bottom: 24px;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input, select {
+      padding: 12px 16px;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      background: var(--bg-section);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+      transform: translateY(-1px);
+    }
+
+    input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    select {
+      min-width: 150px;
+      cursor: pointer;
+    }
+
+    .btn-add {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-sm);
+      letter-spacing: 0.01em;
+    }
+
+    .btn-add:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: linear-gradient(135deg, var(--accent-blue-hover) 0%, var(--accent-blue) 100%);
+    }
+
+    .btn-add:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-remove {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-3) 0%, #e53e3e 100%);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-remove:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: linear-gradient(135deg, #e53e3e 0%, var(--accent-3) 100%);
+    }
+
+    .btn-remove:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-sm);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 16px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr {
+      transition: all 0.2s ease;
+    }
+
+    tr:hover {
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      transform: scale(1.01);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .categoria-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+      transition: all 0.3s ease;
+    }
+
+    .categoria-item:hover {
+      border-color: var(--accent-blue);
+      transform: translateX(4px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .categoria-item span {
+      font-weight: 500;
+      color: var(--text-primary);
+      font-size: 15px;
+    }
+
+    .relatorio-categoria {
+      margin-bottom: 24px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    .relatorio-categoria h4 {
+      margin-top: 0;
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .total-categoria {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-top: 12px;
+      letter-spacing: -0.01em;
+    }
+
+    .categoria-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 24px;
+      justify-content: flex-start;
+    }
+
+    .categoria-card {
+      flex: 1;
+      min-width: 250px;
+      max-width: 320px;
+      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .categoria-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-2) 100%);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .categoria-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: var(--shadow-xl);
+      border-color: var(--accent-blue);
+    }
+
+    .categoria-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .categoria-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .categoria-card-nome {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .categoria-card-valor {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+    }
+
+    .categoria-card-itens {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 2px solid var(--border-color);
+    }
+
+    .categoria-card-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+      border-radius: 6px;
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+
+    .categoria-card-item:hover {
+      background: rgba(66, 153, 225, 0.05);
+      transform: translateX(4px);
+    }
+
+    .categoria-card-item-nome {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 500;
+    }
+
+    .categoria-card-item-valor {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-left: 12px;
+      font-size: 14px;
+    }
+
+    .categoria-card-ver-mais {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 2px solid var(--border-color);
+      text-align: center;
+      font-size: 13px;
+      color: var(--accent-blue);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      transition: all 0.2s ease;
+    }
+
+    .categoria-card:hover .categoria-card-ver-mais {
+      color: var(--accent-blue-hover);
+      transform: scale(1.05);
+    }
+
+    #modalItensCategoria {
+      z-index: 2000;
+    }
+
+    #modalItensCategoria .modal-content {
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-itens-lista {
+      margin-top: 16px;
+    }
+
+    .modal-item-linha {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+      transition: all 0.2s ease;
+      border-radius: 8px;
+      margin-bottom: 4px;
+    }
+
+    .modal-item-linha:hover {
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      transform: translateX(4px);
+      border-bottom-color: transparent;
+    }
+
+    .modal-item-linha:last-child {
+      border-bottom: none;
+    }
+
+    .modal-item-descricao {
+      flex: 1;
+      font-weight: 500;
+      color: var(--text-primary);
+      font-size: 15px;
+    }
+
+    .modal-item-mes {
+      color: var(--text-secondary);
+      font-size: 12px;
+      margin-left: 8px;
+      padding: 2px 8px;
+      background: rgba(66, 153, 225, 0.1);
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .modal-item-valor {
+      font-weight: 700;
+      color: var(--text-primary);
+      font-size: 15px;
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .filtros {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+      align-items: center;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-section);
+      padding: 32px;
+      border-radius: 20px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid var(--border-color);
+      animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+      margin-bottom: 24px;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .chart-container {
+      margin-top: 24px;
+      padding: 32px;
+      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 50%, #edf2f7 100%);
+      border-radius: 16px;
+      height: 450px;
+      position: relative;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .chart-container:hover {
+      box-shadow: var(--shadow-xl);
+      transform: translateY(-2px);
+    }
+
+    .chart-legend-mobile {
+      display: none;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .chart-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .chart-legend-item:hover {
+      transform: translateX(4px);
+      box-shadow: var(--shadow-sm);
+      border-color: var(--accent-blue);
+    }
+
+    .chart-legend-color {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .chart-legend-info {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .chart-legend-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 15px;
+      letter-spacing: -0.01em;
+    }
+
+    .chart-legend-value {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .chart-legend-percent {
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(66, 153, 225, 0.1);
+      color: var(--accent-blue);
+    }
+
+    @media (max-width: 768px) {
+      .chart-container {
+        height: 350px;
+        padding: 16px;
+      }
+
+      .chart-legend-mobile {
+        display: block;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 8px 4px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        overflow-y: auto;
+      }
+
+      .content {
+        padding: 16px;
+        margin-left: 0;
+        margin-top: 80px;
+      }
+
+      .categoria-cards {
+        justify-content: center;
+      }
+
+      .categoria-card {
+        flex: none;
+        width: 100%;
+        max-width: 100%;
+        min-width: auto;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/mobile-shell.css">
+</head>
+<body>
+
+  <div class="content">
+    <div class="header">
+      <h2>Relatório</h2>
+      <div class="header-actions">
+        <button class="btn-add" onclick="abrirModalCategorias()">Categoria</button>
+        <button class="btn-add" onclick="irParaResumoAnual()">Resumo Anual</button>
+      </div>
+    </div>
+
+    <!-- Modal de Categorias -->
+    <div id="modalCategorias" class="modal-overlay">
+      <div class="modal-content">
+        <h3>Administrar Categorias</h3>
+        <div class="form-row">
+          <input type="text" id="novaCategoria" placeholder="Nome da categoria" />
+          <button class="btn-add" onclick="finRunOnce(event, () => adicionarCategoria())">Adicionar Categoria</button>
+        </div>
+        <div id="listaCategorias" style="margin-top: 16px;">
+          <!-- Categorias serão listadas aqui -->
+        </div>
+        <div style="margin-top: 20px; text-align: center;">
+          <button class="btn-cancel" onclick="fecharModalCategorias()">Fechar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Filtros</h3>
+      <div class="filtros">
+        <select id="selectAno">
+          <!-- Anos serão populados via JS -->
+        </select>
+        <select id="selectMes">
+          <option value="">Todos os meses</option>
+          <!-- Meses serão populados via JS -->
+        </select>
+        <select id="selectCategoria">
+          <option value="">Todas as categorias</option>
+          <!-- Categorias serão populadas via JS -->
+        </select>
+        <button class="btn-cancel" onclick="carregarRelatorios()">Filtrar</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Gráfico por Categoria</h3>
+      <div class="chart-container">
+        <canvas id="graficoCategorias"></canvas>
+      </div>
+      <div id="chartLegendMobile" class="chart-legend-mobile">
+        <!-- Legenda será populada via JS no mobile -->
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Relatórios</h3>
+      <div id="relatorios">
+        <p style="color: var(--text-secondary); text-align: center; padding: 40px;">
+          Selecione os filtros acima e clique em "Filtrar" para visualizar os relatórios por categoria.
+        </p>
+      </div>
+    </div>
+
+    <!-- Modal para exibir itens da categoria -->
+    <div id="modalItensCategoria" class="modal-overlay">
+      <div class="modal-content">
+        <h3 id="modalCategoriaTitulo">Itens da Categoria</h3>
+        <div id="modalCategoriaTotal" class="total-categoria" style="margin-bottom: 16px;"></div>
+        <div id="modalCategoriaItens" class="modal-itens-lista">
+          <!-- Itens serão populados via JS -->
+        </div>
+        <div id="modalCategoriaSemCategoria" style="display: none;">
+          <div class="form-row" style="margin-top: 16px;">
+            <select id="modalCategoriaSelect" style="flex: 1;">
+              <option value="">Selecione uma categoria</option>
+            </select>
+            <button class="btn-add" onclick="finRunOnce(event, () => salvarCategoriaModal())">Adicionar</button>
+          </div>
+        </div>
+        <div style="margin-top: 20px; text-align: center;">
+          <button class="btn-cancel" onclick="fecharModalItensCategoria()">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const MESES = [
+      "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+      "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
+    ];
+    const ANO_BASE = 2025;
+    const ANO_LIMITE = ANO_BASE + 10;
+
+    const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+    const formatar = valor => moeda.format(Number(valor) || 0);
+
+    let currentUser = null;
+    let categoriasCache = [];
+    let graficoCategorias = null;
+
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileNavMenu');
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function abrirModalCategorias() {
+      document.getElementById('modalCategorias').classList.add('visible');
+      renderizarListaCategorias();
+    }
+
+    function fecharModalCategorias() {
+      document.getElementById('modalCategorias').classList.remove('visible');
+    }
+
+    function irParaResumoAnual() {
+      const selectAno = document.getElementById("selectAno");
+      const ano = selectAno.value || String(new Date().getFullYear());
+      window.location.href = `resumo.html?ano=${encodeURIComponent(ano)}`;
+    }
+
+    function popularListaAnos() {
+      const selectAno = document.getElementById("selectAno");
+      selectAno.innerHTML = "";
+      for (let ano = ANO_BASE; ano <= ANO_LIMITE; ano++) {
+        const option = document.createElement("option");
+        option.value = String(ano);
+        option.textContent = String(ano);
+        selectAno.appendChild(option);
+      }
+      const hoje = new Date();
+      let anoCorrente = hoje.getFullYear();
+      if (anoCorrente < ANO_BASE || anoCorrente > ANO_LIMITE) {
+        anoCorrente = ANO_BASE;
+      }
+      selectAno.value = String(anoCorrente);
+    }
+
+    function popularListaMeses() {
+      const selectMes = document.getElementById("selectMes");
+      selectMes.innerHTML = '<option value="">Todos os meses</option>';
+      MESES.forEach(mes => {
+        const option = document.createElement("option");
+        option.value = mes;
+        option.textContent = mes;
+        selectMes.appendChild(option);
+      });
+      // Define o mês atual como padrão
+      const hoje = new Date();
+      const mesAtual = MESES[hoje.getMonth()];
+      selectMes.value = mesAtual;
+    }
+
+    async function carregarCategorias() {
+      if (!currentUser) return;
+      try {
+        const categoriasRef = db.collection('users').doc(currentUser.uid).collection('categorias');
+        const snapshot = await categoriasRef.get();
+        categoriasCache = [];
+        snapshot.forEach(doc => {
+          categoriasCache.push({ id: doc.id, nome: doc.data().nome });
+        });
+        categoriasCache.sort((a, b) => a.nome.localeCompare(b.nome));
+        renderizarListaCategorias();
+        popularSelectCategoria();
+      } catch (error) {
+        console.error("Erro ao carregar categorias:", error);
+      }
+    }
+
+    function renderizarListaCategorias() {
+      const lista = document.getElementById("listaCategorias");
+      lista.innerHTML = "";
+      if (categoriasCache.length === 0) {
+        lista.innerHTML = '<p style="color: var(--text-secondary);">Nenhuma categoria cadastrada.</p>';
+        return;
+      }
+      categoriasCache.forEach(cat => {
+        const div = document.createElement("div");
+        div.className = "categoria-item";
+        div.innerHTML = `
+          <span>${cat.nome}</span>
+          <button class="btn-remove" onclick="finRunOnce(event, () => removerCategoria('${cat.id}'))">Remover</button>
+        `;
+        lista.appendChild(div);
+      });
+    }
+
+    function popularSelectCategoria() {
+      const select = document.getElementById("selectCategoria");
+      const valorAtual = select.value;
+      select.innerHTML = '<option value="">Todas as categorias</option><option value="Sem categoria">Sem categoria</option>';
+      categoriasCache.forEach(cat => {
+        const option = document.createElement("option");
+        option.value = cat.nome;
+        option.textContent = cat.nome;
+        select.appendChild(option);
+      });
+      if (valorAtual) {
+        select.value = valorAtual;
+      }
+    }
+
+    async function adicionarCategoria() {
+      if (!currentUser) return;
+      const input = document.getElementById("novaCategoria");
+      const nome = input.value.trim();
+      if (!nome) {
+        return alert("Por favor, digite o nome da categoria.");
+      }
+      if (categoriasCache.some(cat => cat.nome.toLowerCase() === nome.toLowerCase())) {
+        return alert("Esta categoria já existe.");
+      }
+      try {
+        const categoriasRef = db.collection('users').doc(currentUser.uid).collection('categorias');
+        await categoriasRef.add({ nome: nome });
+        input.value = "";
+        await carregarCategorias();
+        renderizarListaCategorias();
+      } catch (error) {
+        console.error("Erro ao adicionar categoria:", error);
+        alert("Erro ao adicionar categoria. Tente novamente.");
+      }
+    }
+
+    async function removerCategoria(categoriaId) {
+      if (!currentUser) return;
+      if (!confirm("Tem certeza que deseja remover esta categoria?")) {
+        return;
+      }
+      try {
+        const categoriaRef = db.collection('users').doc(currentUser.uid).collection('categorias').doc(categoriaId);
+        await categoriaRef.delete();
+        await carregarCategorias();
+        renderizarListaCategorias();
+      } catch (error) {
+        console.error("Erro ao remover categoria:", error);
+        alert("Erro ao remover categoria. Tente novamente.");
+      }
+    }
+
+    async function carregarRelatorios() {
+      if (!currentUser) return;
+      const selectAno = document.getElementById("selectAno");
+      const selectMes = document.getElementById("selectMes");
+      const selectCategoria = document.getElementById("selectCategoria");
+      const ano = selectAno.value;
+      const mes = selectMes.value;
+      const categoriaFiltro = selectCategoria.value;
+
+      if (!ano) {
+        return alert("Por favor, selecione um ano.");
+      }
+
+      const relatoriosDiv = document.getElementById("relatorios");
+      relatoriosDiv.innerHTML = "<p>Carregando...</p>";
+
+      try {
+        const relatoriosPorCategoria = {};
+        const totaisMensaisCategoriaFiltrada = {};
+        const mesesParaProcessar = mes ? [mes] : MESES;
+
+        for (const mesNome of mesesParaProcessar) {
+          if (!totaisMensaisCategoriaFiltrada[mesNome]) {
+            totaisMensaisCategoriaFiltrada[mesNome] = 0;
+          }
+          const mesRef = db.collection('users').doc(currentUser.uid).collection('anos').doc(ano).collection('meses').doc(mesNome);
+          const doc = await mesRef.get();
+          if (!doc.exists) continue;
+
+          const data = doc.data();
+          const tipos = ['contas', 'cartao', 'reservado', 'debito'];
+
+          tipos.forEach(tipo => {
+            const itens = data[tipo] || [];
+            itens.forEach((item, index) => {
+              const categoria = item.categoria || "Sem categoria";
+              if (categoriaFiltro && categoria !== categoriaFiltro) return;
+
+              if (!relatoriosPorCategoria[categoria]) {
+                relatoriosPorCategoria[categoria] = {
+                  total: 0,
+                  itens: [],
+                  mes: mesNome
+                };
+              }
+              const valorItem = Number(item.valor || 0);
+              relatoriosPorCategoria[categoria].total += valorItem;
+              if (categoriaFiltro && categoria === categoriaFiltro) {
+                totaisMensaisCategoriaFiltrada[mesNome] += valorItem;
+              }
+              relatoriosPorCategoria[categoria].itens.push({
+                ...item,
+                tipo: tipo,
+                mes: mesNome,
+                ano: ano,
+                index: index // Índice do item no array
+              });
+            });
+          });
+        }
+
+        renderizarRelatorios(relatoriosPorCategoria, mes, categoriaFiltro);
+        atualizarGrafico(relatoriosPorCategoria, {
+          ano,
+          mesSelecionado: mes,
+          categoriaSelecionada: categoriaFiltro,
+          totaisMensaisCategoriaFiltrada
+        });
+      } catch (error) {
+        console.error("Erro ao carregar relatórios:", error);
+        relatoriosDiv.innerHTML = "<p style='color: var(--accent-3);'>Erro ao carregar relatórios.</p>";
+      }
+    }
+
+    function atualizarGrafico(relatoriosPorCategoria, contexto = {}) {
+      const ctx = document.getElementById('graficoCategorias');
+      if (!ctx) return;
+
+      // Destrói o gráfico anterior se existir
+      if (graficoCategorias) {
+        graficoCategorias.destroy();
+      }
+
+      const categorias = Object.keys(relatoriosPorCategoria).filter(cat => cat !== "Sem categoria");
+      const valores = categorias.map(cat => relatoriosPorCategoria[cat].total);
+      const mostrarPorMesDaCategoria = !contexto.mesSelecionado && !!contexto.categoriaSelecionada;
+
+      let labelsGrafico = categorias;
+      let valoresGrafico = valores;
+      let tituloDataset = 'Valor Gasto';
+
+      if (mostrarPorMesDaCategoria) {
+        labelsGrafico = MESES;
+        valoresGrafico = MESES.map(mesNome => Number(contexto.totaisMensaisCategoriaFiltrada?.[mesNome] || 0));
+        tituloDataset = `Valor Gasto - ${contexto.categoriaSelecionada}`;
+      }
+
+      if (labelsGrafico.length === 0) {
+        // Se não houver categorias, mostra um gráfico vazio
+        graficoCategorias = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: [],
+            datasets: []
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false
+          }
+        });
+        return;
+      }
+
+      // Detecta se é mobile
+      const isMobile = window.innerWidth <= 768;
+      const tipoGrafico = isMobile ? 'doughnut' : 'bar';
+
+      // Cores modernas e vibrantes com gradiente
+      const coresBase = [
+        { bg: 'rgba(37, 99, 235, 0.9)', border: 'rgba(37, 99, 235, 1)' },
+        { bg: 'rgba(51, 194, 127, 0.9)', border: 'rgba(51, 194, 127, 1)' },
+        { bg: 'rgba(255, 193, 7, 0.9)', border: 'rgba(255, 193, 7, 1)' },
+        { bg: 'rgba(255, 107, 107, 0.9)', border: 'rgba(255, 107, 107, 1)' },
+        { bg: 'rgba(156, 39, 176, 0.9)', border: 'rgba(156, 39, 176, 1)' },
+        { bg: 'rgba(255, 152, 0, 0.9)', border: 'rgba(255, 152, 0, 1)' },
+        { bg: 'rgba(0, 188, 212, 0.9)', border: 'rgba(0, 188, 212, 1)' },
+        { bg: 'rgba(76, 175, 80, 0.9)', border: 'rgba(76, 175, 80, 1)' },
+        { bg: 'rgba(244, 67, 54, 0.9)', border: 'rgba(244, 67, 54, 1)' },
+        { bg: 'rgba(63, 81, 181, 0.9)', border: 'rgba(63, 81, 181, 1)' },
+        { bg: 'rgba(233, 30, 99, 0.9)', border: 'rgba(233, 30, 99, 1)' },
+        { bg: 'rgba(0, 150, 136, 0.9)', border: 'rgba(0, 150, 136, 1)' }
+      ];
+
+      const coresUsadas = coresBase.slice(0, labelsGrafico.length);
+      const backgrounds = coresUsadas.map(c => c.bg);
+      const borders = coresUsadas.map(c => c.border);
+
+      // Calcula percentuais para exibir nos tooltips
+      const total = valoresGrafico.reduce((acc, val) => acc + val, 0);
+
+      // Para desktop, cria gradientes mais bonitos
+      let backgroundsFinal = backgrounds;
+      let bordersFinal = borders;
+      
+      if (!isMobile && tipoGrafico === 'bar') {
+        const ctxCanvas = ctx.getContext('2d');
+        backgroundsFinal = backgrounds.map((bg, index) => {
+          const gradient = ctxCanvas.createLinearGradient(0, 0, 0, 400);
+          const baseColor = bg.replace('rgba(', '').replace(')', '').split(',');
+          const r = baseColor[0];
+          const g = baseColor[1];
+          const b = baseColor[2];
+          gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.9)`);
+          gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.6)`);
+          return gradient;
+        });
+        bordersFinal = borders.map(border => border.replace('0.8', '1'));
+      }
+
+      const configBase = {
+        type: tipoGrafico,
+        data: {
+          labels: labelsGrafico,
+          datasets: [{
+            label: tituloDataset,
+            data: valoresGrafico,
+            backgroundColor: backgroundsFinal,
+            borderColor: bordersFinal,
+            borderWidth: isMobile ? 2 : 3,
+            borderRadius: isMobile ? 4 : 8,
+            borderSkipped: false,
+            barThickness: isMobile ? 'flex' : 50,
+            maxBarThickness: isMobile ? 40 : 60,
+            barPercentage: isMobile ? 0.7 : 0.8,
+            categoryPercentage: isMobile ? 0.8 : 0.9
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: isMobile ? 5 : {
+              top: 20,
+              bottom: 20,
+              left: 20,
+              right: 20
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: isMobile ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.9)',
+              padding: isMobile ? 10 : 16,
+              titleFont: {
+                size: isMobile ? 12 : 16,
+                weight: 'bold',
+                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+              },
+              bodyFont: {
+                size: isMobile ? 11 : 14,
+                weight: '500',
+                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+              },
+              borderColor: 'rgba(255, 255, 255, 0.2)',
+              borderWidth: isMobile ? 1 : 2,
+              cornerRadius: isMobile ? 8 : 12,
+              displayColors: true,
+              boxPadding: isMobile ? 6 : 8,
+              titleSpacing: isMobile ? 4 : 6,
+              bodySpacing: isMobile ? 4 : 6,
+              titleAlign: 'center',
+              bodyAlign: 'center',
+              callbacks: {
+                label: function(context) {
+                  let value;
+                  if (tipoGrafico === 'doughnut') {
+                    value = context.parsed;
+                  } else {
+                    value = context.parsed.y;
+                  }
+                  const percent = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                  if (mostrarPorMesDaCategoria) {
+                    return `${formatar(value)} (${percent}% do período)`;
+                  }
+                  return `${formatar(value)} (${percent}%)`;
+                },
+                afterLabel: function(context) {
+                  if (mostrarPorMesDaCategoria) {
+                    return `Mês: ${context.label}`;
+                  }
+                  return `Categoria: ${context.label}`;
+                }
+              }
+            }
+          },
+          ...(tipoGrafico === 'bar' ? {
+            scales: {
+              x: {
+                grid: {
+                  display: false,
+                  drawBorder: false
+                },
+                ticks: {
+                  font: {
+                    size: isMobile ? 9 : 13,
+                    weight: '600',
+                    family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                  },
+                  color: 'rgba(0, 0, 0, 0.8)',
+                  maxRotation: isMobile ? 45 : 0,
+                  minRotation: isMobile ? 45 : 0,
+                  padding: isMobile ? 8 : 12
+                }
+              },
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: isMobile ? 'rgba(0, 0, 0, 0.05)' : 'rgba(0, 0, 0, 0.08)',
+                  lineWidth: isMobile ? 1 : 1.5,
+                  drawBorder: false
+                },
+                ticks: {
+                  callback: function(value) {
+                    return formatar(value);
+                  },
+                  font: {
+                    size: isMobile ? 9 : 12,
+                    weight: '600',
+                    family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                  },
+                  color: 'rgba(0, 0, 0, 0.7)',
+                  padding: isMobile ? 4 : 12
+                }
+              }
+            }
+          } : {
+            // Opções específicas para doughnut (mobile)
+            cutout: '60%'
+          }),
+          animation: {
+            duration: isMobile ? 1000 : 1500,
+            easing: isMobile ? 'easeOutQuart' : 'easeOutCubic',
+            delay: (context) => {
+              if (context.type === 'data' && context.mode === 'default') {
+                return context.dataIndex * 50;
+              }
+              return 0;
+            }
+          },
+          interaction: {
+            intersect: false,
+            mode: 'index'
+          },
+          onHover: (event, activeElements) => {
+            event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+          }
+        }
+      };
+
+      graficoCategorias = new Chart(ctx, configBase);
+
+      // Se for mobile, adiciona a legenda abaixo do gráfico
+      if (isMobile) {
+        atualizarLegendaMobile(labelsGrafico, valoresGrafico, backgrounds, total);
+      } else {
+        document.getElementById('chartLegendMobile').innerHTML = '';
+      }
+    }
+
+    function atualizarLegendaMobile(categorias, valores, cores, total) {
+      const legendDiv = document.getElementById('chartLegendMobile');
+      if (!legendDiv) return;
+
+      legendDiv.innerHTML = '';
+
+      // Cria array com os dados e calcula percentuais
+      const dadosOrdenados = categorias.map((categoria, index) => {
+        const valor = valores[index];
+        const cor = cores[index];
+        const percent = total > 0 ? ((valor / total) * 100) : 0;
+        return {
+          categoria,
+          valor,
+          cor,
+          percent: Number(percent)
+        };
+      });
+
+      // Ordena por percentual em ordem decrescente
+      dadosOrdenados.sort((a, b) => b.percent - a.percent);
+
+      // Renderiza os itens ordenados
+      dadosOrdenados.forEach(item => {
+        const percentFormatado = item.percent.toFixed(1);
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'chart-legend-item';
+        itemDiv.innerHTML = `
+          <div class="chart-legend-color" style="background-color: ${item.cor};"></div>
+          <div class="chart-legend-info">
+            <span class="chart-legend-name">${item.categoria}</span>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <span class="chart-legend-value">${formatar(item.valor)}</span>
+              <span class="chart-legend-percent">${percentFormatado}%</span>
+            </div>
+          </div>
+        `;
+        legendDiv.appendChild(itemDiv);
+      });
+    }
+
+    // Armazena os dados completos para o modal
+    let dadosCompletosRelatorios = {};
+
+    function renderizarRelatorios(relatoriosPorCategoria, mesSelecionado = '', categoriaFiltro = '') {
+      const relatoriosDiv = document.getElementById("relatorios");
+      relatoriosDiv.innerHTML = "";
+
+      const categorias = Object.keys(relatoriosPorCategoria).sort();
+      if (categorias.length === 0) {
+        relatoriosDiv.innerHTML = "<p style='color: var(--text-secondary);'>Nenhum dado encontrado para os filtros selecionados.</p>";
+        return;
+      }
+
+      // Armazena os dados completos para usar no modal
+      dadosCompletosRelatorios = relatoriosPorCategoria;
+
+      // Verifica se "Todos os meses" está selecionado (valor vazio)
+      const mostrarMes = !mesSelecionado || mesSelecionado === '';
+      const dividirCardsPorMes = mostrarMes && !!categoriaFiltro;
+
+      let totalGeral = 0;
+      let temItensSemCategoria = false;
+      let itensSemCategoria = [];
+
+      // Container para os cards
+      const cardsContainer = document.createElement("div");
+      cardsContainer.className = "categoria-cards";
+
+      function anexarCardCategoria(categoria, dados, opcoes = {}) {
+        const {
+          rotuloPrincipal = categoria,
+          mostrarMesNoPreview = mostrarMes,
+          tituloModalMes = null
+        } = opcoes;
+
+        totalGeral += dados.total;
+
+        const ehSemCategoria = categoria === "Sem categoria";
+        if (ehSemCategoria) {
+          temItensSemCategoria = true;
+          itensSemCategoria = dados.itens;
+        }
+
+        const itensPreview = dados.itens.slice(0, 3);
+        const totalItens = dados.itens.length;
+        const temMaisItens = totalItens > 3;
+
+        const card = document.createElement("div");
+        card.className = "categoria-card";
+        const mostrarMesNoModal = tituloModalMes ? false : mostrarMes;
+        card.onclick = () => abrirModalItensCategoria(categoria, dados, mostrarMesNoModal, ehSemCategoria, tituloModalMes);
+
+        let itensHTML = '';
+        if (itensPreview.length > 0) {
+          itensHTML = itensPreview.map(item => {
+            const descricao = item.nome || '-';
+            const descricaoTruncada = descricao.length > 25 ? descricao.substring(0, 25) + '...' : descricao;
+            const mesAbreviado = mostrarMesNoPreview && item.mes ? item.mes.substring(0, 3) : '';
+            return `
+              <div class="categoria-card-item">
+                <span class="categoria-card-item-nome">${descricaoTruncada}${mesAbreviado ? ` <span style="color: var(--text-secondary); font-size: 11px;">${mesAbreviado}</span>` : ''}</span>
+                <span class="categoria-card-item-valor">${formatar(item.valor || 0)}</span>
+              </div>
+            `;
+          }).join('');
+        } else {
+          itensHTML = '<div class="categoria-card-item" style="color: var(--text-secondary);">Nenhum item</div>';
+        }
+
+        card.innerHTML = `
+          <div class="categoria-card-header">
+            <div class="categoria-card-nome">${rotuloPrincipal}</div>
+            <div class="categoria-card-valor">${formatar(dados.total)}</div>
+          </div>
+          <div class="categoria-card-itens">
+            ${itensHTML}
+            ${temMaisItens ? `<div class="categoria-card-ver-mais">+${totalItens - 3} mais itens</div>` : ''}
+          </div>
+        `;
+
+        cardsContainer.appendChild(card);
+      }
+
+      if (dividirCardsPorMes && categorias.length === 1) {
+        const categoria = categorias[0];
+        const dados = relatoriosPorCategoria[categoria];
+        totalGeral = 0;
+        MESES.forEach(mesNome => {
+          const itensMes = dados.itens.filter(item => item.mes === mesNome);
+          if (!itensMes.length) return;
+          const totalMes = itensMes.reduce((s, i) => s + Number(i.valor || 0), 0);
+          const dadosMes = { total: totalMes, itens: itensMes };
+          const rotulo = `${mesNome}<span style="display:block;font-size:14px;font-weight:500;color:var(--text-secondary);margin-top:4px;">${categoria}</span>`;
+          anexarCardCategoria(categoria, dadosMes, {
+            rotuloPrincipal: rotulo,
+            mostrarMesNoPreview: false,
+            tituloModalMes: mesNome
+          });
+        });
+      } else {
+        categorias.forEach(categoria => {
+          const dados = relatoriosPorCategoria[categoria];
+          anexarCardCategoria(categoria, dados);
+        });
+      }
+
+      relatoriosDiv.appendChild(cardsContainer);
+
+      // Se houver itens sem categoria, adiciona botão para salvar
+      if (temItensSemCategoria) {
+        const divSemCategoria = document.createElement("div");
+        divSemCategoria.style.cssText = "margin-top: 24px; text-align: center;";
+        divSemCategoria.innerHTML = `
+          <button class="btn-add" onclick="finRunOnce(event, () => salvarTodasCategorias())" style="padding: 12px 24px; font-size: 16px;">Salvar Alterações de Categorias</button>
+        `;
+        relatoriosDiv.appendChild(divSemCategoria);
+      }
+
+      const totalDiv = document.createElement("div");
+      totalDiv.style.cssText = "margin-top: 32px; padding: 24px; background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%); color: #fff; border-radius: 16px; font-size: 24px; font-weight: 700; text-align: center; box-shadow: var(--shadow-lg); letter-spacing: -0.02em;";
+      totalDiv.textContent = `Total Geral: ${formatar(totalGeral)}`;
+      relatoriosDiv.appendChild(totalDiv);
+    }
+
+    function abrirModalItensCategoria(categoria, dados, mostrarMes, ehSemCategoria, mesNoTitulo = null) {
+      const modal = document.getElementById('modalItensCategoria');
+      const titulo = document.getElementById('modalCategoriaTitulo');
+      const total = document.getElementById('modalCategoriaTotal');
+      const itensDiv = document.getElementById('modalCategoriaItens');
+      const semCategoriaDiv = document.getElementById('modalCategoriaSemCategoria');
+
+      titulo.textContent = mesNoTitulo ? `${categoria} — ${mesNoTitulo}` : categoria;
+      total.textContent = `Total: ${formatar(dados.total)}`;
+
+      itensDiv.innerHTML = '';
+
+      if (dados.itens.length === 0) {
+        itensDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Nenhum item encontrado.</p>';
+      } else {
+        dados.itens.forEach((item, index) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.className = "modal-item-linha";
+
+          const descricao = item.nome || '-';
+          const mesAbreviado = mostrarMes && item.mes ? item.mes.substring(0, 3) : '';
+          const mesSpan = mesAbreviado ? `<span class="modal-item-mes">${mesAbreviado}</span>` : '';
+
+          itemDiv.innerHTML = `
+            <div class="modal-item-descricao">${descricao}${mesSpan}</div>
+            <div class="modal-item-valor">${formatar(item.valor || 0)}</div>
+          `;
+
+          itensDiv.appendChild(itemDiv);
+        });
+      }
+
+      // Se for categoria "Sem categoria", mostra o formulário para adicionar categoria
+      if (ehSemCategoria) {
+        semCategoriaDiv.style.display = 'block';
+        const select = document.getElementById('modalCategoriaSelect');
+        select.innerHTML = '<option value="">Selecione uma categoria</option>';
+        categoriasCache.forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat.nome;
+          option.textContent = cat.nome;
+          select.appendChild(option);
+        });
+        // Armazena os itens sem categoria para poder salvar depois
+        window.itensSemCategoriaModal = dados.itens;
+      } else {
+        semCategoriaDiv.style.display = 'none';
+      }
+
+      modal.classList.add('visible');
+
+      // Adiciona listener para fechar ao clicar fora do modal
+      modal.onclick = function(event) {
+        // Se o clique foi diretamente no overlay (não no conteúdo do modal)
+        if (event.target === modal) {
+          fecharModalItensCategoria();
+        }
+      };
+    }
+
+    function fecharModalItensCategoria() {
+      const modal = document.getElementById('modalItensCategoria');
+      modal.classList.remove('visible');
+      // Remove o listener ao fechar
+      modal.onclick = null;
+    }
+
+    async function salvarCategoriaModal() {
+      const select = document.getElementById('modalCategoriaSelect');
+      const categoria = select.value.trim();
+      if (!categoria) {
+        return alert("Por favor, selecione uma categoria.");
+      }
+
+      if (!window.itensSemCategoriaModal || window.itensSemCategoriaModal.length === 0) {
+        return alert("Nenhum item para atualizar.");
+      }
+
+      // Usa a mesma lógica de salvarTodasCategorias mas apenas para os itens do modal
+      const alteracoes = window.itensSemCategoriaModal.map(item => ({
+        ano: item.ano,
+        mes: item.mes,
+        tipo: item.tipo,
+        index: item.index,
+        categoria: categoria
+      }));
+
+      try {
+        const alteracoesPorMes = {};
+        alteracoes.forEach(alt => {
+          const chave = `${alt.ano}_${alt.mes}`;
+          if (!alteracoesPorMes[chave]) {
+            alteracoesPorMes[chave] = [];
+          }
+          alteracoesPorMes[chave].push(alt);
+        });
+
+        const batch = db.batch();
+        for (const chave in alteracoesPorMes) {
+          const [ano, mes] = chave.split('_');
+          const mesRef = db.collection('users').doc(currentUser.uid).collection('anos').doc(ano).collection('meses').doc(mes);
+          const doc = await mesRef.get();
+          
+          if (!doc.exists) continue;
+
+          const data = doc.data();
+          const alteracoesDoMes = alteracoesPorMes[chave];
+          const alteracoesPorTipo = {};
+          alteracoesDoMes.forEach(alt => {
+            if (!alteracoesPorTipo[alt.tipo]) {
+              alteracoesPorTipo[alt.tipo] = [];
+            }
+            alteracoesPorTipo[alt.tipo].push(alt);
+          });
+
+          for (const tipo in alteracoesPorTipo) {
+            const itens = [...(data[tipo] || [])];
+            alteracoesPorTipo[tipo].forEach(alt => {
+              if (alt.index >= 0 && alt.index < itens.length) {
+                itens[alt.index] = { ...itens[alt.index], categoria: alt.categoria };
+              }
+            });
+            batch.update(mesRef, { [tipo]: itens });
+          }
+        }
+
+        await batch.commit();
+        alert(`${alteracoes.length} categoria(s) salva(s) com sucesso!`);
+        fecharModalItensCategoria();
+        await carregarRelatorios();
+      } catch (error) {
+        console.error("Erro ao salvar categorias:", error);
+        alert("Erro ao salvar categorias. Tente novamente.");
+      }
+    }
+
+    async function salvarTodasCategorias() {
+      if (!currentUser) return;
+
+      // Coleta todas as alterações
+      const alteracoes = [];
+      const selects = document.querySelectorAll('select[id^="categoriaSelect_"]');
+      
+      selects.forEach(select => {
+        const categoria = select.value.trim();
+        if (categoria) {
+          const id = select.id;
+          const partes = id.replace('categoriaSelect_', '').split('_');
+          const ano = partes[0];
+          const mes = partes[1];
+          const tipo = partes[2];
+          const index = parseInt(partes[3]);
+          
+          alteracoes.push({ ano, mes, tipo, index, categoria });
+        }
+      });
+
+      if (alteracoes.length === 0) {
+        return alert("Nenhuma categoria selecionada para salvar.");
+      }
+
+      try {
+        // Agrupa alterações por mês para otimizar as atualizações
+        const alteracoesPorMes = {};
+        alteracoes.forEach(alt => {
+          const chave = `${alt.ano}_${alt.mes}`;
+          if (!alteracoesPorMes[chave]) {
+            alteracoesPorMes[chave] = [];
+          }
+          alteracoesPorMes[chave].push(alt);
+        });
+
+        // Atualiza cada mês
+        const batch = db.batch();
+        for (const chave in alteracoesPorMes) {
+          const [ano, mes] = chave.split('_');
+          const mesRef = db.collection('users').doc(currentUser.uid).collection('anos').doc(ano).collection('meses').doc(mes);
+          const doc = await mesRef.get();
+          
+          if (!doc.exists) {
+            console.warn(`Mês ${mes}/${ano} não encontrado.`);
+            continue;
+          }
+
+          const data = doc.data();
+          const alteracoesDoMes = alteracoesPorMes[chave];
+          
+          // Agrupa alterações por tipo
+          const alteracoesPorTipo = {};
+          alteracoesDoMes.forEach(alt => {
+            if (!alteracoesPorTipo[alt.tipo]) {
+              alteracoesPorTipo[alt.tipo] = [];
+            }
+            alteracoesPorTipo[alt.tipo].push(alt);
+          });
+
+          // Atualiza cada tipo de item
+          for (const tipo in alteracoesPorTipo) {
+            const itens = [...(data[tipo] || [])];
+            alteracoesPorTipo[tipo].forEach(alt => {
+              if (alt.index >= 0 && alt.index < itens.length) {
+                itens[alt.index] = { ...itens[alt.index], categoria: alt.categoria };
+              }
+            });
+            batch.update(mesRef, { [tipo]: itens });
+          }
+        }
+
+        await batch.commit();
+        alert(`${alteracoes.length} categoria(s) salva(s) com sucesso!`);
+        
+        // Recarrega os relatórios
+        await carregarRelatorios();
+      } catch (error) {
+        console.error("Erro ao salvar categorias:", error);
+        alert("Erro ao salvar categorias. Tente novamente.");
+      }
+    }
+
+    // Fechar modal ao clicar fora
+    document.addEventListener('click', (e) => {
+      const modal = document.getElementById('modalCategorias');
+      if (e.target === modal) {
+        fecharModalCategorias();
+      }
+    });
+
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        currentUser = user;
+        popularListaAnos();
+        popularListaMeses();
+        await carregarCategorias();
+        // Carrega automaticamente o relatório do mês atual
+        await carregarRelatorios();
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+  <script src="js/mobile-nav.js?v=7"></script>
+</body>
+</html>
+

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurações</title>
+  <link rel="icon" href="img/icone.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="sidebar.css?v=4">
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/mobile-shell.css">
+  <script src="js/fin-run-once.js"></script>
+  <script src="js/fin-sdk.js"></script>
+  <script src="sidebar.js?v=4"></script>
+  <style>
+    body {
+      margin: 0;
+      background: #F8FAFC;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 40px 24px 120px;
+      max-width: 640px;
+    }
+
+    .config-header h1 {
+      margin: 0 0 8px;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #0F172A;
+    }
+
+    .config-header p {
+      margin: 0 0 28px;
+      color: #64748B;
+      font-size: 14px;
+    }
+
+    .config-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    }
+
+    .config-card h2 {
+      margin: 0 0 16px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0F172A;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748B;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 14px;
+      box-sizing: border-box;
+      color: #0F172A;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #10B981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+
+    .form-hint {
+      margin: 8px 0 0;
+      font-size: 12px;
+      color: #64748B;
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .config-message {
+      display: none;
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    .config-message.success {
+      display: block;
+      background: rgba(16, 185, 129, 0.1);
+      color: #047857;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .config-message.error {
+      display: block;
+      background: rgba(239, 68, 68, 0.08);
+      color: #B91C1C;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-logout-wrap {
+      margin-top: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        margin-left: 0;
+        padding: 16px 16px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="content">
+    <div class="config-header">
+      <h1>Configurações</h1>
+      <p>Atualize seus dados pessoais, contato e senha de acesso.</p>
+    </div>
+
+    <div id="configMessage" class="config-message" role="alert"></div>
+
+    <section class="config-card">
+      <h2>Dados pessoais</h2>
+      <form id="formPerfil">
+        <div class="form-group">
+          <label for="inputNome">Nome</label>
+          <input type="text" id="inputNome" autocomplete="name" required />
+        </div>
+        <div class="form-group">
+          <label for="inputEmail">Email</label>
+          <input type="email" id="inputEmail" autocomplete="email" required />
+          <p class="form-hint">Para alterar o email, informe sua senha atual abaixo.</p>
+        </div>
+        <div class="form-group">
+          <label for="inputTelefone">Telefone</label>
+          <input type="tel" id="inputTelefone" autocomplete="tel" placeholder="(00) 00000-0000" maxlength="15" />
+        </div>
+        <div class="form-group">
+          <label for="inputCpf">CPF</label>
+          <input type="text" id="inputCpf" autocomplete="off" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" />
+        </div>
+        <div class="form-group">
+          <label for="inputSenhaAtualPerfil">Senha atual</label>
+          <input type="password" id="inputSenhaAtualPerfil" autocomplete="current-password" placeholder="Obrigatória se alterar o email" />
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-add" id="btnSalvarPerfil">Salvar alterações</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="config-card">
+      <h2>Alterar senha</h2>
+      <form id="formSenha">
+        <div class="form-group">
+          <label for="inputSenhaAtual">Senha atual</label>
+          <input type="password" id="inputSenhaAtual" autocomplete="current-password" required />
+        </div>
+        <div class="form-group">
+          <label for="inputSenhaNova">Nova senha</label>
+          <input type="password" id="inputSenhaNova" autocomplete="new-password" minlength="6" required />
+        </div>
+        <div class="form-group">
+          <label for="inputSenhaNovaConfirma">Confirmar nova senha</label>
+          <input type="password" id="inputSenhaNovaConfirma" autocomplete="new-password" minlength="6" required />
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-add" id="btnSalvarSenha">Atualizar senha</button>
+        </div>
+      </form>
+    </section>
+
+    <div class="btn-logout-wrap">
+      <button type="button" class="btn-cancel" id="btnSair" style="width:100%;">Sair da conta</button>
+    </div>
+  </main>
+
+  <script src="js/mobile-nav.js?v=7"></script>
+  <script>
+    const auth = firebase.auth();
+    const TOKEN_KEY = 'fin_token';
+    const USER_KEY = 'fin_user';
+    const API_BASE = window.FIN_API_BASE || '';
+
+    let dadosOriginais = { name: '', email: '', phone: '', cpf: '' };
+
+    function apenasDigitos(valor) {
+      return String(valor || '').replace(/\D/g, '');
+    }
+
+    function mascaraCpf(valor) {
+      const d = apenasDigitos(valor).slice(0, 11);
+      if (!d.length) return '';
+      if (d.length <= 3) return d;
+      if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`;
+      if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
+      return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+    }
+
+    function mascaraTelefone(valor) {
+      const d = apenasDigitos(valor).slice(0, 11);
+      if (!d.length) return '';
+      if (d.length <= 2) return `(${d}`;
+      if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+      if (d.length <= 10) {
+        return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+      }
+      return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+    }
+
+    function vincularMascara(input, mascaraFn) {
+      input.addEventListener('input', () => {
+        input.value = mascaraFn(input.value);
+      });
+      input.addEventListener('blur', () => {
+        input.value = mascaraFn(input.value);
+      });
+    }
+
+    vincularMascara(document.getElementById('inputTelefone'), mascaraTelefone);
+    vincularMascara(document.getElementById('inputCpf'), mascaraCpf);
+
+    function mostrarMensagem(texto, tipo) {
+      const el = document.getElementById('configMessage');
+      el.textContent = texto;
+      el.className = 'config-message ' + tipo;
+    }
+
+    function limparMensagem() {
+      const el = document.getElementById('configMessage');
+      el.textContent = '';
+      el.className = 'config-message';
+    }
+
+    async function apiPatchPerfil(body) {
+      const token = localStorage.getItem(TOKEN_KEY);
+      const response = await fetch(`${API_BASE}/api/auth/me`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      let payload = null;
+      const text = await response.text();
+      if (text) {
+        try { payload = JSON.parse(text); } catch { payload = { detail: text }; }
+      }
+
+      if (!response.ok) {
+        const detail = payload?.detail || 'Não foi possível salvar as alterações.';
+        throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
+      }
+      return payload;
+    }
+
+    function preencherFormulario(user) {
+      document.getElementById('inputNome').value = user.name || '';
+      document.getElementById('inputEmail').value = user.email || '';
+      document.getElementById('inputTelefone').value = mascaraTelefone(user.phone || '');
+      document.getElementById('inputCpf').value = mascaraCpf(user.cpf || '');
+    }
+
+    function normalizarContato(user) {
+      return {
+        name: user.name || '',
+        email: user.email || '',
+        phone: mascaraTelefone(user.phone || ''),
+        cpf: mascaraCpf(user.cpf || ''),
+      };
+    }
+
+    function aplicarSessao(res) {
+      localStorage.setItem(TOKEN_KEY, res.token);
+      localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+      dadosOriginais = normalizarContato(res.user);
+      preencherFormulario(res.user);
+    }
+
+    async function carregarPerfil() {
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const response = await fetch(`${API_BASE}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const user = await response.json();
+      dadosOriginais = normalizarContato(user);
+      preencherFormulario(user);
+    }
+
+    document.getElementById('formPerfil').addEventListener('submit', (e) => {
+      e.preventDefault();
+      finRunOnce(document.getElementById('btnSalvarPerfil'), async () => {
+        limparMensagem();
+        const nome = document.getElementById('inputNome').value.trim();
+        const email = document.getElementById('inputEmail').value.trim().toLowerCase();
+        const telefone = mascaraTelefone(document.getElementById('inputTelefone').value);
+        const cpf = mascaraCpf(document.getElementById('inputCpf').value);
+        const senhaAtual = document.getElementById('inputSenhaAtualPerfil').value;
+
+        if (!nome || !email) {
+          mostrarMensagem('Preencha nome e email.', 'error');
+          return;
+        }
+
+        const body = {};
+        if (nome !== dadosOriginais.name) body.name = nome;
+        if (email !== dadosOriginais.email) {
+          body.email = email;
+          if (!senhaAtual) {
+            mostrarMensagem('Informe a senha atual para alterar o email.', 'error');
+            return;
+          }
+          body.current_password = senhaAtual;
+        }
+        if (telefone !== dadosOriginais.phone) body.phone = telefone;
+        if (cpf !== dadosOriginais.cpf) body.cpf = cpf;
+
+        if (!Object.keys(body).length) {
+          mostrarMensagem('Nenhuma alteração para salvar.', 'error');
+          return;
+        }
+
+        try {
+          const res = await apiPatchPerfil(body);
+          aplicarSessao(res);
+          document.getElementById('inputSenhaAtualPerfil').value = '';
+          mostrarMensagem('Dados atualizados com sucesso.', 'success');
+        } catch (err) {
+          mostrarMensagem(err.message, 'error');
+        }
+      });
+    });
+
+    document.getElementById('formSenha').addEventListener('submit', (e) => {
+      e.preventDefault();
+      finRunOnce(document.getElementById('btnSalvarSenha'), async () => {
+        limparMensagem();
+        const senhaAtual = document.getElementById('inputSenhaAtual').value;
+        const senhaNova = document.getElementById('inputSenhaNova').value;
+        const confirma = document.getElementById('inputSenhaNovaConfirma').value;
+
+        if (senhaNova.length < 6) {
+          mostrarMensagem('A nova senha deve ter no mínimo 6 caracteres.', 'error');
+          return;
+        }
+        if (senhaNova !== confirma) {
+          mostrarMensagem('A confirmação da senha não confere.', 'error');
+          return;
+        }
+
+        try {
+          const res = await apiPatchPerfil({
+            current_password: senhaAtual,
+            new_password: senhaNova,
+          });
+          aplicarSessao(res);
+          document.getElementById('formSenha').reset();
+          mostrarMensagem('Senha atualizada com sucesso.', 'success');
+        } catch (err) {
+          mostrarMensagem(err.message, 'error');
+        }
+      });
+    });
+
+    document.getElementById('btnSair').addEventListener('click', () => {
+      auth.signOut().then(() => window.location.href = 'login.html');
+    });
+
+    auth.onAuthStateChanged((user) => {
+      if (!user) window.location.href = 'login.html';
+      else carregarPerfil();
+    });
+  </script>
+</body>
+</html>

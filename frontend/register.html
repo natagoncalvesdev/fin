@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastro - Controle Financeiro</title>
+  <link rel="icon" href="img/icone.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="css/theme.css?v=3" />
+  <script src="js/fin-run-once.js"></script>
+  <script src="js/fin-sdk.js"></script>
+</head>
+<body class="auth-page">
+  <div class="auth-shell">
+    <img src="img/logo.png" alt="Controle" class="auth-logo" />
+    <div class="auth-container">
+    <h1>Crie sua conta</h1>
+    <form id="register-form">
+      <div class="form-group">
+        <label for="name">Nome</label>
+        <input type="text" id="name" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Senha (mínimo 6 caracteres)</label>
+        <input type="password" id="password" required>
+      </div>
+      <button type="submit" class="btn-add">Cadastrar</button>
+    </form>
+    <p id="error-message" class="auth-error"></p>
+    <p class="auth-footer">Já tem uma conta? <a href="login.html">Faça login</a></p>
+    </div>
+  </div>
+
+  <script>
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const registerForm = document.getElementById('register-form');
+    const errorMessage = document.getElementById('error-message');
+
+    registerForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const submitBtn = registerForm.querySelector('button[type="submit"]');
+      finRunOnce(submitBtn, async () => {
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        errorMessage.style.display = 'none';
+        try {
+          const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+          const user = userCredential.user;
+          await db.collection('users').doc(user.uid).set({
+            name: name,
+            email: email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+          window.location.href = 'index.html';
+        } catch (error) {
+          console.error("Erro durante o cadastro:", error);
+          let msg = "Ocorreu um erro desconhecido. Tente novamente.";
+
+          if (error.code) {
+            if (error.code === 'auth/weak-password') {
+              msg = 'A senha deve ter no mínimo 6 caracteres.';
+            } else if (error.code === 'auth/email-already-in-use') {
+              msg = 'Este email já está em uso.';
+            } else if (error.code === 'permission-denied' || error.code === 'unavailable') {
+              msg = 'Não foi possível salvar os dados do usuário. Verifique as regras de segurança do Firestore.';
+            } else if (error.code === 'auth/invalid-email') {
+              msg = 'Email inválido.';
+            }
+          }
+
+          errorMessage.textContent = msg;
+          errorMessage.style.display = 'block';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

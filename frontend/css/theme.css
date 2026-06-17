@@ -1,0 +1,332 @@
+/* Identidade visual — Montserrat + paleta da marca */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
+:root {
+  --brand-emerald: #10B981;
+  --brand-emerald-dark: #059669;
+  --brand-dark: #0F172A;
+  --brand-gold: #F59E0B;
+  --brand-bg: #F8FAFC;
+  --brand-white: #FFFFFF;
+
+  --bg-main: var(--brand-bg);
+  --bg-section: var(--brand-white);
+  --text-primary: var(--brand-dark);
+  --text-secondary: #64748B;
+  --border-color: #E2E8F0;
+
+  --sidebar-bg: var(--brand-dark);
+  --sidebar-text: #F8FAFC;
+  --sidebar-item-bg: rgba(255, 255, 255, 0.08);
+  --sidebar-item-hover: rgba(255, 255, 255, 0.14);
+
+  --accent: var(--brand-gold);
+  --accent-2: var(--brand-emerald);
+  --accent-3: #EF4444;
+  --accent-blue: var(--brand-emerald);
+  --accent-blue-hover: var(--brand-emerald-dark);
+  --accent-green: var(--brand-emerald);
+  --accent-red: #EF4444;
+
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+
+  --btn-radius: 999px;
+  --font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Logo na sidebar */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  padding: 4px 0;
+}
+
+.sidebar-logo {
+  display: block;
+  max-width: 72px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+@media (max-width: 768px) {
+  .sidebar-logo {
+    max-width: 120px;
+    max-height: 40px;
+  }
+}
+
+/* Botão primário — verde sólido, texto branco, formato pílula */
+.btn-add,
+.btn-confirm,
+.btn-primary,
+button.btn-primary,
+.modal-actions .btn-confirm,
+.footer-actions .btn-add,
+.section-actions .btn-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px solid transparent;
+  border-radius: var(--btn-radius);
+  background: var(--brand-emerald);
+  color: var(--brand-white);
+  padding: 12px 28px;
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  letter-spacing: 0.01em;
+  text-decoration: none;
+}
+
+.btn-add:hover,
+.btn-confirm:hover,
+.btn-primary:hover,
+.modal-actions .btn-confirm:hover {
+  background: var(--brand-emerald-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-add:active,
+.btn-confirm:active,
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Botão secundário — contorno verde, fundo branco */
+.btn-cancel,
+.btn-secondary,
+.modal-actions .btn-cancel,
+button.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px solid var(--brand-emerald);
+  border-radius: var(--btn-radius);
+  background: var(--brand-white);
+  color: var(--brand-emerald);
+  padding: 12px 28px;
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  letter-spacing: 0.01em;
+  text-decoration: none;
+}
+
+.btn-cancel:hover,
+.btn-secondary:hover,
+.modal-actions .btn-cancel:hover {
+  background: rgba(16, 185, 129, 0.08);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-cancel:active,
+.btn-secondary:active {
+  transform: translateY(0);
+}
+
+/* Navegação sidebar */
+.btn-sidebar.active {
+  background: var(--brand-emerald) !important;
+  color: var(--brand-white) !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.mobile-nav-menu a:hover {
+  background: rgba(16, 185, 129, 0.2);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #E2E8F0;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #94A3B8;
+  border-radius: 10px;
+  border: 2px solid #E2E8F0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748B;
+}
+
+/* Páginas de autenticação */
+.auth-page {
+  font-family: var(--font-family);
+  background-color: var(--brand-bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 24px 20px;
+  box-sizing: border-box;
+  color: var(--text-primary);
+}
+
+.auth-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: min(480px, calc(100vw - 40px));
+  max-width: 480px;
+  gap: 28px;
+}
+
+.auth-logo {
+  display: block;
+  max-width: 240px;
+  width: min(240px, 80vw);
+  height: auto;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.auth-container {
+  background: var(--brand-white);
+  padding: 36px 32px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.auth-container form {
+  width: 100%;
+}
+
+.auth-container h1 {
+  margin: 0 0 24px;
+  color: var(--brand-dark);
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.auth-container .form-group {
+  margin-bottom: 20px;
+  text-align: left;
+  width: 100%;
+}
+
+.auth-container label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.auth-container input {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-sizing: border-box;
+  font-family: var(--font-family);
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.auth-container input:focus {
+  outline: none;
+  border-color: var(--brand-emerald);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.auth-container button[type="submit"] {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.auth-footer {
+  margin-top: 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.auth-footer a {
+  color: var(--brand-emerald);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+.auth-error {
+  color: #DC2626;
+  margin-top: 15px;
+  display: none;
+  font-size: 14px;
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 20px 16px;
+  }
+
+  .auth-container {
+    padding: 32px 24px;
+  }
+}
+
+.section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-family);
+  color: var(--brand-dark);
+}
+
+select,
+input,
+textarea,
+button {
+  font-family: var(--font-family);
+}

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resumo Anual | Controle</title>
+  <link rel="icon" href="img/icone.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="sidebar.css?v=4">
+  <script src="js/fin-sdk.js"></script>
+  <script src="sidebar.js?v=4"></script>
+  <style>
+    :root {
+      --bg-main: #F8FAFC;
+      --bg-section: #FFFFFF;
+      --text-primary: #0F172A;
+      --text-secondary: #64748B;
+      --border-color: #E2E8F0;
+      --sidebar-bg: #0F172A;
+      --sidebar-text: #F8FAFC;
+      --sidebar-item-bg: rgba(255, 255, 255, 0.08);
+      --sidebar-item-hover: rgba(255, 255, 255, 0.14);
+      --accent: #F59E0B;
+      --accent-2: #10B981;
+      --accent-3: #EF4444;
+      --accent-blue: #10B981;
+      --accent-blue-hover: #059669;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.08);
+      --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+    }
+
+    * { box-sizing: border-box; }
+
+    /* Scrollbar personalizado */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #cbd5e0 0%, #94a3b8 100%);
+      border-radius: 10px;
+      border: 2px solid #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      min-height: 100vh;
+      background: #F8FAFC;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .content {
+      flex: 1;
+      padding: 40px;
+      margin-left: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .header h2 {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #0F172A 0%, #10B981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+    }
+
+    .period-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .period-controls select {
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 2px solid var(--border-color);
+      background: var(--bg-section);
+      color: var(--text-primary);
+      min-width: 140px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .period-controls select:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-add {
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
+      color: #ffffff;
+      padding: 12px 24px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-sm);
+      letter-spacing: 0.01em;
+      font-size: 14px;
+    }
+    .btn-add:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: linear-gradient(135deg, var(--accent-blue-hover) 0%, var(--accent-blue) 100%);
+    }
+    .btn-add:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .section {
+      background: var(--bg-section);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .section:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+
+    .section h3 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .resumo {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-2) 100%);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--accent-blue);
+    }
+
+    .card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .card small {
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .card strong {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .card.green strong { color: var(--accent-2); }
+    .card.red strong { color: var(--accent-3); }
+    .card.yellow strong { color: var(--accent); }
+    .card.blue strong { color: #007bff; }
+
+    .table-wrapper {
+      max-height: 60vh;
+      overflow: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    th, td {
+      padding: 16px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-color);
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    tr {
+      transition: all 0.2s ease;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f9fafb;
+    }
+
+    tbody tr:hover {
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      transform: scale(1.01);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .info-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+
+      .content {
+        margin-left: 0;
+        margin-top: 80px;
+        padding: 16px;
+      }
+      .header h2 {
+        font-size: 22px;
+      }
+      .resumo {
+        grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+        gap: 12px;
+      }
+      .card {
+        padding: 12px;
+      }
+      .card strong {
+        font-size: 18px;
+      }
+      .period-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn-add {
+        width: 100%;
+      }
+      th, td {
+        padding: 8px 4px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/mobile-shell.css">
+</head>
+<body>
+
+  <main class="content">
+    <div class="header">
+      <h2>Resumo financeiro anual</h2>
+      <p class="info-text" id="infoUsuario">Carregando usuário...</p>
+      <div class="period-controls">
+        <select id="selectAnoResumo"></select>
+        <button class="btn-cancel" onclick="window.location.href='financeiro.html'">Voltar para o financeiro</button>
+      </div>
+    </div>
+
+    <section class="section">
+      <h3>Totais do ano <span id="tituloAnoResumo"></span></h3>
+      <div class="resumo">
+        <div class="card yellow">
+          <small>Total contas (inclui cartão e débito)</small>
+          <strong id="anualTotalContas">R$ 0,00</strong>
+        </div>
+        <div class="card green">
+          <small>Total entradas</small>
+          <strong id="anualTotalEntradas">R$ 0,00</strong>
+        </div>
+        <div class="card red">
+          <small>Saldo disponível</small>
+          <strong id="anualSaldoDisponivel">R$ 0,00</strong>
+        </div>
+        <div class="card blue">
+          <small>Total reservado</small>
+          <strong id="anualTotalReservado">R$ 0,00</strong>
+        </div>
+      </div>
+      <p class="info-text" id="statusCarregamento">Carregando dados do ano...</p>
+    </section>
+
+    <section class="section">
+      <h3>Detalhamento por mês</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Mês</th>
+              <th>Total contas</th>
+              <th>Cartão de crédito</th>
+              <th>Total entradas</th>
+              <th>Saldo disponível</th>
+              <th>Total reservado</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaResumoAnual"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const MESES = [
+      "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+      "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
+    ];
+    const ANO_BASE = 2025;
+    const ANO_LIMITE = ANO_BASE + 10;
+
+    const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+    const formatar = valor => moeda.format(Number(valor) || 0);
+
+    let currentUser = null;
+    let anoAtualResumo = "";
+
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileNavMenu');
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function popularListaAnosResumo() {
+      const select = document.getElementById("selectAnoResumo");
+      select.innerHTML = "";
+      for (let ano = ANO_BASE; ano <= ANO_LIMITE; ano++) {
+        const option = document.createElement("option");
+        option.value = String(ano);
+        option.textContent = String(ano);
+        select.appendChild(option);
+      }
+    }
+
+    function obterAnoInicial() {
+      const params = new URLSearchParams(window.location.search);
+      const anoParam = params.get("ano");
+      let ano = Number(anoParam) || new Date().getFullYear();
+      if (ano < ANO_BASE) ano = ANO_BASE;
+      if (ano > ANO_LIMITE) ano = ANO_LIMITE;
+      return String(ano);
+    }
+
+    async function carregarResumoAnual(ano) {
+      const statusEl = document.getElementById('statusCarregamento');
+      const tituloAnoEl = document.getElementById('tituloAnoResumo');
+      const tbody = document.getElementById('tabelaResumoAnual');
+
+      if (tituloAnoEl) tituloAnoEl.textContent = ano;
+      if (statusEl) statusEl.textContent = "Carregando dados do ano...";
+
+      if (!currentUser) {
+        if (statusEl) statusEl.textContent = "Usuário não autenticado.";
+        return;
+      }
+
+      const anoRef = db
+        .collection('users')
+        .doc(currentUser.uid)
+        .collection('anos')
+        .doc(String(ano));
+
+      let totalAnoContas = 0;
+      let totalAnoEntradas = 0;
+      let totalAnoReservado = 0;
+
+      const linhasMensais = [];
+
+      for (const mesNome of MESES) {
+        const mesRef = anoRef.collection('meses').doc(mesNome);
+        const doc = await mesRef.get();
+        const data = doc.exists
+          ? doc.data()
+          : { contas: [], adicionais: [], cartao: [], reservado: [], debito: [] };
+
+        const contas = data.contas || [];
+        const adicionais = data.adicionais || [];
+        const cartao = data.cartao || [];
+        const reservado = data.reservado || [];
+        const debito = data.debito || [];
+
+        const totalContasManuais = contas.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+        const totalCartao = cartao.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+        const totalDebitoMes = debito.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+
+        const totalContasMes = totalContasManuais + totalCartao + totalDebitoMes;
+        const totalEntradasMes = adicionais.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+        const totalReservadoMes = reservado.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+        const saldoMes = totalEntradasMes - totalContasMes - totalReservadoMes;
+
+        linhasMensais.push({
+          mes: mesNome,
+          totalContas: totalContasMes,
+          totalCartao: totalCartao,
+          totalEntradas: totalEntradasMes,
+          saldo: saldoMes,
+          totalReservado: totalReservadoMes
+        });
+
+        totalAnoContas += totalContasMes;
+        totalAnoEntradas += totalEntradasMes;
+        totalAnoReservado += totalReservadoMes;
+      }
+
+      const saldoAno = totalAnoEntradas - totalAnoContas - totalAnoReservado;
+
+      document.getElementById('anualTotalContas').innerText = formatar(totalAnoContas);
+      document.getElementById('anualTotalEntradas').innerText = formatar(totalAnoEntradas);
+      document.getElementById('anualSaldoDisponivel').innerText = formatar(saldoAno);
+      document.getElementById('anualTotalReservado').innerText = formatar(totalAnoReservado);
+
+      if (tbody) {
+        tbody.innerHTML = '';
+        linhasMensais.forEach(linha => {
+          const tr = document.createElement('tr');
+          const mesAbreviado = linha.mes ? linha.mes.substring(0, 3) : '-';
+          tr.innerHTML = `
+            <td>${mesAbreviado}</td>
+            <td>${formatar(linha.totalContas)}</td>
+            <td>${formatar(linha.totalCartao)}</td>
+            <td>${formatar(linha.totalEntradas)}</td>
+            <td>${formatar(linha.saldo)}</td>
+            <td>${formatar(linha.totalReservado)}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      if (statusEl) statusEl.textContent = "Dados carregados com sucesso.";
+    }
+
+    async function inicializarResumo() {
+      popularListaAnosResumo();
+      anoAtualResumo = obterAnoInicial();
+
+      const selectAnoResumo = document.getElementById("selectAnoResumo");
+      selectAnoResumo.value = anoAtualResumo;
+
+      selectAnoResumo.addEventListener("change", async (e) => {
+        anoAtualResumo = e.target.value;
+        await carregarResumoAnual(anoAtualResumo);
+      });
+
+      await carregarResumoAnual(anoAtualResumo);
+    }
+
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        currentUser = user;
+        const infoUsuario = document.getElementById('infoUsuario');
+        try {
+          const doc = await db.collection('users').doc(user.uid).get();
+          const dados = doc.exists ? doc.data() : {};
+          const nome = dados.name || user.displayName || user.email || 'Usuário';
+          if (infoUsuario) infoUsuario.textContent = `Resumo de: ${nome}`;
+        } catch (e) {
+          if (infoUsuario) infoUsuario.textContent = `Resumo de: ${user.email || 'Usuário'}`;
+        }
+        inicializarResumo();
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+  <script src="js/mobile-nav.js?v=7"></script>
+</body>
+</html>

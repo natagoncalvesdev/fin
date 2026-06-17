@@ -29,6 +29,7 @@ class UserResponse(BaseModel):
     adm: bool
     phone: str | None = None
     cpf: str | None = None
+    id_telegram: str | None = None
 
 
 class AuthResponse(BaseModel):
@@ -41,6 +42,7 @@ class UpdateProfileRequest(BaseModel):
     email: EmailStr | None = None
     phone: str | None = Field(None, max_length=20)
     cpf: str | None = Field(None, max_length=14)
+    id_telegram: str | None = Field(None, max_length=64)
     current_password: str | None = Field(None, min_length=6, max_length=128)
     new_password: str | None = Field(None, min_length=6, max_length=128)
 
@@ -53,6 +55,7 @@ def user_to_response(user: Usuario) -> UserResponse:
         adm=user.adm,
         phone=user.telefone,
         cpf=user.cpf,
+        id_telegram=user.id_telegram,
     )
 
 
@@ -136,12 +139,16 @@ def update_me(
     if body.cpf is not None:
         current_user.cpf = body.cpf.strip() or None
 
+    if body.id_telegram is not None:
+        current_user.id_telegram = body.id_telegram.strip() or None
+
     if (
         body.name is None
         and body.email is None
         and body.new_password is None
         and body.phone is None
         and body.cpf is None
+        and body.id_telegram is None
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

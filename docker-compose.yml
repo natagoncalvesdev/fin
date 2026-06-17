@@ -32,6 +32,7 @@ services:
       DATABASE_URL: postgresql://fin:fin@db:5432/fin
       SECRET_KEY: change-me-in-production
       CORS_ORIGINS: https://fin.natdev.com.br,http://localhost:8000,http://127.0.0.1:8000
+      N8N_WEBHOOK_RELATORIO_URL: https://n8n.natdev.com.br/webhook/relatorio-fin
 
 volumes:
   postgres_data:

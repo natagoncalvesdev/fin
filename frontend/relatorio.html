@@ -734,6 +734,7 @@
           <!-- Categorias serão populadas via JS -->
         </select>
         <button class="btn-cancel" onclick="carregarRelatorios()">Filtrar</button>
+        <button class="btn-add" id="btnGerarRelatorio" onclick="finRunOnce(event, () => gerarRelatorio())">Gerar Relatório</button>
       </div>
     </div>
 
@@ -782,6 +783,9 @@
   <script>
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const TOKEN_KEY = 'fin_token';
+    const API_BASE = window.FIN_API_BASE || '';
+    const N8N_WEBHOOK_URL = 'https://n8n.natdev.com.br/webhook/relatorio-fin';
 
     const MESES = [
       "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -792,6 +796,11 @@
 
     const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
     const formatar = valor => moeda.format(Number(valor) || 0);
+    const formatarMoedaRelatorio = valor => {
+      const n = Number(valor) || 0;
+      const texto = Math.abs(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return n < 0 ? `R$ -${texto}` : `R$ ${texto}`;
+    };
 
     let currentUser = null;
     let categoriasCache = [];
@@ -934,6 +943,92 @@
       } catch (error) {
         console.error("Erro ao remover categoria:", error);
         alert("Erro ao remover categoria. Tente novamente.");
+      }
+    }
+
+    async function carregarPerfilUsuario() {
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (!token) return null;
+      const response = await fetch(`${API_BASE}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) return null;
+      return response.json();
+    }
+
+    function calcularTotaisMes(data) {
+      const totalContasManuais = (data.contas || []).reduce((a, i) => a + Number(i.valor || 0), 0);
+      const totalCartao = (data.cartao || []).reduce((a, i) => a + Number(i.valor || 0), 0);
+      const totalDebito = (data.debito || []).reduce((a, i) => a + Number(i.valor || 0), 0);
+      const totalReceita = (data.adicionais || []).reduce((a, i) => a + Number(i.valor || 0), 0);
+      const totalReservado = (data.reservado || []).reduce((a, i) => a + Number(i.valor || 0), 0);
+      const totalContas = totalContasManuais + totalCartao + totalDebito;
+      const saldo = totalReceita - totalContas - totalReservado;
+      return { receita: totalReceita, contas: totalContas, saldo, reservado: totalReservado };
+    }
+
+    function montarMensagemRelatorio(mes, totais) {
+      return (
+        `Relatório de ${mes}\n` +
+        `🔵Receita ${formatarMoedaRelatorio(totais.receita)}\n` +
+        `🔴Contas ${formatarMoedaRelatorio(totais.contas)}\n` +
+        `🟢Saldo ${formatarMoedaRelatorio(totais.saldo)}\n` +
+        `🟡Reservado ${formatarMoedaRelatorio(totais.reservado)}`
+      );
+    }
+
+    async function gerarRelatorio() {
+      if (!currentUser) return;
+
+      const selectAno = document.getElementById("selectAno");
+      const selectMes = document.getElementById("selectMes");
+      const ano = Number(selectAno.value);
+      const mes = selectMes.value;
+
+      if (!ano) {
+        return alert("Por favor, selecione um ano.");
+      }
+      if (!mes) {
+        return alert("Selecione um mês específico para gerar o relatório.");
+      }
+
+      const perfil = await carregarPerfilUsuario();
+      if (!perfil?.id_telegram) {
+        window.location.href = 'configuracoes.html?focus=id-telegram';
+        return;
+      }
+
+      try {
+        const mesRef = db.collection('users').doc(currentUser.uid)
+          .collection('anos').doc(String(ano))
+          .collection('meses').doc(mes);
+        const doc = await mesRef.get();
+        const data = doc.exists ? doc.data() : {};
+        const totais = calcularTotaisMes(data);
+        const mensagem = montarMensagemRelatorio(mes, totais);
+
+        const response = await fetch(N8N_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: String(perfil.id_telegram).trim(),
+            mensagem,
+          }),
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Workflow do n8n não está ativo. Ative o workflow "relatorio-fin" no n8n.');
+          }
+          const detail = payload.message || payload.detail || `Erro ${response.status} ao enviar relatório.`;
+          throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
+        }
+
+        alert('Relatório enviado com sucesso.');
+      } catch (error) {
+        console.error("Erro ao gerar relatório:", error);
+        alert(error.message || 'Erro ao gerar relatório. Tente novamente.');
       }
     }
 

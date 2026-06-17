@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://fin:fin@localhost:5432/fin"
     cors_origins: str = "http://localhost:8000,http://127.0.0.1:8000"
     access_token_expire_minutes: int = 60 * 24 * 7  # 7 dias
+    n8n_webhook_relatorio_url: str = "https://n8n.natdev.com.br/webhook/relatorio-fin"
 
     class Config:
         env_file = ".env"

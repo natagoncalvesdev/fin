@@ -7,7 +7,7 @@
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
   <link rel="stylesheet" href="sidebar.css?v=4">
   <script src="js/fin-run-once.js"></script>
-  <script src="js/fin-sdk.js"></script>
+  <script src="js/fin-sdk.js?v=2"></script>
   <script src="sidebar.js?v=4"></script>
   <style>
     /* Estilos copiados de index.html para a sidebar e layout principal */
@@ -973,7 +973,8 @@
       }
 
       const kmRodado = kmAtualInput - ultimoAbastecimentoCache.kmAtual;
-      const kmPorLitro = kmRodado / ultimoAbastecimentoCache.litros;
+      const litrosAnterior = Number(ultimoAbastecimentoCache.litros);
+      const kmPorLitro = litrosAnterior > 0 ? kmRodado / litrosAnterior : 0;
 
       const novoAbastecimento = {
         kmAtual: kmAtualInput,
@@ -1139,7 +1140,7 @@
         const novaData = new Date(novaDataString + 'T12:00:00');
 
         await manutencaoRef.update({
-            data: firebase.firestore.Timestamp.fromDate(novaData),
+            data: novaData.toISOString(),
             descricao: novaDescricao,
             tipo: novoTipo,
             valor: novoValor,
@@ -1201,7 +1202,7 @@
             kmAtual: novoKm,
             litros: novoLitros,
             valor: novoValor,
-            data: firebase.firestore.Timestamp.fromDate(novaData),
+            data: novaData.toISOString(),
             mes: novoMes,
             ano: novoAno,
             kmRodado: novoKmRodado,

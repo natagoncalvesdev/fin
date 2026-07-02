@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
@@ -28,6 +28,11 @@ class AbastecimentoCreate(BaseModel):
     ano: str
     data: datetime | None = None
     tipoCombustivel: str | None = None
+
+    @field_validator("kmRodado", "kmPorLitro", mode="before")
+    @classmethod
+    def null_to_zero(cls, value):
+        return 0 if value is None else value
 
 
 class AbastecimentoUpdate(BaseModel):

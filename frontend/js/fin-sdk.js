@@ -40,6 +40,17 @@
     return err;
   }
 
+  function isAuthRoute(path) {
+    return path.startsWith('/api/auth/login') || path.startsWith('/api/auth/register');
+  }
+
+  function invalidateSession() {
+    if (!getToken() && !currentAuthUser) return;
+    clearSession();
+    currentAuthUser = null;
+    notifyAuthListeners();
+  }
+
   async function apiRequest(path, options = {}) {
     const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
     const token = getToken();
@@ -62,7 +73,10 @@
     if (!response.ok) {
       const detail = payload?.detail || 'Erro na requisição';
       const message = typeof detail === 'string' ? detail : JSON.stringify(detail);
-      if (response.status === 401) throw makeFirebaseError('auth/invalid-credential', message);
+      if (response.status === 401) {
+        if (token && !isAuthRoute(path)) invalidateSession();
+        throw makeFirebaseError('auth/invalid-credential', message);
+      }
       if (response.status === 400 && message.includes('email')) {
         throw makeFirebaseError('auth/email-already-in-use', message);
       }
@@ -204,9 +218,23 @@
 
   function serializeValue(value) {
     if (value instanceof FinTimestamp) return value._date.toISOString();
+    if (value instanceof Date) return value.toISOString();
     if (value && value.__finOp === 'serverTimestamp') return new Date().toISOString();
     if (value && typeof value.toDate === 'function') return value.toDate().toISOString();
+    if (value && typeof value === 'object' && value._date != null) {
+      const date = value._date instanceof Date ? value._date : new Date(value._date);
+      if (!Number.isNaN(date.getTime())) return date.toISOString();
+    }
     return value;
+  }
+
+  function isSpecialSerializable(value) {
+    return (
+      value instanceof FinTimestamp ||
+      value instanceof Date ||
+      (value && typeof value.toDate === 'function') ||
+      (value && typeof value === 'object' && value._date != null)
+    );
   }
 
   function serializeUpdates(updates) {
@@ -214,6 +242,8 @@
     for (const [key, value] of Object.entries(updates)) {
       if (value && value.__finOp) {
         result[key] = value;
+      } else if (isSpecialSerializable(value)) {
+        result[key] = serializeValue(value);
       } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
         result[key] = serializeUpdates(value);
       } else {
@@ -289,6 +319,7 @@
     onSnapshot(onNext, onError) {
       let active = true;
       let lastJson = '';
+      let interval = null;
 
       const poll = async () => {
         if (!active) return;
@@ -300,12 +331,16 @@
             onNext(snap);
           }
         } catch (err) {
+          if (err.code === 'auth/invalid-credential') {
+            active = false;
+            if (interval) clearInterval(interval);
+          }
           if (onError) onError(err);
         }
       };
 
       poll();
-      const interval = setInterval(poll, POLL_INTERVAL);
+      interval = setInterval(poll, POLL_INTERVAL);
       return () => {
         active = false;
         clearInterval(interval);
@@ -486,6 +521,7 @@
     onSnapshot(onNext, onError) {
       let active = true;
       let lastJson = '';
+      let interval = null;
 
       const poll = async () => {
         if (!active) return;
@@ -497,12 +533,16 @@
             onNext(snap);
           }
         } catch (err) {
+          if (err.code === 'auth/invalid-credential') {
+            active = false;
+            if (interval) clearInterval(interval);
+          }
           if (onError) onError(err);
         }
       };
 
       poll();
-      const interval = setInterval(poll, POLL_INTERVAL);
+      interval = setInterval(poll, POLL_INTERVAL);
 
       return () => {
         active = false;
@@ -728,6 +768,7 @@
     onSnapshot(onNext, onError) {
       let active = true;
       let lastJson = '';
+      let interval = null;
 
       const poll = async () => {
         if (!active) return;
@@ -739,12 +780,16 @@
             onNext(snap);
           }
         } catch (err) {
+          if (err.code === 'auth/invalid-credential') {
+            active = false;
+            if (interval) clearInterval(interval);
+          }
           if (onError) onError(err);
         }
       };
 
       poll();
-      const interval = setInterval(poll, POLL_INTERVAL);
+      interval = setInterval(poll, POLL_INTERVAL);
 
       return () => {
         active = false;
@@ -798,6 +843,7 @@
   // --- Auth ---
   const authListeners = new Set();
   let currentAuthUser = null;
+  let authInitialized = false;
 
   function buildAuthUser(user) {
     return {
@@ -817,6 +863,19 @@
     });
   }
 
+  async function validateSession() {
+    if (!getToken()) return;
+    try {
+      const user = await apiRequest('/api/auth/me');
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+      currentAuthUser = buildAuthUser(user);
+    } catch (err) {
+      if (err.code !== 'auth/invalid-credential') {
+        console.error('Erro ao validar sessão:', err);
+      }
+    }
+  }
+
   function initAuth() {
     const stored = getStoredUser();
     const token = getToken();
@@ -825,13 +884,17 @@
     } else {
       currentAuthUser = null;
     }
-    setTimeout(notifyAuthListeners, 0);
+    setTimeout(async () => {
+      if (token) await validateSession();
+      authInitialized = true;
+      notifyAuthListeners();
+    }, 0);
   }
 
   const authService = {
     onAuthStateChanged(callback) {
       authListeners.add(callback);
-      callback(currentAuthUser);
+      if (authInitialized) callback(currentAuthUser);
       return () => authListeners.delete(callback);
     },
 

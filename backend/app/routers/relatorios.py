@@ -1,16 +1,15 @@
 from typing import Annotated
 
-import httpx
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
-from app.config import settings
 from app.database import get_db
 from app.financeiro_service import get_or_create_mes, mes_to_dict
 from app.models import MESES, Usuario
+from app.n8n_notifier import enviar_mensagem_telegram, formatar_brl
 
 router = APIRouter(prefix="/api/relatorios", tags=["relatorios"])
 logger = logging.getLogger(__name__)
@@ -24,15 +23,6 @@ class GerarRelatorioRequest(BaseModel):
 class GerarRelatorioResponse(BaseModel):
     ok: bool
     message: str
-
-
-def _formatar_brl(valor: float) -> str:
-    negativo = valor < 0
-    s = f"{abs(valor):,.2f}"
-    inteiro, dec = s.rsplit(".", 1)
-    inteiro = inteiro.replace(",", ".")
-    prefixo = "R$ -" if negativo else "R$ "
-    return f"{prefixo}{inteiro},{dec}"
 
 
 def _calcular_totais(data: dict) -> dict[str, float]:
@@ -84,43 +74,12 @@ async def gerar_relatorio(
     totais = _calcular_totais(data)
     mensagem = _montar_mensagem(body.mes, totais)
 
-    payload = {
-        "chat_id": current_user.id_telegram,
-        "mensagem": mensagem,
-    }
-
-    webhook_url = settings.n8n_webhook_relatorio_url
-    if "seu-n8n.com" in webhook_url:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Webhook do n8n não configurado. Defina N8N_WEBHOOK_RELATORIO_URL no servidor.",
-        )
-
-    try:
-        async with httpx.AsyncClient(timeout=30) as client:
-            response = await client.post(webhook_url, json=payload)
-            response.raise_for_status()
-    except httpx.HTTPStatusError as exc:
-        status_code = exc.response.status_code
-        logger.warning(
-            "Webhook n8n retornou erro HTTP %s para %s: %s",
-            status_code,
-            webhook_url,
-            exc.response.text[:500],
-        )
-        if status_code == 404:
-            detail = (
-                "Workflow do n8n não encontrado ou inativo. "
-                "Ative o workflow com o webhook 'relatorio-fin' no n8n."
-            )
-        else:
-            detail = f"O n8n retornou erro {status_code}. Verifique o workflow e tente novamente."
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail) from exc
-    except httpx.RequestError as exc:
-        logger.warning("Falha ao conectar ao webhook n8n %s: %s", webhook_url, exc)
+    enviado, erro_notificacao = await enviar_mensagem_telegram(current_user.id_telegram, mensagem)
+    if not enviado:
+        detail = erro_notificacao or "Não foi possível enviar a mensagem pelo n8n."
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Não foi possível conectar ao n8n. Verifique a URL do webhook no servidor.",
-        ) from exc
+            detail=f"{detail} Verifique o webhook no servidor.",
+        )
 
     return GerarRelatorioResponse(ok=True, message="Relatório enviado com sucesso.")

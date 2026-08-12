@@ -82,4 +82,3 @@ async def gerar_relatorio(
             detail=f"{detail} Verifique o webhook no servidor.",
         )
 
-    return GerarRelatorioResponse(ok=True, message="Relatório enviado com sucesso.")

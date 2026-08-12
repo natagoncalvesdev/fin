@@ -26,6 +26,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8000:8000"
     environment:
@@ -33,6 +35,12 @@ services:
       SECRET_KEY: change-me-in-production
       CORS_ORIGINS: https://fin.natdev.com.br,http://localhost:8000,http://127.0.0.1:8000
       N8N_WEBHOOK_RELATORIO_URL: https://n8n.natdev.com.br/webhook/relatorio-fin
+      # URL interna: container -> host (evita falha de rede com o domínio público)
+      N8N_WEBHOOK_RELATORIO_URL_INTERNAL: http://host.docker.internal/webhook/relatorio-fin
+      N8N_WEBHOOK_HOST_HEADER: n8n.natdev.com.br
+      # Se o n8n expõe a porta 5678 direto no host, use em vez das duas linhas acima:
+      # N8N_WEBHOOK_RELATORIO_URL_INTERNAL: http://host.docker.internal:5678/webhook/relatorio-fin
+      # N8N_WEBHOOK_HOST_HEADER:
 
 volumes:
   postgres_data:

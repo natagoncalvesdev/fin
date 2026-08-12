@@ -1,0 +1,42 @@
+# Ambiente e segredos — NUNCA commitar
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Banco de dados local
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs e cache
+*.log
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker (volumes locais, se criar pastas manualmente)
+data/

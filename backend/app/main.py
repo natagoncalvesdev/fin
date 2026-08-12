@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.database import Base, engine
 from app.migrations import run_migrations
-from app.routers import auth_router, cartoes, categorias, financeiro, relatorios, users, veiculos
+from app.routers import auth_router, cartoes, categorias, financeiro, integracoes, relatorios, users, veiculos
 
 Base.metadata.create_all(bind=engine)
 run_migrations(engine)
@@ -29,6 +29,7 @@ app.include_router(categorias.router)
 app.include_router(cartoes.router)
 app.include_router(veiculos.router)
 app.include_router(relatorios.router)
+app.include_router(integracoes.router)
 
 
 def _frontend_dir() -> Path | None:

@@ -1752,6 +1752,22 @@
       return `${bandeiraNome} - Final ${finalCartao}${venc}`;
     }
 
+    function refCartao(cartao) {
+      return String(cartao?.numero || '').trim();
+    }
+
+    function buscarCartaoPorRef(ref) {
+      if (!ref) return null;
+      const valor = String(ref).trim();
+      return cartoesCache.find(c => refCartao(c) === valor || c.id === valor) || null;
+    }
+
+    function compraPertenceAoCartao(compra, cartao) {
+      if (!compra || !cartao) return false;
+      const ref = refCartao(cartao);
+      return compra.cartaoId === ref || compra.cartaoId === cartao.id;
+    }
+
     function popularSelectVencimentoCartao(valorSelecionado) {
       const select = document.getElementById('cartaoVencimentoModal');
       if (!select) return;
@@ -2419,34 +2435,29 @@
       // Ordena as contas manualmente em ordem alfabética
       const contasOrdenadas = [...data.contas].sort((a, b) => a.nome.localeCompare(b.nome));
 
-      const cartoesMap = {};
-      cartoesCache.forEach(cartao => {
-        cartoesMap[cartao.id] = cartao;
-      });
-
       // Cartões de crédito: total de parcelas no mês
       if (data.cartao && data.cartao.length > 0 && cartoesCache.length > 0) {
         const totaisPorCartao = {};
         data.cartao.forEach(item => {
-          const cartaoId = item.cartaoId;
-          const cartao = cartaoId && cartoesMap[cartaoId];
+          const cartao = buscarCartaoPorRef(item.cartaoId);
           if (cartao) {
-            if (!totaisPorCartao[cartaoId]) {
-              totaisPorCartao[cartaoId] = { total: 0, cartao };
+            const chave = refCartao(cartao);
+            if (!totaisPorCartao[chave]) {
+              totaisPorCartao[chave] = { total: 0, cartao };
             }
-            totaisPorCartao[cartaoId].total += Number(item.valor || 0);
+            totaisPorCartao[chave].total += Number(item.valor || 0);
           }
         });
 
-        Object.keys(totaisPorCartao).forEach(cartaoId => {
-          const { total, cartao } = totaisPorCartao[cartaoId];
+        Object.keys(totaisPorCartao).forEach(chave => {
+          const { total, cartao } = totaisPorCartao[chave];
           if (total > 0) {
             contasOrdenadas.push({
               nome: `Cartão ${cartao.numero}`,
               valor: total,
               status: statusCartao,
               isCartao: true,
-              cartaoId: cartaoId
+              cartaoId: chave
             });
           }
         });
@@ -2703,7 +2714,7 @@
       if (listagemCartaoAberta && cartaoSelecionado) {
         const todasCompras = data.cartao || [];
         window.todasComprasAtual = todasCompras;
-        const contasCartao = todasCompras.filter(c => c.cartaoId === cartaoSelecionado.id);
+        const contasCartao = todasCompras.filter(c => compraPertenceAoCartao(c, cartaoSelecionado));
         renderizarListagemCartao(cartaoSelecionado, contasCartao);
       }
     }
@@ -3061,7 +3072,7 @@
         if (doc.exists && doc.data().cartao && doc.data().cartao.length > 0) {
           doc.data().cartao.forEach((item, index) => {
             // Filtra apenas parcelas do cartão ativo
-            if (item.cartaoId !== cartaoAtivo.id) return;
+            if (!compraPertenceAoCartao(item, cartaoAtivo)) return;
             // Adiciona apenas itens parcelados e não recorrentes
             if (item.parcelas && item.parcelas.includes('/') && item.parcelas !== '1/1' && !item.recorrente) {
               parcelasEncontradas.push({
@@ -3164,7 +3175,7 @@
       const selectCartao = document.getElementById('cartaoSelecionadoModal');
       selectCartao.innerHTML = '';
       const option = document.createElement('option');
-      option.value = cartaoAtivo.id;
+      option.value = refCartao(cartaoAtivo);
       option.textContent = rotuloCartao(cartaoAtivo);
       option.selected = true;
       selectCartao.appendChild(option);
@@ -3711,7 +3722,7 @@
 
     function atualizarListagemCartaoDoCache(cartao) {
       const todasCompras = dadosMesAtual?.cartao || window.todasComprasAtual || [];
-      const contasCartao = todasCompras.filter(compra => compra.cartaoId === cartao.id);
+      const contasCartao = todasCompras.filter(compra => compraPertenceAoCartao(compra, cartao));
       listagemCartaoAberta = true;
       renderizarListagemCartao(cartao, contasCartao);
     }
@@ -3741,7 +3752,7 @@
 
       const todasCompras = data.cartao || [];
       window.todasComprasAtual = todasCompras;
-      const contasCartao = todasCompras.filter(compra => compra.cartaoId === cartaoSelecionado.id);
+      const contasCartao = todasCompras.filter(compra => compraPertenceAoCartao(compra, cartaoSelecionado));
 
       listagemCartaoAberta = true;
       renderizarListagemCartao(cartaoSelecionado, contasCartao);
@@ -3764,7 +3775,7 @@
 
       const todasCompras = data.cartao || [];
       window.todasComprasAtual = todasCompras;
-      const contasCartao = todasCompras.filter(compra => compra.cartaoId === cartao.id);
+      const contasCartao = todasCompras.filter(compra => compraPertenceAoCartao(compra, cartao));
 
       listagemCartaoAberta = true;
       renderizarListagemCartao(cartao, contasCartao);

@@ -320,11 +320,13 @@
       let active = true;
       let lastJson = '';
       let interval = null;
+      let consecutiveFailures = 0;
 
       const poll = async () => {
-        if (!active) return;
+        if (!active || document.hidden) return;
         try {
           const snap = await this.get();
+          consecutiveFailures = 0;
           const json = JSON.stringify(snap.docs.map((d) => ({ id: d.id, data: d.data() })));
           if (json !== lastJson) {
             lastJson = json;
@@ -334,16 +336,27 @@
           if (err.code === 'auth/invalid-credential') {
             active = false;
             if (interval) clearInterval(interval);
+            if (onError) onError(err);
+            return;
           }
-          if (onError) onError(err);
+          consecutiveFailures += 1;
+          // Tolera uma falha isolada (comum ao retomar o app após ficar em segundo plano)
+          if (onError && consecutiveFailures >= 2) onError(err);
         }
+      };
+
+      const onVisible = () => {
+        if (active && !document.hidden) poll();
       };
 
       poll();
       interval = setInterval(poll, POLL_INTERVAL);
+      document.addEventListener('visibilitychange', onVisible);
+
       return () => {
         active = false;
         clearInterval(interval);
+        document.removeEventListener('visibilitychange', onVisible);
       };
     }
   }
@@ -522,11 +535,13 @@
       let active = true;
       let lastJson = '';
       let interval = null;
+      let consecutiveFailures = 0;
 
       const poll = async () => {
-        if (!active) return;
+        if (!active || document.hidden) return;
         try {
           const snap = await this.get();
+          consecutiveFailures = 0;
           const json = JSON.stringify(snap.data());
           if (json !== lastJson) {
             lastJson = json;
@@ -536,17 +551,26 @@
           if (err.code === 'auth/invalid-credential') {
             active = false;
             if (interval) clearInterval(interval);
+            if (onError) onError(err);
+            return;
           }
-          if (onError) onError(err);
+          consecutiveFailures += 1;
+          if (onError && consecutiveFailures >= 2) onError(err);
         }
+      };
+
+      const onVisible = () => {
+        if (active && !document.hidden) poll();
       };
 
       poll();
       interval = setInterval(poll, POLL_INTERVAL);
+      document.addEventListener('visibilitychange', onVisible);
 
       return () => {
         active = false;
         clearInterval(interval);
+        document.removeEventListener('visibilitychange', onVisible);
       };
     }
   }
@@ -769,11 +793,13 @@
       let active = true;
       let lastJson = '';
       let interval = null;
+      let consecutiveFailures = 0;
 
       const poll = async () => {
-        if (!active) return;
+        if (!active || document.hidden) return;
         try {
           const snap = await this.get();
+          consecutiveFailures = 0;
           const json = JSON.stringify(snap.docs.map((d) => ({ id: d.id, data: d.data() })));
           if (json !== lastJson) {
             lastJson = json;
@@ -783,17 +809,26 @@
           if (err.code === 'auth/invalid-credential') {
             active = false;
             if (interval) clearInterval(interval);
+            if (onError) onError(err);
+            return;
           }
-          if (onError) onError(err);
+          consecutiveFailures += 1;
+          if (onError && consecutiveFailures >= 2) onError(err);
         }
+      };
+
+      const onVisible = () => {
+        if (active && !document.hidden) poll();
       };
 
       poll();
       interval = setInterval(poll, POLL_INTERVAL);
+      document.addEventListener('visibilitychange', onVisible);
 
       return () => {
         active = false;
         clearInterval(interval);
+        document.removeEventListener('visibilitychange', onVisible);
       };
     }
   }

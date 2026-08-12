@@ -5,31 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Resumo Anual | Controle</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="sidebar.css?v=4">
-  <script src="js/fin-sdk.js?v=2"></script>
-  <script src="sidebar.js?v=4"></script>
+  <link rel="stylesheet" href="sidebar.css?v=5">
+  <link rel="stylesheet" href="css/theme.css?v=5">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=5">
+  <script src="js/fin-sdk.js?v=3"></script>
+  <script src="sidebar.js?v=5"></script>
   <style>
-    :root {
-      --bg-main: #F8FAFC;
-      --bg-section: #FFFFFF;
-      --text-primary: #0F172A;
-      --text-secondary: #64748B;
-      --border-color: #E2E8F0;
-      --sidebar-bg: #0F172A;
-      --sidebar-text: #F8FAFC;
-      --sidebar-item-bg: rgba(255, 255, 255, 0.08);
-      --sidebar-item-hover: rgba(255, 255, 255, 0.14);
-      --accent: #F59E0B;
-      --accent-2: #10B981;
-      --accent-3: #EF4444;
-      --accent-blue: #10B981;
-      --accent-blue-hover: #059669;
-      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.08);
-      --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
-      --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
-    }
-
     * { box-sizing: border-box; }
 
     /* Scrollbar personalizado */
@@ -84,7 +65,7 @@
       margin: 0;
       font-size: 32px;
       font-weight: 700;
-      background: linear-gradient(135deg, #0F172A 0%, #10B981 100%);
+      background: linear-gradient(135deg, var(--ink-950) 0%, var(--accent) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -321,61 +302,47 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="css/mobile-shell.css">
 </head>
 <body>
 
   <main class="content">
-    <div class="header">
-      <h2>Resumo financeiro anual</h2>
-      <p class="info-text" id="infoUsuario">Carregando usuário...</p>
+    <div class="page-header-row" style="margin-bottom: 8px;">
+      <div class="page-header">
+        <h1>Resumo financeiro anual</h1>
+        <p id="infoUsuario">Carregando usuário...</p>
+      </div>
       <div class="period-controls">
         <select id="selectAnoResumo"></select>
-        <button class="btn-cancel" onclick="window.location.href='financeiro.html'">Voltar para o financeiro</button>
+        <button class="btn-cancel" onclick="window.location.href='financeiro.html'">Voltar</button>
       </div>
     </div>
 
     <section class="section">
       <h3>Totais do ano <span id="tituloAnoResumo"></span></h3>
-      <div class="resumo">
-        <div class="card yellow">
-          <small>Total contas (inclui cartão e débito)</small>
-          <strong id="anualTotalContas">R$ 0,00</strong>
+      <div class="stat-row">
+        <div class="stat-tile negative">
+          <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">Contas (c/ cartão e débito)</span><span class="stat-tile-value" id="anualTotalContas">R$ 0,00</span></span>
         </div>
-        <div class="card green">
-          <small>Total entradas</small>
-          <strong id="anualTotalEntradas">R$ 0,00</strong>
+        <div class="stat-tile positive">
+          <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">Total entradas</span><span class="stat-tile-value" id="anualTotalEntradas">R$ 0,00</span></span>
         </div>
-        <div class="card red">
-          <small>Saldo disponível</small>
-          <strong id="anualSaldoDisponivel">R$ 0,00</strong>
+        <div class="stat-tile">
+          <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">Saldo disponível</span><span class="stat-tile-value" id="anualSaldoDisponivel">R$ 0,00</span></span>
         </div>
-        <div class="card blue">
-          <small>Total reservado</small>
-          <strong id="anualTotalReservado">R$ 0,00</strong>
+        <div class="stat-tile warning">
+          <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">Total reservado</span><span class="stat-tile-value" id="anualTotalReservado">R$ 0,00</span></span>
         </div>
       </div>
-      <p class="info-text" id="statusCarregamento">Carregando dados do ano...</p>
+      <p class="info-text" id="statusCarregamento" style="margin-top: 16px;">Carregando dados do ano...</p>
     </section>
 
     <section class="section">
       <h3>Detalhamento por mês</h3>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Mês</th>
-              <th>Total contas</th>
-              <th>Cartão de crédito</th>
-              <th>Total entradas</th>
-              <th>Saldo disponível</th>
-              <th>Total reservado</th>
-            </tr>
-          </thead>
-          <tbody id="tabelaResumoAnual"></tbody>
-        </table>
-      </div>
+      <div id="tabelaResumoAnual" class="statement-list"></div>
     </section>
   </main>
 
@@ -492,17 +459,21 @@
       if (tbody) {
         tbody.innerHTML = '';
         linhasMensais.forEach(linha => {
-          const tr = document.createElement('tr');
           const mesAbreviado = linha.mes ? linha.mes.substring(0, 3) : '-';
-          tr.innerHTML = `
-            <td>${mesAbreviado}</td>
-            <td>${formatar(linha.totalContas)}</td>
-            <td>${formatar(linha.totalCartao)}</td>
-            <td>${formatar(linha.totalEntradas)}</td>
-            <td>${formatar(linha.saldo)}</td>
-            <td>${formatar(linha.totalReservado)}</td>
+          const row = document.createElement('div');
+          row.className = 'statement-row';
+          row.style.cursor = 'default';
+          row.innerHTML = `
+            <span class="statement-row-icon">${mesAbreviado}</span>
+            <span class="statement-row-body">
+              <span class="statement-row-title">${linha.mes}</span>
+              <span class="statement-row-subtitle">Contas ${formatar(linha.totalContas)} · Cartão ${formatar(linha.totalCartao)} · Entradas ${formatar(linha.totalEntradas)} · Reservado ${formatar(linha.totalReservado)}</span>
+            </span>
+            <span class="statement-row-end">
+              <span class="statement-row-value ${linha.saldo < 0 ? 'negative' : 'positive'}">${formatar(linha.saldo)}</span>
+            </span>
           `;
-          tbody.appendChild(tr);
+          tbody.appendChild(row);
         });
       }
 
@@ -542,6 +513,6 @@
       }
     });
   </script>
-  <script src="js/mobile-nav.js?v=7"></script>
+  <script src="js/mobile-nav.js?v=8"></script>
 </body>
 </html>

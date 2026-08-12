@@ -1,22 +1,15 @@
 /**
- * Navegação mobile — barra inferior + gráfico do resumo do mês
+ * Shell mobile — barra superior com hambúrguer, gráfico do resumo do mês e toast
  */
 (function (global) {
   'use strict';
 
   const MOBILE_MAX = 768;
-  const CHART_COLORS = ['#10B981', '#EF4444', '#3B82F6', '#F59E0B', '#8B5CF6', '#64748B'];
+  const CHART_COLORS = ['#0F766E', '#B91C1C', '#3B82F6', '#B45309', '#8B5CF6', '#475569'];
   const MESES = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
-
-  const ICONS = {
-    financeiro: '<svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
-    relatorio: '<svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 17V11M12 17V7M16 17v-4"/></svg>',
-    veiculos: '<svg viewBox="0 0 24 24"><path d="M7 17h.01M17 17h.01M5 11l1.5-4h11L19 11M5 11h14v6H5z"/></svg>',
-    config: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/></svg>'
-  };
 
   let dashChartInstance = null;
   let lastChartPayload = null;
@@ -67,16 +60,6 @@
     return `financeiro.html?${params.toString()}`;
   }
 
-  function detectarAbaAtiva() {
-    const page = paginaAtual();
-    if (page === 'index.html') return 'home';
-    if (page === 'financeiro.html') return 'financeiro';
-    if (page === 'relatorio.html') return 'relatorio';
-    if (page === 'veiculos.html') return 'veiculos';
-    if (page === 'configuracoes.html' || page === 'config.html') return 'config';
-    return '';
-  }
-
   function navegarPara(url) {
     window.location.assign(url);
   }
@@ -96,6 +79,18 @@
     navegarParaFinanceiro(urlFinanceiro('mes'));
   }
 
+  function irContas() {
+    navegarParaFinanceiro(urlFinanceiro('contas'));
+  }
+
+  function irCartoes() {
+    navegarParaFinanceiro(urlFinanceiro('cartao'));
+  }
+
+  function irReservas() {
+    navegarParaFinanceiro(urlFinanceiro('reservados'));
+  }
+
   function irHome() {
     navegarPara('index.html');
   }
@@ -112,102 +107,28 @@
     navegarPara('configuracoes.html');
   }
 
-  function vincularNavBottom(nav) {
-    nav.querySelector('[data-nav="financeiro"]')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      irFinanceiroResumo();
-    });
-    nav.querySelector('[data-nav="relatorio"]')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      irRelatorio();
-    });
-    nav.querySelector('[data-nav="home"]')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      irHome();
-    });
-    nav.querySelector('[data-nav="veiculos"]')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      irVeiculos();
-    });
-    nav.querySelector('[data-nav="config"]')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      irConfiguracoes();
-    });
-  }
+  const ICON_HAMBURGER = '<svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>';
 
-  function criarBottomNav() {
-    const existente = document.getElementById('mobileBottomNav');
+  function criarTopBar() {
+    const existente = document.getElementById('mobileTopBar');
     if (existente) existente.remove();
 
-    const ativa = detectarAbaAtiva();
-    const nav = document.createElement('nav');
-    nav.id = 'mobileBottomNav';
-    nav.className = 'mobile-bottom-nav mobile-only';
-    nav.setAttribute('aria-label', 'Navegação principal');
-    nav.innerHTML = `
-      <button type="button" class="mobile-nav-item ${ativa === 'financeiro' ? 'active' : ''}" data-nav="financeiro" aria-label="Financeiro">
-        ${ICONS.financeiro}<span>Financeiro</span>
-      </button>
-      <button type="button" class="mobile-nav-item ${ativa === 'relatorio' ? 'active' : ''}" data-nav="relatorio" aria-label="Relatório">
-        ${ICONS.relatorio}<span>Relatório</span>
-      </button>
-      <div class="mobile-nav-item--fab">
-        <button type="button" class="mobile-nav-fab ${ativa === 'home' ? 'active' : ''}" data-nav="home" aria-label="Home">
-          <img src="img/logo.png" alt="" class="mobile-nav-fab-logo" width="36" height="36" />
-        </button>
-      </div>
-      <button type="button" class="mobile-nav-item ${ativa === 'veiculos' ? 'active' : ''}" data-nav="veiculos" aria-label="Veículos">
-        ${ICONS.veiculos}<span>Veículos</span>
-      </button>
-      <button type="button" class="mobile-nav-item ${ativa === 'config' ? 'active' : ''}" data-nav="config" aria-label="Configurações">
-        ${ICONS.config}<span>Config</span>
+    const bar = document.createElement('header');
+    bar.id = 'mobileTopBar';
+    bar.className = 'mobile-top-bar mobile-only';
+    bar.innerHTML = `
+      <a href="index.html" class="mobile-top-bar-brand" aria-label="Início">
+        <img src="img/logo%20sem%20escrita.png" alt="" class="mobile-top-bar-logo" width="28" height="28" />
+      </a>
+      <button type="button" id="mobileMenuToggle" class="mobile-hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="mainSidebar">
+        ${ICON_HAMBURGER}
       </button>
     `;
-    document.body.appendChild(nav);
-    vincularNavBottom(nav);
-    criarEspacadorNav();
-  }
+    document.body.insertBefore(bar, document.body.firstChild);
 
-  function calcularClearanceNav() {
-    const nav = document.getElementById('mobileBottomNav');
-    if (!nav) return 136;
-
-    const navRect = nav.getBoundingClientRect();
-    const fab = nav.querySelector('.mobile-nav-fab');
-    let overhang = 0;
-    if (fab) {
-      const fabRect = fab.getBoundingClientRect();
-      overhang = Math.max(0, navRect.top - fabRect.top);
-    }
-
-    return Math.ceil(navRect.height + overhang + 16);
-  }
-
-  function criarEspacadorNav() {
-    let spacer = document.getElementById('mobileNavSpacer');
-    if (!spacer) {
-      spacer = document.createElement('div');
-      spacer.id = 'mobileNavSpacer';
-      spacer.className = 'mobile-nav-spacer mobile-only';
-      spacer.setAttribute('aria-hidden', 'true');
-    }
-    document.body.appendChild(spacer);
-    atualizarEspacadorNav();
-  }
-
-  function atualizarEspacadorNav() {
-    const spacer = document.getElementById('mobileNavSpacer');
-    if (!spacer) return;
-
-    const clearance = calcularClearanceNav();
-    const clearancePx = `${clearance}px`;
-    spacer.style.height = clearancePx;
-    document.documentElement.style.setProperty('--mobile-bottom-clearance', clearancePx);
+    bar.querySelector('#mobileMenuToggle')?.addEventListener('click', () => {
+      global.finSidebar?.toggleDrawer();
+    });
   }
 
   function aplicarShell() {
@@ -216,16 +137,13 @@
 
     if (!isMobile()) {
       document.body.classList.remove('mobile-shell');
-      const nav = document.getElementById('mobileBottomNav');
-      const spacer = document.getElementById('mobileNavSpacer');
-      if (nav) nav.remove();
-      if (spacer) spacer.remove();
-      document.documentElement.style.removeProperty('--mobile-bottom-clearance');
+      const bar = document.getElementById('mobileTopBar');
+      if (bar) bar.remove();
+      global.finSidebar?.fecharDrawer();
       return;
     }
     document.body.classList.add('mobile-shell');
-    criarBottomNav();
-    requestAnimationFrame(atualizarEspacadorNav);
+    criarTopBar();
   }
 
   function formatarMoeda(valor) {
@@ -293,7 +211,7 @@
           if (!chartArea) return;
           c.save();
           c.font = 'bold 14px Montserrat, sans-serif';
-          c.fillStyle = '#0F172A';
+          c.fillStyle = '#0B1120';
           c.textAlign = 'center';
           c.textBaseline = 'middle';
           c.fillText(
@@ -390,10 +308,7 @@
 
   function init() {
     aplicarShell();
-    window.addEventListener('resize', () => {
-      aplicarShell();
-      atualizarEspacadorNav();
-    });
+    window.addEventListener('resize', aplicarShell);
   }
 
   if (document.readyState === 'loading') {
@@ -401,6 +316,38 @@
   } else {
     init();
   }
+
+  // --- Toast não-bloqueante (substitui alert() para erros de fundo) ---
+  let toastContainer = null;
+
+  function finToast(mensagem, { type = 'info', duration = 4200 } = {}) {
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.id = 'finToastContainer';
+      toastContainer.setAttribute('aria-live', 'polite');
+      document.body.appendChild(toastContainer);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `fin-toast fin-toast--${type}`;
+    toast.textContent = mensagem;
+    toastContainer.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.add('fin-toast--visible'));
+
+    const remover = () => {
+      toast.classList.remove('fin-toast--visible');
+      setTimeout(() => toast.remove(), 220);
+    };
+
+    const timer = setTimeout(remover, duration);
+    toast.addEventListener('click', () => {
+      clearTimeout(timer);
+      remover();
+    });
+  }
+
+  global.finToast = finToast;
 
   global.finMobileNav = {
     isMobile,
@@ -410,6 +357,9 @@
     formatarMoeda,
     urlFinanceiro,
     irFinanceiroResumo,
+    irContas,
+    irCartoes,
+    irReservas,
     irHome,
     irRelatorio,
     irVeiculos,

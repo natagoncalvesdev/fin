@@ -5,37 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Home | Controle</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="sidebar.css?v=4">
-  <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="css/mobile-shell.css">
-  <script src="js/fin-sdk.js?v=2"></script>
-  <script src="sidebar.js?v=4"></script>
+  <link rel="stylesheet" href="sidebar.css?v=5">
+  <link rel="stylesheet" href="css/theme.css?v=5">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=5">
+  <script src="js/fin-sdk.js?v=3"></script>
+  <script src="sidebar.js?v=5"></script>
   <style>
-    :root {
-      --bg-main: #F8FAFC;
-      --bg-section: #FFFFFF;
-      --text-primary: #0F172A;
-      --text-secondary: #64748B;
-      --border-color: #E2E8F0;
-      --sidebar-bg: #0F172A;
-      --sidebar-text: #F8FAFC;
-      --sidebar-item-bg: rgba(255, 255, 255, 0.08);
-      --sidebar-item-hover: rgba(255, 255, 255, 0.14);
-      --accent-blue: #10B981;
-      --accent-blue-hover: #059669;
-      --accent-green: #10B981;
-      --accent-red: #EF4444;
-      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.08);
-      --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
-      --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
-    }
-
     * { box-sizing: border-box; }
 
     body {
       font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #F8FAFC;
+      background: var(--bg-main);
       display: flex;
       min-height: 100vh;
       margin: 0;
@@ -48,95 +28,132 @@
       margin-left: 280px;
       display: flex;
       flex-direction: column;
-      gap: 28px;
-    }
-
-    .section {
-      background: var(--bg-section);
-      border-radius: 16px;
-      padding: 32px;
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--border-color);
-    }
-
-    .welcome-card { text-align: center; padding: 40px 20px; }
-    .welcome-card h2 {
-      margin-top: 0;
-      font-size: 32px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #0F172A 0%, #10B981 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .welcome-card p {
-      color: var(--text-secondary);
-      font-size: 16px;
-      max-width: 500px;
-      margin: 10px auto 30px;
-    }
-
-    .quick-links {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 16px;
-      margin-bottom: 24px;
+      max-width: 560px;
     }
 
-    .quick-links a {
+    .home-card-tile {
+      position: relative;
+      border-radius: 20px;
+      padding: 22px 20px;
+      background: linear-gradient(135deg, var(--ink-950) 0%, var(--ink-800) 100%);
+      color: #fff;
+      cursor: pointer;
+      border: none;
+      width: 100%;
+      text-align: left;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      border-radius: 16px;
-      background: #10B981;
-      color: #fff;
-      text-decoration: none;
-      padding: 24px 20px;
-      min-height: 140px;
+      gap: 22px;
       box-shadow: var(--shadow-md);
-      transition: transform 0.2s ease, background 0.2s ease;
+      font-family: inherit;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .quick-links a:hover { transform: translateY(-4px); background: #059669; }
-    .quick-links a strong {
-      display: block;
-      width: 100%;
-      font-size: 20px;
+    .home-card-tile:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .home-card-tile::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -20%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .home-card-tile-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .home-card-chip {
+      width: 36px;
+      height: 28px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    }
+
+    .home-card-brand {
+      font-size: 12px;
       font-weight: 700;
-      margin-bottom: 8px;
-      text-align: center;
-      line-height: 1.3;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.85;
     }
-    .quick-links a span {
+
+    .home-card-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+    }
+
+    .home-card-label {
       display: block;
-      width: 100%;
-      font-size: 14px;
-      opacity: 0.9;
-      text-align: center;
-      line-height: 1.4;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      opacity: 0.75;
+      margin-bottom: 4px;
     }
+
+    .home-card-valor {
+      display: block;
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .home-card-numero {
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+      font-size: 14px;
+      opacity: 0.85;
+      white-space: nowrap;
+    }
+
+    .home-shortcuts {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .home-shortcut-icon {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .home-shortcut-icon svg { width: 20px; height: 20px; }
 
     .quick-link-button {
-      padding: 15px 30px;
-      border-radius: 12px;
-      color: #fff;
+      padding: 13px 28px;
+      border-radius: var(--btn-radius);
+      color: var(--negative);
       font-weight: 600;
-      border: none;
+      font-size: 14px;
+      border: 1px solid var(--border-color);
       cursor: pointer;
-      background: var(--accent-red);
-      box-shadow: var(--shadow-md);
+      background: var(--bg-section);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .quick-link-button:hover {
+      background: rgba(185, 28, 28, 0.06);
+      border-color: rgba(185, 28, 28, 0.35);
     }
 
     @media (max-width: 768px) {
       .content {
         margin-left: 0;
         padding: 24px 16px 16px;
-      }
-
-      .quick-links {
-        grid-template-columns: 1fr;
+        max-width: 100%;
       }
     }
   </style>
@@ -144,23 +161,74 @@
 <body>
 
   <main class="content">
-    <div class="section welcome-card">
-      <h2 id="welcome-message">Bem vindo!</h2>
-      <p>Selecione uma das opções abaixo para começar a gerenciar suas finanças e veículos.</p>
+    <div class="page-header">
+      <h1 id="welcome-message">Bem vindo!</h1>
+      <p>Saldo e movimentações de <span id="welcome-periodo">este mês</span>.</p>
     </div>
 
-    <div class="quick-links">
-      <a href="financeiro.html?tab=mes" id="linkFinanceiroHome">
-        <strong>Controle Financeiro</strong>
-        <span>Gerencie suas contas, despesas e receitas.</span>
+    <div class="saldo-card" id="homeSaldoCard">
+      <div class="saldo-card-label">Saldo disponível</div>
+      <div class="saldo-card-value" id="homeSaldoValor">R$ 0,00</div>
+      <div class="saldo-card-trend" id="homeSaldoSub">Receitas R$ 0,00 · Despesas R$ 0,00</div>
+    </div>
+
+    <button type="button" id="homeCardTile" class="home-card-tile" style="display:none;" aria-label="Ver fatura do cartão">
+      <span class="home-card-tile-top">
+        <span class="home-card-chip" aria-hidden="true"></span>
+        <span class="home-card-brand" id="homeCardBrand">Cartão</span>
+      </span>
+      <span class="home-card-bottom">
+        <span>
+          <span class="home-card-label">Fatura do mês</span>
+          <span class="home-card-valor" id="homeCardValor">R$ 0,00</span>
+        </span>
+        <span class="home-card-numero" id="homeCardNumero">•••• ????</span>
+      </span>
+    </button>
+
+    <button type="button" id="homeCardEmpty" class="statement-row" style="display:none;">
+      <span class="statement-row-icon home-shortcut-icon">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+      </span>
+      <span class="statement-row-body">
+        <span class="statement-row-title">Nenhum cartão cadastrado</span>
+        <span class="statement-row-subtitle">Toque para adicionar seu primeiro cartão</span>
+      </span>
+      <span class="statement-row-end"><span class="statement-row-value" style="color: var(--slate-400); font-weight: 400;">›</span></span>
+    </button>
+
+    <div class="home-shortcuts statement-list">
+      <button type="button" class="statement-row" onclick="window.finMobileNav.irContas()">
+        <span class="statement-row-icon home-shortcut-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
+        <span class="statement-row-body">
+          <span class="statement-row-title">Contas</span>
+          <span class="statement-row-subtitle">Contas do mês, débito e status de pagamento</span>
+        </span>
+        <span class="statement-row-end"><span class="statement-row-value" style="color: var(--slate-400); font-weight: 400;">›</span></span>
+      </button>
+      <button type="button" class="statement-row" onclick="window.finMobileNav.irReservas()">
+        <span class="statement-row-icon home-shortcut-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
+        <span class="statement-row-body">
+          <span class="statement-row-title">Reservas</span>
+          <span class="statement-row-subtitle">Combustível, lazer e outras reservas</span>
+        </span>
+        <span class="statement-row-end"><span class="statement-row-value" style="color: var(--slate-400); font-weight: 400;">›</span></span>
+      </button>
+      <a href="veiculos.html" class="statement-row">
+        <span class="statement-row-icon home-shortcut-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17h.01M17 17h.01M5 11l1.5-4h11L19 11M5 11h14v6H5z"/></svg></span>
+        <span class="statement-row-body">
+          <span class="statement-row-title">Veículos</span>
+          <span class="statement-row-subtitle">Abastecimentos, manutenções e consumo</span>
+        </span>
+        <span class="statement-row-end"><span class="statement-row-value" style="color: var(--slate-400); font-weight: 400;">›</span></span>
       </a>
-      <a href="veiculos.html">
-        <strong>Controle de Veículos</strong>
-        <span>Registre abastecimentos e monitore seus veículos.</span>
-      </a>
-      <a href="relatorio.html">
-        <strong>Relatório</strong>
-        <span>Visualize relatórios e gráficos por categoria.</span>
+      <a href="relatorio.html" class="statement-row">
+        <span class="statement-row-icon home-shortcut-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 17V11M12 17V7M16 17v-4"/></svg></span>
+        <span class="statement-row-body">
+          <span class="statement-row-title">Relatórios</span>
+          <span class="statement-row-subtitle">Gastos por categoria e relatórios anuais</span>
+        </span>
+        <span class="statement-row-end"><span class="statement-row-value" style="color: var(--slate-400); font-weight: 400;">›</span></span>
       </a>
     </div>
 
@@ -169,20 +237,90 @@
     </div>
   </main>
 
-  <script src="js/mobile-nav.js?v=7"></script>
+  <script src="js/mobile-nav.js?v=8"></script>
   <script>
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    document.getElementById('linkFinanceiroHome')?.addEventListener('click', () => {
-      try { sessionStorage.setItem('finNavPermitido', '1'); } catch (e) { /* ignore */ }
-    });
+    const MESES = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+
+    document.getElementById('homeCardTile')?.addEventListener('click', () => window.finMobileNav.irCartoes());
+    document.getElementById('homeCardEmpty')?.addEventListener('click', () => window.finMobileNav.irCartoes());
+
+    function obterPeriodoAtual() {
+      try {
+        const salvo = JSON.parse(sessionStorage.getItem('financeiroPeriodo') || '{}');
+        if (salvo.mes && salvo.ano) return { mes: salvo.mes, ano: String(salvo.ano) };
+      } catch (e) { /* ignore */ }
+      const hoje = new Date();
+      return { mes: MESES[hoje.getMonth()], ano: String(hoje.getFullYear()) };
+    }
 
     function extrairPrimeiroNome(nome) {
       const limpo = String(nome || '').trim();
       if (!limpo) return 'Usuário';
       if (limpo.includes('@')) return limpo.split('@')[0];
       return limpo.split(/\s+/)[0];
+    }
+
+    function atualizarSaldo(data) {
+      const contas = (data?.contas || []).reduce((acc, item) => acc + Number(item.valor || 0), 0);
+      const cartao = (data?.cartao || []).reduce((acc, item) => acc + Number(item.valor || 0), 0);
+      const debito = (data?.debito || []).reduce((acc, item) => acc + Number(item.valor || 0), 0);
+      const reservado = (data?.reservado || []).reduce((acc, item) => acc + Number(item.valor || 0), 0);
+      const entradas = (data?.adicionais || []).reduce((acc, item) => acc + Number(item.valor || 0), 0);
+      const despesas = contas + cartao + debito;
+      const saldo = entradas - despesas - reservado;
+
+      document.getElementById('homeSaldoValor').textContent = window.finMobileNav.formatarMoeda(saldo);
+      document.getElementById('homeSaldoSub').textContent =
+        `Receitas ${window.finMobileNav.formatarMoeda(entradas)} · Despesas ${window.finMobileNav.formatarMoeda(despesas)}`;
+
+      const saldoCard = document.getElementById('homeSaldoCard');
+      saldoCard.classList.remove('card-saldo-positivo', 'card-saldo-aviso', 'card-saldo-negativo');
+      if (saldo < 0) saldoCard.classList.add('card-saldo-negativo');
+      else if (saldo < 100) saldoCard.classList.add('card-saldo-aviso');
+      else saldoCard.classList.add('card-saldo-positivo');
+
+      const tile = document.getElementById('homeCardTile');
+      const valorEl = document.getElementById('homeCardValor');
+      if (tile && valorEl) valorEl.textContent = window.finMobileNav.formatarMoeda(cartao);
+    }
+
+    async function carregarCartaoPrincipal(uid) {
+      const tile = document.getElementById('homeCardTile');
+      const empty = document.getElementById('homeCardEmpty');
+      try {
+        const snap = await db.collection('users').doc(uid).collection('cartoes').limit(1).get();
+        if (snap.empty) {
+          if (empty) empty.style.display = 'flex';
+          return;
+        }
+        const cartao = snap.docs[0].data();
+        const bandeira = (cartao.bandeira || 'Cartão').charAt(0).toUpperCase() + (cartao.bandeira || '').slice(1);
+        document.getElementById('homeCardBrand').textContent = bandeira;
+        document.getElementById('homeCardNumero').textContent = `•••• ${cartao.numero || '????'}`;
+        if (tile) tile.style.display = 'flex';
+      } catch (e) {
+        console.error('Erro ao carregar cartão principal:', e);
+      }
+    }
+
+    let unsubscribeHomeMes = null;
+
+    function escutarMesHome(uid) {
+      if (unsubscribeHomeMes) unsubscribeHomeMes();
+      const { mes, ano } = obterPeriodoAtual();
+      document.getElementById('welcome-periodo').textContent = `${mes.toLowerCase()}/${ano}`;
+      const ref = db.collection('users').doc(uid).collection('anos').doc(ano).collection('meses').doc(mes);
+      unsubscribeHomeMes = ref.onSnapshot(doc => {
+        atualizarSaldo(doc.exists ? doc.data() : {});
+      }, error => {
+        console.error('Erro ao carregar saldo do mês:', error);
+      });
     }
 
     auth.onAuthStateChanged(user => {
@@ -197,6 +335,8 @@
         const primeiroNome = extrairPrimeiroNome(nome);
         document.getElementById('welcome-message').textContent = `Bem vindo, ${primeiroNome}!`;
       });
+      escutarMesHome(user.uid);
+      carregarCartaoPrincipal(user.uid);
     });
 
     document.getElementById('logout-button-home').addEventListener('click', () => {

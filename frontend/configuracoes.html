@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Configurações</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="sidebar.css?v=4">
-  <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="css/mobile-shell.css">
+  <link rel="stylesheet" href="sidebar.css?v=5">
+  <link rel="stylesheet" href="css/theme.css?v=5">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=5">
   <script src="js/fin-run-once.js"></script>
-  <script src="js/fin-sdk.js?v=2"></script>
-  <script src="sidebar.js?v=4"></script>
+  <script src="js/fin-sdk.js?v=3"></script>
+  <script src="sidebar.js?v=5"></script>
   <style>
     body {
       margin: 0;
-      background: #F8FAFC;
+      background: var(--bg-main);
       min-height: 100vh;
       display: flex;
     }
@@ -30,18 +30,18 @@
       margin: 0 0 8px;
       font-size: 1.75rem;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--ink-950);
     }
 
     .config-header p {
       margin: 0 0 28px;
-      color: #64748B;
+      color: var(--slate-600);
       font-size: 14px;
     }
 
     .config-card {
       background: #FFFFFF;
-      border: 1px solid #E2E8F0;
+      border: 1px solid var(--slate-200);
       border-radius: 16px;
       padding: 24px;
       margin-bottom: 20px;
@@ -52,7 +52,7 @@
       margin: 0 0 16px;
       font-size: 1rem;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--ink-950);
     }
 
     .form-group {
@@ -64,23 +64,23 @@
       margin-bottom: 8px;
       font-size: 13px;
       font-weight: 600;
-      color: #64748B;
+      color: var(--slate-600);
     }
 
     .form-group input {
       width: 100%;
       padding: 12px 14px;
-      border: 1px solid #E2E8F0;
+      border: 1px solid var(--slate-200);
       border-radius: 12px;
       font-family: inherit;
       font-size: 14px;
       box-sizing: border-box;
-      color: #0F172A;
+      color: var(--ink-950);
     }
 
     .form-group input:focus {
       outline: none;
-      border-color: #10B981;
+      border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
     }
 
@@ -93,7 +93,7 @@
     }
 
     .form-group.campo-destaque label {
-      color: #B91C1C;
+      color: var(--negative);
     }
 
     .form-group.campo-destaque input {
@@ -101,7 +101,7 @@
     }
 
     .form-group.campo-destaque input:focus {
-      border-color: #EF4444;
+      border-color: var(--negative);
       box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
     }
 
@@ -111,14 +111,14 @@
       border-radius: 12px;
       font-size: 14px;
       background: rgba(239, 68, 68, 0.08);
-      color: #B91C1C;
+      color: var(--negative);
       border: 1px solid rgba(239, 68, 68, 0.2);
     }
 
     .form-hint {
       margin: 8px 0 0;
       font-size: 12px;
-      color: #64748B;
+      color: var(--slate-600);
     }
 
     .form-actions {
@@ -139,14 +139,14 @@
     .config-message.success {
       display: block;
       background: rgba(16, 185, 129, 0.1);
-      color: #047857;
+      color: var(--accent-dark);
       border: 1px solid rgba(16, 185, 129, 0.25);
     }
 
     .config-message.error {
       display: block;
       background: rgba(239, 68, 68, 0.08);
-      color: #B91C1C;
+      color: var(--negative);
       border: 1px solid rgba(239, 68, 68, 0.2);
     }
 
@@ -235,7 +235,7 @@
     </div>
   </main>
 
-  <script src="js/mobile-nav.js?v=7"></script>
+  <script src="js/mobile-nav.js?v=8"></script>
   <script>
     const auth = firebase.auth();
     const TOKEN_KEY = 'fin_token';

@@ -5,33 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Relatório - Controle Financeiro</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="sidebar.css?v=4">
+  <link rel="stylesheet" href="sidebar.css?v=5">
+  <link rel="stylesheet" href="css/theme.css?v=5">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=5">
   <script src="js/fin-run-once.js"></script>
-  <script src="js/fin-sdk.js?v=2"></script>
+  <script src="js/fin-sdk.js?v=3"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="sidebar.js?v=4"></script>
+  <script src="sidebar.js?v=5"></script>
   <style>
-    :root {
-      --bg-main: #F8FAFC;
-      --bg-section: #FFFFFF;
-      --text-primary: #0F172A;
-      --text-secondary: #64748B;
-      --border-color: #E2E8F0;
-      --sidebar-bg: #0F172A;
-      --sidebar-text: #F8FAFC;
-      --sidebar-item-bg: rgba(255, 255, 255, 0.08);
-      --sidebar-item-hover: rgba(255, 255, 255, 0.14);
-      --accent: #F59E0B;
-      --accent-2: #10B981;
-      --accent-3: #EF4444;
-      --accent-blue: #10B981;
-      --accent-blue-hover: #059669;
-      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.08);
-      --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
-      --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
-    }
-
     * {
       box-sizing: border-box;
     }
@@ -91,7 +72,7 @@
       margin: 0;
       font-size: 32px;
       font-weight: 700;
-      background: linear-gradient(135deg, #0F172A 0%, #10B981 100%);
+      background: linear-gradient(135deg, var(--ink-950) 0%, var(--accent) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -688,16 +669,17 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="css/mobile-shell.css">
 </head>
 <body>
 
   <div class="content">
     <div class="header">
-      <h2>Relatório</h2>
+      <div class="page-header">
+        <h1>Relatório</h1>
+        <p>Acompanhe seus gastos por categoria e gere relatórios do período.</p>
+      </div>
       <div class="header-actions">
-        <button class="btn-add" onclick="abrirModalCategorias()">Categoria</button>
+        <button class="btn-cancel" onclick="abrirModalCategorias()">Categorias</button>
         <button class="btn-add" onclick="irParaResumoAnual()">Resumo Anual</button>
       </div>
     </div>
@@ -719,8 +701,8 @@
       </div>
     </div>
 
-    <div class="section">
-      <h3>Filtros</h3>
+    <div class="section section-card">
+      <h3 class="section-card-title">Filtros</h3>
       <div class="filtros">
         <select id="selectAno">
           <!-- Anos serão populados via JS -->
@@ -1748,7 +1730,7 @@
       }
     });
   </script>
-  <script src="js/mobile-nav.js?v=7"></script>
+  <script src="js/mobile-nav.js?v=8"></script>
 </body>
 </html>
 

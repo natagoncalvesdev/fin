@@ -30,10 +30,6 @@
     return window.innerWidth <= MOBILE_MAX;
   }
 
-  function paginaAtual() {
-    return (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
-  }
-
   function obterPeriodoSalvo() {
     try {
       const salvo = JSON.parse(sessionStorage.getItem('financeiroPeriodo') || '{}');
@@ -46,9 +42,6 @@
     const hoje = new Date();
     return { mes: MESES[hoje.getMonth()], ano: String(hoje.getFullYear()) };
   }
-
-  // Páginas do financeiro, na ordem usada pelo swipe mobile (irFinanceiroPagina).
-  const FINANCEIRO_PAGINAS = ['index.html', 'contas.html', 'cartoes.html', 'reservados.html'];
 
   function urlFinanceiro(pagina) {
     const { mes, ano } = obterPeriodoSalvo();
@@ -76,15 +69,6 @@
 
   function irReservas() {
     navegarPara(urlFinanceiro('reservados.html'));
-  }
-
-  function irFinanceiroPagina(offset) {
-    const atual = paginaAtual();
-    const idx = FINANCEIRO_PAGINAS.indexOf(atual);
-    if (idx < 0) return;
-    const novoIdx = idx + offset;
-    if (novoIdx < 0 || novoIdx >= FINANCEIRO_PAGINAS.length) return;
-    navegarPara(urlFinanceiro(FINANCEIRO_PAGINAS[novoIdx]));
   }
 
   function irHome() {
@@ -302,39 +286,8 @@
     if (lastChartPayload) renderizarChartAgora();
   }
 
-  function deveIgnorarSwipe(target) {
-    return !!(target.closest('input, textarea, select, button, .modal-overlay, .cartoes-container, .sidebar, #mobileTopBar'));
-  }
-
-  function iniciarSwipeEntrePaginas() {
-    if (!isMobile() || FINANCEIRO_PAGINAS.indexOf(paginaAtual()) < 0) return;
-
-    let startX = 0;
-    let startY = 0;
-    let ativo = false;
-    const MIN_DIST = 60;
-
-    document.body.addEventListener('touchstart', (e) => {
-      if (deveIgnorarSwipe(e.target)) { ativo = false; return; }
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      ativo = true;
-    }, { passive: true });
-
-    document.body.addEventListener('touchend', (e) => {
-      if (!ativo) return;
-      ativo = false;
-      const dx = e.changedTouches[0].clientX - startX;
-      const dy = Math.abs(e.changedTouches[0].clientY - startY);
-      if (Math.abs(dx) > MIN_DIST && Math.abs(dx) > dy * 1.5) {
-        irFinanceiroPagina(dx > 0 ? -1 : 1);
-      }
-    }, { passive: true });
-  }
-
   function init() {
     aplicarShell();
-    iniciarSwipeEntrePaginas();
     window.addEventListener('resize', aplicarShell);
   }
 
@@ -387,7 +340,6 @@
     irContas,
     irCartoes,
     irReservas,
-    irFinanceiroPagina,
     irHome,
     irRelatorio,
     irVeiculos,

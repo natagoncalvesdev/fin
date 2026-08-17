@@ -26,6 +26,19 @@
     padding-bottom: 8px;
   }
 
+  /* Nas telas de KPI (ex.: veículos, resumo anual), o valor não pode ser
+     cortado com "…" num tile estreito — deixa quebrar linha em vez disso. */
+  body.mobile-shell .stat-row {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  }
+
+  body.mobile-shell .stat-tile-value {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: break-word;
+  }
+
   .desktop-only {
     display: none !important;
   }

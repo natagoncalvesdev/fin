@@ -7,10 +7,10 @@
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
   <link rel="stylesheet" href="sidebar.css?v=6">
   <link rel="stylesheet" href="css/theme.css?v=6">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=6">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=7">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-sdk.js?v=4"></script>
-  <script src="js/fin-financeiro-shared.js?v=3"></script>
+  <script src="js/fin-financeiro-shared.js?v=4"></script>
   <script src="sidebar.js?v=6"></script>
   <style>
     * { box-sizing: border-box; }
@@ -138,6 +138,8 @@
     let periodo = null;
     let observador = null;
 
+    const ICONE_CARTAO = '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>';
+
     function iniciarConta(nome, valor, categoria, status) {
       return F.api('/api/financeiro/contas', {
         method: 'POST',
@@ -145,13 +147,38 @@
       });
     }
 
-    function renderizarContas(contas) {
+    function renderizarContas(data) {
+      const contas = data.contas || [];
+      const totalCartao = (data.cartao || []).reduce((s, i) => s + Number(i.valor || 0), 0);
       const lista = document.getElementById('listaContas');
       lista.innerHTML = '';
-      if (!contas.length) {
+
+      if (!contas.length && totalCartao <= 0) {
         lista.innerHTML = '<div class="statement-empty">Nenhuma conta cadastrada neste mês.</div>';
         return;
       }
+
+      if (totalCartao > 0) {
+        const cartaoStatus = data.cartaoStatus || 'pendente';
+        const rowCartao = F.renderStatementRow({
+          icone: ICONE_CARTAO,
+          titulo: 'Cartão de crédito',
+          subtitulo: 'Fatura do mês · gerencie as compras em Cartões',
+          valor: totalCartao,
+          status: cartaoStatus,
+          onClick: () => window.finMobileNav.irCartoes(),
+          onToggleStatus: async (pillEl) => {
+            const novo = cartaoStatus === 'pago' ? 'pendente' : 'pago';
+            pillEl.textContent = novo === 'pago' ? 'Pago' : 'Pendente';
+            pillEl.classList.toggle('pago', novo === 'pago');
+            pillEl.classList.toggle('pendente', novo !== 'pago');
+            await F.atualizarStatusFatura(periodo.ano, periodo.mes, novo);
+            observador && observador.forcar();
+          },
+        });
+        lista.appendChild(rowCartao);
+      }
+
       [...contas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).forEach((item) => {
         const row = F.renderStatementRow({
           titulo: item.nome,
@@ -209,7 +236,7 @@
 
     function renderizarTudo(data) {
       dadosMes = data;
-      renderizarContas(data.contas || []);
+      renderizarContas(data);
       renderizarDebito(data.debito || []);
     }
 
@@ -302,6 +329,6 @@
       iniciar();
     });
   </script>
-  <script src="js/mobile-nav.js?v=9"></script>
+  <script src="js/mobile-nav.js?v=10"></script>
 </body>
 </html>

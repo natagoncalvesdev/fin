@@ -7,10 +7,10 @@
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
   <link rel="stylesheet" href="sidebar.css?v=6">
   <link rel="stylesheet" href="css/theme.css?v=6">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=6">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=7">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-sdk.js?v=4"></script>
-  <script src="js/fin-financeiro-shared.js?v=3"></script>
+  <script src="js/fin-financeiro-shared.js?v=4"></script>
   <script src="sidebar.js?v=6"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <style>
@@ -99,19 +99,6 @@
       color: var(--ink-950);
     }
 
-    .home-shortcuts {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .home-shortcut-icon {
-      background: var(--accent-soft);
-      color: var(--accent);
-    }
-
-    .home-shortcut-icon svg { width: 20px; height: 20px; }
-
     .quick-link-button {
       padding: 13px 28px;
       border-radius: var(--btn-radius);
@@ -198,49 +185,6 @@
         </div>
       </div>
     </section>
-
-    <div class="home-shortcuts statement-list">
-      <button type="button" class="statement-row" onclick="window.finMobileNav.irContas()">
-        <span class="statement-row-icon home-shortcut-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
-        <span class="statement-row-body">
-          <span class="statement-row-title">Contas</span>
-          <span class="statement-row-subtitle">Contas do mês, débito e status de pagamento</span>
-        </span>
-        <span class="statement-row-end"><span class="statement-row-value" style="color: var(--slate-400); font-weight: 400;">›</span></span>
-      </button>
-      <button type="button" class="statement-row" onclick="window.finMobileNav.irCartoes()">
-        <span class="statement-row-icon home-shortcut-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
-        <span class="statement-row-body">
-          <span class="statement-row-title">Cartões</span>
-          <span class="statement-row-subtitle">Faturas, compras e parcelas dos seus cartões</span>
-        </span>
-        <span class="statement-row-end"><span class="statement-row-value" style="color: var(--slate-400); font-weight: 400;">›</span></span>
-      </button>
-      <button type="button" class="statement-row" onclick="window.finMobileNav.irReservas()">
-        <span class="statement-row-icon home-shortcut-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
-        <span class="statement-row-body">
-          <span class="statement-row-title">Reservas</span>
-          <span class="statement-row-subtitle">Combustível, lazer e outras reservas</span>
-        </span>
-        <span class="statement-row-end"><span class="statement-row-value" style="color: var(--slate-400); font-weight: 400;">›</span></span>
-      </button>
-      <a href="veiculos.html" class="statement-row">
-        <span class="statement-row-icon home-shortcut-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17h.01M17 17h.01M5 11l1.5-4h11L19 11M5 11h14v6H5z"/></svg></span>
-        <span class="statement-row-body">
-          <span class="statement-row-title">Veículos</span>
-          <span class="statement-row-subtitle">Abastecimentos, manutenções e consumo</span>
-        </span>
-        <span class="statement-row-end"><span class="statement-row-value" style="color: var(--slate-400); font-weight: 400;">›</span></span>
-      </a>
-      <a href="relatorio.html" class="statement-row">
-        <span class="statement-row-icon home-shortcut-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 17V11M12 17V7M16 17v-4"/></svg></span>
-        <span class="statement-row-body">
-          <span class="statement-row-title">Relatórios</span>
-          <span class="statement-row-subtitle">Gastos por categoria e relatórios anuais</span>
-        </span>
-        <span class="statement-row-end"><span class="statement-row-value" style="color: var(--slate-400); font-weight: 400;">›</span></span>
-      </a>
-    </div>
 
     <div style="text-align: center; padding-top: 4px;">
       <button id="logout-button-home" class="quick-link-button">Sair</button>
@@ -547,6 +491,6 @@
       iniciar();
     });
   </script>
-  <script src="js/mobile-nav.js?v=9"></script>
+  <script src="js/mobile-nav.js?v=10"></script>
 </body>
 </html>

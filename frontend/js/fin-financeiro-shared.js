@@ -399,7 +399,6 @@
     }
 
     modalEls.overlay.classList.add('visible');
-    modalEls.nome.focus();
   }
 
   function fecharModalItem() {

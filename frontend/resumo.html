@@ -5,44 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Resumo Anual | Controle</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="sidebar.css?v=5">
-  <link rel="stylesheet" href="css/theme.css?v=5">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=5">
-  <script src="js/fin-sdk.js?v=3"></script>
-  <script src="sidebar.js?v=5"></script>
+  <link rel="stylesheet" href="sidebar.css?v=6">
+  <link rel="stylesheet" href="css/theme.css?v=6">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=6">
+  <script src="js/fin-sdk.js?v=4"></script>
+  <script src="sidebar.js?v=6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <style>
     * { box-sizing: border-box; }
 
-    /* Scrollbar personalizado */
-    ::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #f1f5f9;
-      border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: linear-gradient(135deg, #cbd5e0 0%, #94a3b8 100%);
-      border-radius: 10px;
-      border: 2px solid #f1f5f9;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
-    }
-
     body {
       margin: 0;
-      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: var(--font-family);
       display: flex;
       min-height: 100vh;
-      background: #F8FAFC;
+      background: var(--bg-main);
       color: var(--text-primary);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
 
     .content {
@@ -51,255 +29,18 @@
       margin-left: 280px;
       display: flex;
       flex-direction: column;
-      gap: 28px;
+      gap: 24px;
+      max-width: 1180px;
     }
 
-    .header {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin-bottom: 8px;
-    }
-
-    .header h2 {
-      margin: 0;
-      font-size: 32px;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--ink-950) 0%, var(--accent) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: -0.02em;
-    }
-
-    .period-controls {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .period-controls select {
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: 2px solid var(--border-color);
-      background: var(--bg-section);
-      color: var(--text-primary);
-      min-width: 140px;
-      transition: all 0.3s ease;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: 'Montserrat', sans-serif;
-    }
-
-    .period-controls select:focus {
-      outline: none;
-      border-color: var(--accent-blue);
-      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
-      transform: translateY(-1px);
-    }
-
-    .btn-add {
-      border: none;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
-      color: #ffffff;
-      padding: 12px 24px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: var(--shadow-sm);
-      letter-spacing: 0.01em;
-      font-size: 14px;
-    }
-    .btn-add:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      background: linear-gradient(135deg, var(--accent-blue-hover) 0%, var(--accent-blue) 100%);
-    }
-    .btn-add:active {
-      transform: translateY(0);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .section {
-      background: var(--bg-section);
-      border-radius: 16px;
-      padding: 32px;
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      transition: all 0.3s ease;
-    }
-
-    .section:hover {
-      box-shadow: var(--shadow-lg);
-      transform: translateY(-2px);
-    }
-
-    .section h3 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: 600;
-      color: var(--text-primary);
-      letter-spacing: -0.01em;
-    }
-
-    .resumo {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-    }
-
-    .card {
-      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      transition: all 0.3s ease;
+    .chart-box {
       position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-2) 100%);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-lg);
-      border-color: var(--accent-blue);
-    }
-
-    .card:hover::before {
-      transform: scaleX(1);
-    }
-
-    .card small {
-      text-transform: uppercase;
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      color: var(--text-secondary);
-      font-weight: 600;
-    }
-
-    .card strong {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-
-    .card.green strong { color: var(--accent-2); }
-    .card.red strong { color: var(--accent-3); }
-    .card.yellow strong { color: var(--accent); }
-    .card.blue strong { color: #007bff; }
-
-    .table-wrapper {
-      max-height: 60vh;
-      overflow: auto;
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    thead {
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    th, td {
-      padding: 16px;
-      text-align: left;
-      font-size: 14px;
-    }
-
-    th {
-      font-weight: 600;
-      color: var(--text-secondary);
-      border-bottom: 1px solid var(--border-color);
-      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    tr {
-      transition: all 0.2s ease;
-    }
-
-    tbody tr:nth-child(even) {
-      background: #f9fafb;
-    }
-
-    tbody tr:hover {
-      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-      transform: scale(1.01);
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    .info-text {
-      font-size: 14px;
-      color: var(--text-secondary);
+      height: 320px;
     }
 
     @media (max-width: 768px) {
-      body { flex-direction: column; }
-
-      .content {
-        margin-left: 0;
-        margin-top: 80px;
-        padding: 16px;
-      }
-      .header h2 {
-        font-size: 22px;
-      }
-      .resumo {
-        grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
-        gap: 12px;
-      }
-      .card {
-        padding: 12px;
-      }
-      .card strong {
-        font-size: 18px;
-      }
-      .period-controls {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .btn-add {
-        width: 100%;
-      }
-      th, td {
-        padding: 8px 4px;
-        font-size: 12px;
-        white-space: nowrap;
-      }
+      .content { max-width: 100%; }
+      .chart-box { height: 260px; }
     }
   </style>
 </head>
@@ -311,14 +52,14 @@
         <h1>Resumo financeiro anual</h1>
         <p id="infoUsuario">Carregando usuário...</p>
       </div>
-      <div class="period-controls">
+      <div class="period-controls form-row">
         <select id="selectAnoResumo"></select>
-        <button class="btn-cancel" onclick="window.location.href='financeiro.html'">Voltar</button>
+        <button class="btn-cancel" onclick="window.location.href='index.html'">Voltar</button>
       </div>
     </div>
 
-    <section class="section">
-      <h3>Totais do ano <span id="tituloAnoResumo"></span></h3>
+    <section class="section-card">
+      <h3 class="section-card-title">Totais do ano <span id="tituloAnoResumo"></span></h3>
       <div class="stat-row">
         <div class="stat-tile negative">
           <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
@@ -340,8 +81,13 @@
       <p class="info-text" id="statusCarregamento" style="margin-top: 16px;">Carregando dados do ano...</p>
     </section>
 
-    <section class="section">
-      <h3>Detalhamento por mês</h3>
+    <section class="section-card">
+      <h3 class="section-card-title">Saldo por mês</h3>
+      <div class="chart-box"><canvas id="chartSaldoMensal"></canvas></div>
+    </section>
+
+    <section class="section-card">
+      <h3 class="section-card-title">Detalhamento por mês</h3>
       <div id="tabelaResumoAnual" class="statement-list"></div>
     </section>
   </main>
@@ -477,7 +223,34 @@
         });
       }
 
+      atualizarChartSaldoMensal(linhasMensais);
+
       if (statusEl) statusEl.textContent = "Dados carregados com sucesso.";
+    }
+
+    let chartSaldoMensal = null;
+    function atualizarChartSaldoMensal(linhasMensais) {
+      const canvas = document.getElementById('chartSaldoMensal');
+      if (!canvas || typeof Chart === 'undefined') return;
+      if (chartSaldoMensal) { chartSaldoMensal.destroy(); chartSaldoMensal = null; }
+
+      const labels = linhasMensais.map((l) => l.mes.slice(0, 3));
+      const valores = linhasMensais.map((l) => l.saldo);
+      const cores = valores.map((v) => (v < 0 ? '#B91C1C' : '#2563EB'));
+
+      chartSaldoMensal = new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: { labels, datasets: [{ data: valores, backgroundColor: cores, borderRadius: 6, maxBarThickness: 40 }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => ` ${formatar(c.parsed.y)}` } } },
+          scales: {
+            y: { ticks: { callback: (v) => formatar(v), font: { size: 11 } }, grid: { color: 'rgba(148,163,184,0.15)' } },
+            x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+          },
+        },
+      });
     }
 
     async function inicializarResumo() {
@@ -513,6 +286,6 @@
       }
     });
   </script>
-  <script src="js/mobile-nav.js?v=8"></script>
+  <script src="js/mobile-nav.js?v=9"></script>
 </body>
 </html>

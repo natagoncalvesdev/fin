@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel ADM - Controle Financeiro</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="css/theme.css?v=5" />
-  <script src="js/fin-sdk.js?v=3"></script>
+  <link rel="stylesheet" href="css/theme.css?v=6" />
+  <script src="js/fin-run-once.js"></script>
+  <script src="js/fin-sdk.js?v=4"></script>
   <style>
     body {
       background-color: var(--brand-bg);
@@ -95,8 +96,8 @@
 
     <div class="button-group">
       <button id="import-button" class="btn-add" onclick="document.getElementById('file-input').click();">Importar Ano</button>
-      <input type="file" id="file-input" accept=".json" style="display: none;" onchange="importarDados(event)">
-      <button id="export-button" class="btn-cancel">Exportar Ano</button>
+      <input type="file" id="file-input" accept=".json" style="display: none;" onchange="finRunOnce(document.getElementById('import-button'), () => importarDados(event))">
+      <button id="export-button" class="btn-cancel" onclick="finRunOnce(event, exportarDados)">Exportar Ano</button>
     </div>
 
     <button id="back-button" class="btn-cancel btn-back" onclick="window.location.href='index.html'">Voltar</button>
@@ -158,7 +159,6 @@
         return;
       }
 
-      exportButton.disabled = true;
       exportButton.textContent = 'Exportando...';
       errorMessage.style.display = 'none';
 
@@ -195,63 +195,60 @@
         errorMessage.textContent = "Ocorreu um erro ao exportar os dados. Tente novamente.";
         errorMessage.style.display = 'block';
       } finally {
-        exportButton.disabled = false;
         exportButton.textContent = 'Exportar Ano';
       }
     }
 
-    function importarDados(event) {
+    async function importarDados(event) {
       const file = event.target.files[0];
       if (!file) return;
 
-      importButton.disabled = true;
       importButton.textContent = 'Importando...';
       errorMessage.style.display = 'none';
 
       const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const dados = JSON.parse(e.target.result);
-
-          if (!dados.ano || !dados.dadosMeses || typeof dados.dadosMeses !== 'object') {
-            throw new Error("Formato de arquivo inválido.");
-          }
-
-          if (!confirm(`Você tem certeza que deseja importar os dados para o ano ${dados.ano}? Todos os dados existentes para este ano serão substituídos.`)) {
-            return;
-          }
-
-          await garantirEstruturaUsuario(dados.ano);
-
-          const batch = db.batch();
-          for (const mes in dados.dadosMeses) {
-            if (MESES.includes(mes)) {
-              const mesRef = db.collection('users').doc(currentUser.uid).collection('anos').doc(dados.ano).collection('meses').doc(mes);
-              batch.set(mesRef, dados.dadosMeses[mes]);
-            }
-          }
-
-          await batch.commit();
-          alert(`Dados do ano ${dados.ano} importados com sucesso!`);
-
-        } catch (error) {
-          console.error("Erro ao importar dados:", error);
-          errorMessage.textContent = "Erro ao importar arquivo: " + error.message;
-          errorMessage.style.display = 'block';
-        } finally {
-          event.target.value = null;
-          importButton.disabled = false;
-          importButton.textContent = 'Importar Ano';
-        }
-      };
+      const resultado = new Promise((resolve) => { reader.onload = resolve; });
       reader.readAsText(file);
+      await resultado;
+
+      try {
+        const dados = JSON.parse(reader.result);
+
+        if (!dados.ano || !dados.dadosMeses || typeof dados.dadosMeses !== 'object') {
+          throw new Error("Formato de arquivo inválido.");
+        }
+
+        if (!confirm(`Você tem certeza que deseja importar os dados para o ano ${dados.ano}? Todos os dados existentes para este ano serão substituídos.`)) {
+          return;
+        }
+
+        await garantirEstruturaUsuario(dados.ano);
+
+        const batch = db.batch();
+        for (const mes in dados.dadosMeses) {
+          if (MESES.includes(mes)) {
+            const mesRef = db.collection('users').doc(currentUser.uid).collection('anos').doc(dados.ano).collection('meses').doc(mes);
+            batch.set(mesRef, dados.dadosMeses[mes]);
+          }
+        }
+
+        await batch.commit();
+        alert(`Dados do ano ${dados.ano} importados com sucesso!`);
+
+      } catch (error) {
+        console.error("Erro ao importar dados:", error);
+        errorMessage.textContent = "Erro ao importar arquivo: " + error.message;
+        errorMessage.style.display = 'block';
+      } finally {
+        event.target.value = null;
+        importButton.textContent = 'Importar Ano';
+      }
     }
 
     selectAnoAdmin.addEventListener("change", (e) => {
       anoAtualAdmin = e.target.value;
       errorMessage.style.display = 'none';
     });
-    exportButton.addEventListener('click', exportarDados);
 
     auth.onAuthStateChanged(user => {
       if (user) {

@@ -5,48 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Relatório - Controle Financeiro</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="sidebar.css?v=5">
-  <link rel="stylesheet" href="css/theme.css?v=5">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=5">
+  <link rel="stylesheet" href="sidebar.css?v=6">
+  <link rel="stylesheet" href="css/theme.css?v=6">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=6">
   <script src="js/fin-run-once.js"></script>
-  <script src="js/fin-sdk.js?v=3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="sidebar.js?v=5"></script>
+  <script src="js/fin-sdk.js?v=4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <script src="sidebar.js?v=6"></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    /* Scrollbar personalizado */
-    ::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #f1f5f9;
-      border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: linear-gradient(135deg, #cbd5e0 0%, #94a3b8 100%);
-      border-radius: 10px;
-      border: 2px solid #f1f5f9;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: var(--font-family);
       display: flex;
-      height: 100vh;
-      background: #F8FAFC;
+      min-height: 100vh;
+      background: var(--bg-main);
       color: var(--text-primary);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
 
     .content {
@@ -55,8 +30,8 @@
       margin-left: 280px;
       display: flex;
       flex-direction: column;
-      gap: 28px;
-      overflow-y: auto;
+      gap: 24px;
+      max-width: 1180px;
     }
 
     .header {
@@ -65,416 +40,6 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 16px;
-      margin-bottom: 8px;
-    }
-
-    .header h2 {
-      margin: 0;
-      font-size: 32px;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--ink-950) 0%, var(--accent) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: -0.02em;
-    }
-
-    .section {
-      background: var(--bg-section);
-      padding: 32px;
-      border-radius: 16px;
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--border-color);
-      transition: all 0.3s ease;
-    }
-
-    .section:hover {
-      box-shadow: var(--shadow-lg);
-      transform: translateY(-2px);
-    }
-
-    .section h3 {
-      margin-top: 0;
-      margin-bottom: 24px;
-      font-size: 22px;
-      font-weight: 600;
-      color: var(--text-primary);
-      letter-spacing: -0.01em;
-    }
-
-    .form-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    input, select {
-      padding: 12px 16px;
-      border: 2px solid var(--border-color);
-      border-radius: 10px;
-      background: var(--bg-section);
-      color: var(--text-primary);
-      font-size: 14px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      font-family: 'Montserrat', sans-serif;
-    }
-
-    input:focus, select:focus {
-      outline: none;
-      border-color: var(--accent-blue);
-      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
-      transform: translateY(-1px);
-    }
-
-    input[type="text"] {
-      flex: 1;
-      min-width: 200px;
-    }
-
-    select {
-      min-width: 150px;
-      cursor: pointer;
-    }
-
-    .btn-add {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
-      color: #fff;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: var(--shadow-sm);
-      letter-spacing: 0.01em;
-    }
-
-    .btn-add:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      background: linear-gradient(135deg, var(--accent-blue-hover) 0%, var(--accent-blue) 100%);
-    }
-
-    .btn-add:active {
-      transform: translateY(0);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .btn-remove {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--accent-3) 0%, #e53e3e 100%);
-      color: #fff;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .btn-remove:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      background: linear-gradient(135deg, #e53e3e 0%, var(--accent-3) 100%);
-    }
-
-    .btn-remove:active {
-      transform: translateY(0);
-      box-shadow: var(--shadow-sm);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      margin-top: 16px;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    th, td {
-      padding: 16px;
-      text-align: left;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    th {
-      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-      font-weight: 600;
-      color: var(--text-secondary);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    tr {
-      transition: all 0.2s ease;
-    }
-
-    tr:hover {
-      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-      transform: scale(1.01);
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    .categoria-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px;
-      border: 2px solid var(--border-color);
-      border-radius: 12px;
-      margin-bottom: 12px;
-      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
-      transition: all 0.3s ease;
-    }
-
-    .categoria-item:hover {
-      border-color: var(--accent-blue);
-      transform: translateX(4px);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .categoria-item span {
-      font-weight: 500;
-      color: var(--text-primary);
-      font-size: 15px;
-    }
-
-    .relatorio-categoria {
-      margin-bottom: 24px;
-      padding: 20px;
-      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-    }
-
-    .relatorio-categoria h4 {
-      margin-top: 0;
-      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-weight: 600;
-      font-size: 18px;
-    }
-
-    .total-categoria {
-      font-size: 20px;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-blue) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-top: 12px;
-      letter-spacing: -0.01em;
-    }
-
-    .categoria-cards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin-top: 24px;
-      justify-content: flex-start;
-    }
-
-    .categoria-card {
-      flex: 1;
-      min-width: 250px;
-      max-width: 320px;
-      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--border-color);
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .categoria-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-2) 100%);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
-    }
-
-    .categoria-card:hover {
-      transform: translateY(-6px) scale(1.02);
-      box-shadow: var(--shadow-xl);
-      border-color: var(--accent-blue);
-    }
-
-    .categoria-card:hover::before {
-      transform: scaleX(1);
-    }
-
-    .categoria-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      padding-bottom: 16px;
-      border-bottom: 2px solid var(--border-color);
-    }
-
-    .categoria-card-nome {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text-primary);
-      letter-spacing: -0.01em;
-    }
-
-    .categoria-card-valor {
-      font-size: 22px;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: -0.02em;
-    }
-
-    .categoria-card-itens {
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 2px solid var(--border-color);
-    }
-
-    .categoria-card-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      font-size: 14px;
-      color: var(--text-secondary);
-      transition: all 0.2s ease;
-      border-radius: 6px;
-      padding-left: 8px;
-      padding-right: 8px;
-    }
-
-    .categoria-card-item:hover {
-      background: rgba(66, 153, 225, 0.05);
-      transform: translateX(4px);
-    }
-
-    .categoria-card-item-nome {
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-weight: 500;
-    }
-
-    .categoria-card-item-valor {
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-left: 12px;
-      font-size: 14px;
-    }
-
-    .categoria-card-ver-mais {
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 2px solid var(--border-color);
-      text-align: center;
-      font-size: 13px;
-      color: var(--accent-blue);
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      transition: all 0.2s ease;
-    }
-
-    .categoria-card:hover .categoria-card-ver-mais {
-      color: var(--accent-blue-hover);
-      transform: scale(1.05);
-    }
-
-    #modalItensCategoria {
-      z-index: 2000;
-    }
-
-    #modalItensCategoria .modal-content {
-      max-width: 600px;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-
-    .modal-itens-lista {
-      margin-top: 16px;
-    }
-
-    .modal-item-linha {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border-color);
-      transition: all 0.2s ease;
-      border-radius: 8px;
-      margin-bottom: 4px;
-    }
-
-    .modal-item-linha:hover {
-      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-      transform: translateX(4px);
-      border-bottom-color: transparent;
-    }
-
-    .modal-item-linha:last-child {
-      border-bottom: none;
-    }
-
-    .modal-item-descricao {
-      flex: 1;
-      font-weight: 500;
-      color: var(--text-primary);
-      font-size: 15px;
-    }
-
-    .modal-item-mes {
-      color: var(--text-secondary);
-      font-size: 12px;
-      margin-left: 8px;
-      padding: 2px 8px;
-      background: rgba(66, 153, 225, 0.1);
-      border-radius: 4px;
-      font-weight: 600;
-    }
-
-    .modal-item-valor {
-      font-weight: 700;
-      color: var(--text-primary);
-      font-size: 15px;
-      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .filtros {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 24px;
-      align-items: center;
     }
 
     .header-actions {
@@ -483,83 +48,147 @@
       align-items: center;
     }
 
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
-    }
-
-    .modal-overlay.visible {
+    .categoria-item {
       display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      background: var(--slate-100);
     }
 
-    .modal-content {
-      background: var(--bg-section);
-      padding: 32px;
-      border-radius: 20px;
-      max-width: 500px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-      box-shadow: var(--shadow-xl);
-      border: 1px solid var(--border-color);
-      animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
+    .categoria-item span {
+      font-weight: 500;
+      font-size: 14.5px;
     }
 
-    @keyframes slideUp {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .modal-content h3 {
-      margin-top: 0;
-      margin-bottom: 24px;
-      font-size: 24px;
+    .total-categoria {
+      font-size: 18px;
       font-weight: 700;
+      color: var(--accent);
+      margin-top: 12px;
+    }
+
+    .categoria-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .categoria-card {
+      flex: 1;
+      min-width: 250px;
+      max-width: 320px;
+      background: var(--bg-section);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+
+    .categoria-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--accent);
+    }
+
+    .categoria-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .categoria-card-nome {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .categoria-card-valor {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .categoria-card-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+    }
+
+    .categoria-card-item-nome {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .categoria-card-item-valor {
+      font-weight: 600;
       color: var(--text-primary);
-      letter-spacing: -0.02em;
+      margin-left: 12px;
+    }
+
+    .categoria-card-ver-mais {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    #modalItensCategoria .modal-content {
+      max-width: 560px;
+    }
+
+    .modal-item-linha {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 4px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-item-linha:last-child { border-bottom: none; }
+
+    .modal-item-descricao {
+      flex: 1;
+      font-weight: 500;
+      font-size: 14.5px;
+    }
+
+    .modal-item-mes {
+      color: var(--text-secondary);
+      font-size: 11.5px;
+      margin-left: 8px;
+      padding: 2px 8px;
+      background: var(--accent-soft);
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .modal-item-valor {
+      font-weight: 700;
+      font-size: 14.5px;
     }
 
     .chart-container {
-      margin-top: 24px;
-      padding: 32px;
-      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 50%, #edf2f7 100%);
-      border-radius: 16px;
-      height: 450px;
+      margin-top: 8px;
+      height: 380px;
       position: relative;
-      box-shadow: var(--shadow-lg);
-      border: 1px solid var(--border-color);
-      transition: all 0.3s ease;
-    }
-
-    .chart-container:hover {
-      box-shadow: var(--shadow-xl);
-      transform: translateY(-2px);
     }
 
     .chart-legend-mobile {
@@ -572,27 +201,15 @@
     .chart-legend-item {
       display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 14px;
-      margin-bottom: 12px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
-      border: 1px solid var(--border-color);
-      transition: all 0.3s ease;
-    }
-
-    .chart-legend-item:hover {
-      transform: translateX(4px);
-      box-shadow: var(--shadow-sm);
-      border-color: var(--accent-blue);
+      gap: 12px;
+      padding: 10px 0;
     }
 
     .chart-legend-color {
-      width: 24px;
-      height: 24px;
-      border-radius: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
       flex-shrink: 0;
-      box-shadow: var(--shadow-sm);
     }
 
     .chart-legend-info {
@@ -601,72 +218,24 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 10px;
     }
 
-    .chart-legend-name {
-      font-weight: 600;
-      color: var(--text-primary);
-      font-size: 15px;
-      letter-spacing: -0.01em;
-    }
-
-    .chart-legend-value {
-      font-size: 14px;
-      color: var(--text-secondary);
-      font-weight: 500;
-    }
-
+    .chart-legend-name { font-weight: 600; font-size: 14px; }
+    .chart-legend-value { font-size: 13px; color: var(--text-secondary); }
     .chart-legend-percent {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
-      padding: 4px 10px;
+      padding: 3px 8px;
       border-radius: 6px;
-      background: rgba(66, 153, 225, 0.1);
-      color: var(--accent-blue);
+      background: var(--accent-soft);
+      color: var(--accent-dark);
     }
 
     @media (max-width: 768px) {
-      .chart-container {
-        height: 350px;
-        padding: 16px;
-      }
-
-      .chart-legend-mobile {
-        display: block;
-      }
-
-      table {
-        font-size: 12px;
-      }
-
-      th, td {
-        padding: 8px 4px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      body {
-        flex-direction: column;
-        overflow-y: auto;
-      }
-
-      .content {
-        padding: 16px;
-        margin-left: 0;
-        margin-top: 80px;
-      }
-
-      .categoria-cards {
-        justify-content: center;
-      }
-
-      .categoria-card {
-        flex: none;
-        width: 100%;
-        max-width: 100%;
-        min-width: auto;
-      }
+      .chart-container { height: 300px; }
+      .chart-legend-mobile { display: block; }
+      .categoria-card { flex: none; width: 100%; max-width: 100%; min-width: auto; }
     }
   </style>
 </head>
@@ -701,9 +270,9 @@
       </div>
     </div>
 
-    <div class="section section-card">
+    <div class="section-card">
       <h3 class="section-card-title">Filtros</h3>
-      <div class="filtros">
+      <div class="form-row" style="align-items:center;">
         <select id="selectAno">
           <!-- Anos serão populados via JS -->
         </select>
@@ -720,8 +289,8 @@
       </div>
     </div>
 
-    <div class="section">
-      <h3>Gráfico por Categoria</h3>
+    <div class="section-card">
+      <h3 class="section-card-title">Gráfico por Categoria</h3>
       <div class="chart-container">
         <canvas id="graficoCategorias"></canvas>
       </div>
@@ -730,8 +299,8 @@
       </div>
     </div>
 
-    <div class="section">
-      <h3>Relatórios</h3>
+    <div class="section-card">
+      <h3 class="section-card-title">Relatórios</h3>
       <div id="relatorios">
         <p style="color: var(--text-secondary); text-align: center; padding: 40px;">
           Selecione os filtros acima e clique em "Filtrar" para visualizar os relatórios por categoria.
@@ -767,7 +336,6 @@
     const db = firebase.firestore();
     const TOKEN_KEY = 'fin_token';
     const API_BASE = window.FIN_API_BASE || '';
-    const N8N_WEBHOOK_URL = 'https://n8n.natdev.com.br/webhook/relatorio-fin';
 
     const MESES = [
       "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -778,11 +346,6 @@
 
     const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
     const formatar = valor => moeda.format(Number(valor) || 0);
-    const formatarMoedaRelatorio = valor => {
-      const n = Number(valor) || 0;
-      const texto = Math.abs(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      return n < 0 ? `R$ -${texto}` : `R$ ${texto}`;
-    };
 
     let currentUser = null;
     let categoriasCache = [];
@@ -869,7 +432,7 @@
         div.className = "categoria-item";
         div.innerHTML = `
           <span>${cat.nome}</span>
-          <button class="btn-remove" onclick="finRunOnce(event, () => removerCategoria('${cat.id}'))">Remover</button>
+          <button class="btn-inline fin-btn-danger" onclick="finRunOnce(event, () => removerCategoria('${cat.id}'))">Remover</button>
         `;
         lista.appendChild(div);
       });
@@ -938,27 +501,6 @@
       return response.json();
     }
 
-    function calcularTotaisMes(data) {
-      const totalContasManuais = (data.contas || []).reduce((a, i) => a + Number(i.valor || 0), 0);
-      const totalCartao = (data.cartao || []).reduce((a, i) => a + Number(i.valor || 0), 0);
-      const totalDebito = (data.debito || []).reduce((a, i) => a + Number(i.valor || 0), 0);
-      const totalReceita = (data.adicionais || []).reduce((a, i) => a + Number(i.valor || 0), 0);
-      const totalReservado = (data.reservado || []).reduce((a, i) => a + Number(i.valor || 0), 0);
-      const totalContas = totalContasManuais + totalCartao + totalDebito;
-      const saldo = totalReceita - totalContas - totalReservado;
-      return { receita: totalReceita, contas: totalContas, saldo, reservado: totalReservado };
-    }
-
-    function montarMensagemRelatorio(mes, totais) {
-      return (
-        `Relatório de ${mes}\n` +
-        `🔵Receita ${formatarMoedaRelatorio(totais.receita)}\n` +
-        `🔴Contas ${formatarMoedaRelatorio(totais.contas)}\n` +
-        `🟢Saldo ${formatarMoedaRelatorio(totais.saldo)}\n` +
-        `🟡Reservado ${formatarMoedaRelatorio(totais.reservado)}`
-      );
-    }
-
     async function gerarRelatorio() {
       if (!currentUser) return;
 
@@ -981,32 +523,13 @@
       }
 
       try {
-        const mesRef = db.collection('users').doc(currentUser.uid)
-          .collection('anos').doc(String(ano))
-          .collection('meses').doc(mes);
-        const doc = await mesRef.get();
-        const data = doc.exists ? doc.data() : {};
-        const totais = calcularTotaisMes(data);
-        const mensagem = montarMensagemRelatorio(mes, totais);
-
-        const response = await fetch(N8N_WEBHOOK_URL, {
+        // O backend monta a mensagem e envia pelo n8n — o navegador nunca
+        // fala direto com o webhook (que não tem autenticação própria e
+        // aceitaria chat_id/mensagem de qualquer um que descobrisse a URL).
+        await window.finApi.request('/api/relatorios/gerar', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: String(perfil.id_telegram).trim(),
-            mensagem,
-          }),
+          body: JSON.stringify({ ano, mes }),
         });
-
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Workflow do n8n não está ativo. Ative o workflow "relatorio-fin" no n8n.');
-          }
-          const detail = payload.message || payload.detail || `Erro ${response.status} ao enviar relatório.`;
-          throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
-        }
-
         alert('Relatório enviado com sucesso.');
       } catch (error) {
         console.error("Erro ao gerar relatório:", error);
@@ -1131,21 +654,13 @@
       const isMobile = window.innerWidth <= 768;
       const tipoGrafico = isMobile ? 'doughnut' : 'bar';
 
-      // Cores modernas e vibrantes com gradiente
+      // Paleta ancorada no azul da identidade do app (mesma família de cores
+      // usada no gráfico de categorias do Resumo do mês).
       const coresBase = [
-        { bg: 'rgba(37, 99, 235, 0.9)', border: 'rgba(37, 99, 235, 1)' },
-        { bg: 'rgba(51, 194, 127, 0.9)', border: 'rgba(51, 194, 127, 1)' },
-        { bg: 'rgba(255, 193, 7, 0.9)', border: 'rgba(255, 193, 7, 1)' },
-        { bg: 'rgba(255, 107, 107, 0.9)', border: 'rgba(255, 107, 107, 1)' },
-        { bg: 'rgba(156, 39, 176, 0.9)', border: 'rgba(156, 39, 176, 1)' },
-        { bg: 'rgba(255, 152, 0, 0.9)', border: 'rgba(255, 152, 0, 1)' },
-        { bg: 'rgba(0, 188, 212, 0.9)', border: 'rgba(0, 188, 212, 1)' },
-        { bg: 'rgba(76, 175, 80, 0.9)', border: 'rgba(76, 175, 80, 1)' },
-        { bg: 'rgba(244, 67, 54, 0.9)', border: 'rgba(244, 67, 54, 1)' },
-        { bg: 'rgba(63, 81, 181, 0.9)', border: 'rgba(63, 81, 181, 1)' },
-        { bg: 'rgba(233, 30, 99, 0.9)', border: 'rgba(233, 30, 99, 1)' },
-        { bg: 'rgba(0, 150, 136, 0.9)', border: 'rgba(0, 150, 136, 1)' }
-      ];
+        [37, 99, 235], [14, 165, 233], [124, 58, 237], [245, 158, 11],
+        [239, 68, 68], [100, 116, 139], [16, 185, 129], [236, 72, 153],
+        [99, 102, 241], [20, 184, 166], [249, 115, 22], [139, 92, 246],
+      ].map(([r, g, b]) => ({ bg: `rgba(${r}, ${g}, ${b}, 0.9)`, border: `rgba(${r}, ${g}, ${b}, 1)` }));
 
       const coresUsadas = coresBase.slice(0, labelsGrafico.length);
       const backgrounds = coresUsadas.map(c => c.bg);
@@ -1387,8 +902,6 @@
       const dividirCardsPorMes = mostrarMes && !!categoriaFiltro;
 
       let totalGeral = 0;
-      let temItensSemCategoria = false;
-      let itensSemCategoria = [];
 
       // Container para os cards
       const cardsContainer = document.createElement("div");
@@ -1404,10 +917,6 @@
         totalGeral += dados.total;
 
         const ehSemCategoria = categoria === "Sem categoria";
-        if (ehSemCategoria) {
-          temItensSemCategoria = true;
-          itensSemCategoria = dados.itens;
-        }
 
         const itensPreview = dados.itens.slice(0, 3);
         const totalItens = dados.itens.length;
@@ -1473,16 +982,6 @@
       }
 
       relatoriosDiv.appendChild(cardsContainer);
-
-      // Se houver itens sem categoria, adiciona botão para salvar
-      if (temItensSemCategoria) {
-        const divSemCategoria = document.createElement("div");
-        divSemCategoria.style.cssText = "margin-top: 24px; text-align: center;";
-        divSemCategoria.innerHTML = `
-          <button class="btn-add" onclick="finRunOnce(event, () => salvarTodasCategorias())" style="padding: 12px 24px; font-size: 16px;">Salvar Alterações de Categorias</button>
-        `;
-        relatoriosDiv.appendChild(divSemCategoria);
-      }
 
       const totalDiv = document.createElement("div");
       totalDiv.style.cssText = "margin-top: 32px; padding: 24px; background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%); color: #fff; border-radius: 16px; font-size: 24px; font-weight: 700; text-align: center; box-shadow: var(--shadow-lg); letter-spacing: -0.02em;";
@@ -1557,6 +1056,19 @@
       modal.onclick = null;
     }
 
+    // Cada tipo de lançamento tem seu próprio endpoint granular — a mesma
+    // rota usada pelas páginas de Contas/Cartões/Reservados. Atualizar por
+    // uuid (item.id) em vez de índice de array elimina a race condition que
+    // existia aqui antes (ler o mês inteiro, mudar por posição no array,
+    // regravar o mês inteiro — se o array mudasse nesse meio-tempo, a
+    // categoria podia ser aplicada ao lançamento errado).
+    const ENDPOINT_POR_TIPO = {
+      contas: '/api/financeiro/contas',
+      debito: '/api/financeiro/debitos',
+      reservado: '/api/financeiro/reservados',
+      cartao: '/api/financeiro/compras-cartao',
+    };
+
     async function salvarCategoriaModal() {
       const select = document.getElementById('modalCategoriaSelect');
       const categoria = select.value.trim();
@@ -1564,60 +1076,29 @@
         return alert("Por favor, selecione uma categoria.");
       }
 
-      if (!window.itensSemCategoriaModal || window.itensSemCategoriaModal.length === 0) {
+      const itens = window.itensSemCategoriaModal || [];
+      if (itens.length === 0) {
         return alert("Nenhum item para atualizar.");
       }
 
-      // Usa a mesma lógica de salvarTodasCategorias mas apenas para os itens do modal
-      const alteracoes = window.itensSemCategoriaModal.map(item => ({
-        ano: item.ano,
-        mes: item.mes,
-        tipo: item.tipo,
-        index: item.index,
-        categoria: categoria
-      }));
-
       try {
-        const alteracoesPorMes = {};
-        alteracoes.forEach(alt => {
-          const chave = `${alt.ano}_${alt.mes}`;
-          if (!alteracoesPorMes[chave]) {
-            alteracoesPorMes[chave] = [];
-          }
-          alteracoesPorMes[chave].push(alt);
-        });
-
-        const batch = db.batch();
-        for (const chave in alteracoesPorMes) {
-          const [ano, mes] = chave.split('_');
-          const mesRef = db.collection('users').doc(currentUser.uid).collection('anos').doc(ano).collection('meses').doc(mes);
-          const doc = await mesRef.get();
-          
-          if (!doc.exists) continue;
-
-          const data = doc.data();
-          const alteracoesDoMes = alteracoesPorMes[chave];
-          const alteracoesPorTipo = {};
-          alteracoesDoMes.forEach(alt => {
-            if (!alteracoesPorTipo[alt.tipo]) {
-              alteracoesPorTipo[alt.tipo] = [];
-            }
-            alteracoesPorTipo[alt.tipo].push(alt);
-          });
-
-          for (const tipo in alteracoesPorTipo) {
-            const itens = [...(data[tipo] || [])];
-            alteracoesPorTipo[tipo].forEach(alt => {
-              if (alt.index >= 0 && alt.index < itens.length) {
-                itens[alt.index] = { ...itens[alt.index], categoria: alt.categoria };
-              }
+        const resultados = await Promise.allSettled(
+          itens.map((item) => {
+            const base = ENDPOINT_POR_TIPO[item.tipo];
+            if (!base || !item.id) return Promise.reject(new Error('Item sem id.'));
+            return window.finApi.request(`${base}/${item.id}`, {
+              method: 'PUT',
+              body: JSON.stringify({ categoria }),
             });
-            batch.update(mesRef, { [tipo]: itens });
-          }
+          })
+        );
+        const falhas = resultados.filter((r) => r.status === 'rejected');
+        if (falhas.length) {
+          console.error('Falhas ao salvar categoria:', falhas);
+          alert(`${itens.length - falhas.length} de ${itens.length} item(ns) atualizado(s). Alguns falharam — tente novamente.`);
+        } else {
+          alert(`${itens.length} item(ns) atualizado(s) com sucesso!`);
         }
-
-        await batch.commit();
-        alert(`${alteracoes.length} categoria(s) salva(s) com sucesso!`);
         fecharModalItensCategoria();
         await carregarRelatorios();
       } catch (error) {
@@ -1625,89 +1106,10 @@
         alert("Erro ao salvar categorias. Tente novamente.");
       }
     }
-
-    async function salvarTodasCategorias() {
-      if (!currentUser) return;
-
-      // Coleta todas as alterações
-      const alteracoes = [];
-      const selects = document.querySelectorAll('select[id^="categoriaSelect_"]');
-      
-      selects.forEach(select => {
-        const categoria = select.value.trim();
-        if (categoria) {
-          const id = select.id;
-          const partes = id.replace('categoriaSelect_', '').split('_');
-          const ano = partes[0];
-          const mes = partes[1];
-          const tipo = partes[2];
-          const index = parseInt(partes[3]);
-          
-          alteracoes.push({ ano, mes, tipo, index, categoria });
-        }
-      });
-
-      if (alteracoes.length === 0) {
-        return alert("Nenhuma categoria selecionada para salvar.");
-      }
-
-      try {
-        // Agrupa alterações por mês para otimizar as atualizações
-        const alteracoesPorMes = {};
-        alteracoes.forEach(alt => {
-          const chave = `${alt.ano}_${alt.mes}`;
-          if (!alteracoesPorMes[chave]) {
-            alteracoesPorMes[chave] = [];
-          }
-          alteracoesPorMes[chave].push(alt);
-        });
-
-        // Atualiza cada mês
-        const batch = db.batch();
-        for (const chave in alteracoesPorMes) {
-          const [ano, mes] = chave.split('_');
-          const mesRef = db.collection('users').doc(currentUser.uid).collection('anos').doc(ano).collection('meses').doc(mes);
-          const doc = await mesRef.get();
-          
-          if (!doc.exists) {
-            console.warn(`Mês ${mes}/${ano} não encontrado.`);
-            continue;
-          }
-
-          const data = doc.data();
-          const alteracoesDoMes = alteracoesPorMes[chave];
-          
-          // Agrupa alterações por tipo
-          const alteracoesPorTipo = {};
-          alteracoesDoMes.forEach(alt => {
-            if (!alteracoesPorTipo[alt.tipo]) {
-              alteracoesPorTipo[alt.tipo] = [];
-            }
-            alteracoesPorTipo[alt.tipo].push(alt);
-          });
-
-          // Atualiza cada tipo de item
-          for (const tipo in alteracoesPorTipo) {
-            const itens = [...(data[tipo] || [])];
-            alteracoesPorTipo[tipo].forEach(alt => {
-              if (alt.index >= 0 && alt.index < itens.length) {
-                itens[alt.index] = { ...itens[alt.index], categoria: alt.categoria };
-              }
-            });
-            batch.update(mesRef, { [tipo]: itens });
-          }
-        }
-
-        await batch.commit();
-        alert(`${alteracoes.length} categoria(s) salva(s) com sucesso!`);
-        
-        // Recarrega os relatórios
-        await carregarRelatorios();
-      } catch (error) {
-        console.error("Erro ao salvar categorias:", error);
-        alert("Erro ao salvar categorias. Tente novamente.");
-      }
-    }
+    // removido: salvarTodasCategorias() era código morto — procurava selects
+    // `categoriaSelect_*` que não existem em lugar nenhum do HTML; o botão
+    // "Salvar Alterações de Categorias" que a chamava também foi removido.
+    // O fluxo real de categorização é o modal por card, acima.
 
     // Fechar modal ao clicar fora
     document.addEventListener('click', (e) => {
@@ -1730,7 +1132,7 @@
       }
     });
   </script>
-  <script src="js/mobile-nav.js?v=8"></script>
+  <script src="js/mobile-nav.js?v=9"></script>
 </body>
 </html>
 

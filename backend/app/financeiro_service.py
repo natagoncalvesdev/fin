@@ -22,6 +22,7 @@ from app.models import (
     FaturaCartao,
     Reservado,
     Usuario,
+    new_uuid,
     periodo_mes,
 )
 
@@ -195,8 +196,9 @@ def init_ano_meses(db: Session, usuario: Usuario, ano: int) -> None:
         get_or_create_mes(db, usuario, ano, mes)
 
 
-def _conta_to_dict(item: Conta) -> dict:
+def conta_to_dict(item: Conta) -> dict:
     return {
+        "id": item.uuid,
         "nome": item.nome,
         "valor": item.valor,
         "status": item.situacao,
@@ -204,33 +206,37 @@ def _conta_to_dict(item: Conta) -> dict:
     }
 
 
-def _entrada_to_dict(item: Entrada) -> dict:
-    return {"nome": item.nome, "valor": item.valor}
+def entrada_to_dict(item: Entrada) -> dict:
+    return {"id": item.uuid, "nome": item.nome, "valor": item.valor}
 
 
-def _debito_to_dict(item: Debito) -> dict:
+def debito_to_dict(item: Debito) -> dict:
     return {
+        "id": item.uuid,
         "nome": item.compra,
         "valor": item.valor,
         "categoria": _categoria_nome(item.categoria),
     }
 
 
-def _reservado_to_dict(item: Reservado) -> dict:
+def reservado_to_dict(item: Reservado) -> dict:
     return {
+        "id": item.uuid,
         "nome": item.compra,
         "valor": item.valor,
         "categoria": _categoria_nome(item.categoria),
     }
 
 
-def _compra_to_dict(item: CompraCartao) -> dict:
+def compra_to_dict(item: CompraCartao) -> dict:
     data = {
+        "id": item.uuid,
         "nome": item.compra,
         "valor": item.valor,
         "parcelas": _format_parcelas(item.parcela_atual, item.parcela_total, item.recorrente),
         "cartaoId": _referencia_cartao(item.cartao),
         "categoria": _categoria_nome(item.categoria),
+        "serieUuid": item.serie_uuid,
     }
     if item.recorrente:
         data["recorrente"] = True
@@ -242,7 +248,7 @@ def mes_to_dict(db: Session, ref: MesRef) -> dict:
     inicio, fim = periodo_mes(ref.ano, ref.mes)
 
     contas = [
-        _conta_to_dict(c)
+        conta_to_dict(c)
         for c in (
             db.query(Conta)
             .options(joinedload(Conta.categoria))
@@ -252,24 +258,24 @@ def mes_to_dict(db: Session, ref: MesRef) -> dict:
         )
     ]
     adicionais = [
-        _entrada_to_dict(e)
+        entrada_to_dict(e)
         for e in db.query(Entrada)
         .filter(Entrada.id_usuario == uid, Entrada.data_entrada >= inicio, Entrada.data_entrada < fim)
         .order_by(Entrada.id)
         .all()
     ]
     debito = [
-        _debito_to_dict(d)
+        debito_to_dict(d)
         for d in (
             db.query(Debito)
             .options(joinedload(Debito.categoria))
             .filter(Debito.id_usuario == uid, Debito.data_debito >= inicio, Debito.data_debito < fim)
-            .order_by(Debito.id)
+            .order_by(Debito.id.desc())
             .all()
         )
     ]
     reservado = [
-        _reservado_to_dict(r)
+        reservado_to_dict(r)
         for r in (
             db.query(Reservado)
             .options(joinedload(Reservado.categoria))
@@ -279,7 +285,7 @@ def mes_to_dict(db: Session, ref: MesRef) -> dict:
         )
     ]
     cartao = [
-        _compra_to_dict(c)
+        compra_to_dict(c)
         for c in (
             db.query(CompraCartao)
             .options(joinedload(CompraCartao.cartao), joinedload(CompraCartao.categoria))
@@ -288,7 +294,7 @@ def mes_to_dict(db: Session, ref: MesRef) -> dict:
                 CompraCartao.data_competencia >= inicio,
                 CompraCartao.data_competencia < fim,
             )
-            .order_by(CompraCartao.id)
+            .order_by(CompraCartao.id.desc())
             .all()
         )
     ]
@@ -313,23 +319,6 @@ def mes_to_dict(db: Session, ref: MesRef) -> dict:
     }
 
 
-def _items_equal(a: dict, b: dict) -> bool:
-    return json.dumps(a, sort_keys=True, ensure_ascii=False) == json.dumps(
-        b, sort_keys=True, ensure_ascii=False
-    )
-
-
-def _is_init_wipe_payload(data: dict[str, Any]) -> bool:
-    return (
-        not (data.get("contas") or [])
-        and not (data.get("adicionais") or [])
-        and not (data.get("cartao") or [])
-        and not (data.get("debito") or [])
-        and not (data.get("reservado") or [])
-        and data.get("cartaoStatus", "pendente") == "pendente"
-    )
-
-
 def _mes_tem_dados(db: Session, ref: MesRef) -> bool:
     uid = ref.id_usuario
     inicio, fim = periodo_mes(ref.ano, ref.mes)
@@ -344,108 +333,6 @@ def _mes_tem_dados(db: Session, ref: MesRef) -> bool:
         if db.query(model.id).filter(model.id_usuario == uid, col >= inicio, col < fim).first():
             return True
     return False
-
-
-def _replace_contas(db: Session, ref: MesRef, items: list) -> None:
-    uid = ref.id_usuario
-    inicio, fim = periodo_mes(ref.ano, ref.mes)
-    db.query(Conta).filter(
-        Conta.id_usuario == uid, Conta.data_conta >= inicio, Conta.data_conta < fim
-    ).delete()
-    for item in items:
-        db.add(
-            Conta(
-                id_usuario=uid,
-                id_categoria=_resolver_categoria(db, uid, item.get("categoria", "")),
-                data_conta=inicio,
-                nome=item.get("nome", ""),
-                valor=float(item.get("valor", 0)),
-                situacao=item.get("status", "pendente"),
-            )
-        )
-
-
-def _replace_entradas(db: Session, ref: MesRef, items: list) -> None:
-    uid = ref.id_usuario
-    inicio, fim = periodo_mes(ref.ano, ref.mes)
-    db.query(Entrada).filter(
-        Entrada.id_usuario == uid, Entrada.data_entrada >= inicio, Entrada.data_entrada < fim
-    ).delete()
-    for item in items:
-        db.add(
-            Entrada(
-                id_usuario=uid,
-                data_entrada=inicio,
-                nome=item.get("nome", ""),
-                valor=float(item.get("valor", 0)),
-            )
-        )
-
-
-def _replace_debito(db: Session, ref: MesRef, items: list) -> None:
-    uid = ref.id_usuario
-    inicio, fim = periodo_mes(ref.ano, ref.mes)
-    db.query(Debito).filter(
-        Debito.id_usuario == uid, Debito.data_debito >= inicio, Debito.data_debito < fim
-    ).delete()
-    for item in items:
-        db.add(
-            Debito(
-                id_usuario=uid,
-                data_debito=inicio,
-                id_categoria=_resolver_categoria(db, uid, item.get("categoria", "")),
-                compra=item.get("nome", ""),
-                valor=float(item.get("valor", 0)),
-            )
-        )
-
-
-def _replace_reservado(db: Session, ref: MesRef, items: list) -> None:
-    uid = ref.id_usuario
-    inicio, fim = periodo_mes(ref.ano, ref.mes)
-    db.query(Reservado).filter(
-        Reservado.id_usuario == uid, Reservado.data_reservado >= inicio, Reservado.data_reservado < fim
-    ).delete()
-    for item in items:
-        db.add(
-            Reservado(
-                id_usuario=uid,
-                data_reservado=inicio,
-                id_categoria=_resolver_categoria(db, uid, item.get("categoria", "")),
-                compra=item.get("nome", ""),
-                valor=float(item.get("valor", 0)),
-            )
-        )
-
-
-def _replace_cartao(db: Session, ref: MesRef, items: list) -> None:
-    uid = ref.id_usuario
-    inicio, fim = periodo_mes(ref.ano, ref.mes)
-    db.query(CompraCartao).filter(
-        CompraCartao.id_usuario == uid,
-        CompraCartao.data_competencia >= inicio,
-        CompraCartao.data_competencia < fim,
-    ).delete()
-    for item in items:
-        cartao_id = _resolver_cartao_id(db, uid, item.get("cartaoId", ""))
-        if not cartao_id:
-            continue
-        parcela_atual, parcela_total = _parse_parcelas(item.get("parcelas", "À vista"))
-        recorrente = bool(item.get("recorrente", False))
-        db.add(
-            CompraCartao(
-                id_usuario=uid,
-                id_cartao=cartao_id,
-                data_compra_cartao=inicio,
-                data_competencia=inicio,
-                id_categoria=_resolver_categoria(db, uid, item.get("categoria", "")),
-                compra=item.get("nome", ""),
-                valor=float(item.get("valor", 0)),
-                parcela_atual=parcela_atual,
-                parcela_total=parcela_total,
-                recorrente=recorrente,
-            )
-        )
 
 
 def _update_fatura_status(db: Session, ref: MesRef, status: str) -> None:
@@ -471,22 +358,321 @@ def _update_fatura_status(db: Session, ref: MesRef, status: str) -> None:
         )
 
 
-def apply_mes_data(db: Session, ref: MesRef, data: dict[str, Any]) -> None:
-    if _is_init_wipe_payload(data) and _mes_tem_dados(db, ref):
-        return
+def criar_conta(
+    db: Session,
+    usuario: Usuario,
+    *,
+    ano: int,
+    mes: str,
+    nome: str,
+    valor: float,
+    status: str = "pendente",
+    categoria: str = "",
+) -> Conta:
+    get_or_create_mes(db, usuario, ano, mes)
+    inicio, _ = periodo_mes(ano, mes)
+    item = Conta(
+        id_usuario=usuario.id,
+        id_categoria=_resolver_categoria(db, usuario.id, categoria),
+        data_conta=inicio,
+        nome=nome,
+        valor=valor,
+        situacao=status or "pendente",
+    )
+    db.add(item)
+    db.flush()
+    return item
 
-    if "contas" in data:
-        _replace_contas(db, ref, data["contas"] or [])
-    if "adicionais" in data:
-        _replace_entradas(db, ref, data["adicionais"] or [])
-    if "debito" in data:
-        _replace_debito(db, ref, data["debito"] or [])
-    if "reservado" in data:
-        _replace_reservado(db, ref, data["reservado"] or [])
-    if "cartao" in data:
-        _replace_cartao(db, ref, data["cartao"] or [])
-    if "cartaoStatus" in data:
-        _update_fatura_status(db, ref, data["cartaoStatus"])
+
+def _get_conta(db: Session, usuario: Usuario, item_uuid: str) -> Conta | None:
+    return (
+        db.query(Conta)
+        .filter(Conta.uuid == item_uuid, Conta.id_usuario == usuario.id)
+        .first()
+    )
+
+
+def atualizar_conta(
+    db: Session,
+    usuario: Usuario,
+    item_uuid: str,
+    *,
+    nome: str | None = None,
+    valor: float | None = None,
+    status: str | None = None,
+    categoria: str | None = None,
+) -> Conta:
+    item = _get_conta(db, usuario, item_uuid)
+    if not item:
+        raise ValueError("Conta não encontrada.")
+    if nome is not None:
+        item.nome = nome
+    if valor is not None:
+        item.valor = valor
+    if status is not None:
+        item.situacao = status
+    if categoria is not None:
+        item.id_categoria = _resolver_categoria(db, usuario.id, categoria)
+    db.flush()
+    return item
+
+
+def remover_conta(db: Session, usuario: Usuario, item_uuid: str) -> None:
+    item = _get_conta(db, usuario, item_uuid)
+    if not item:
+        raise ValueError("Conta não encontrada.")
+    db.delete(item)
+    db.flush()
+
+
+def criar_entrada(
+    db: Session, usuario: Usuario, *, ano: int, mes: str, nome: str, valor: float
+) -> Entrada:
+    get_or_create_mes(db, usuario, ano, mes)
+    inicio, _ = periodo_mes(ano, mes)
+    item = Entrada(id_usuario=usuario.id, data_entrada=inicio, nome=nome, valor=valor)
+    db.add(item)
+    db.flush()
+    return item
+
+
+def _get_entrada(db: Session, usuario: Usuario, item_uuid: str) -> Entrada | None:
+    return (
+        db.query(Entrada)
+        .filter(Entrada.uuid == item_uuid, Entrada.id_usuario == usuario.id)
+        .first()
+    )
+
+
+def atualizar_entrada(
+    db: Session,
+    usuario: Usuario,
+    item_uuid: str,
+    *,
+    nome: str | None = None,
+    valor: float | None = None,
+) -> Entrada:
+    item = _get_entrada(db, usuario, item_uuid)
+    if not item:
+        raise ValueError("Entrada não encontrada.")
+    if nome is not None:
+        item.nome = nome
+    if valor is not None:
+        item.valor = valor
+    db.flush()
+    return item
+
+
+def remover_entrada(db: Session, usuario: Usuario, item_uuid: str) -> None:
+    item = _get_entrada(db, usuario, item_uuid)
+    if not item:
+        raise ValueError("Entrada não encontrada.")
+    db.delete(item)
+    db.flush()
+
+
+def criar_debito(
+    db: Session,
+    usuario: Usuario,
+    *,
+    ano: int,
+    mes: str,
+    nome: str,
+    valor: float,
+    categoria: str = "",
+) -> Debito:
+    get_or_create_mes(db, usuario, ano, mes)
+    inicio, _ = periodo_mes(ano, mes)
+    item = Debito(
+        id_usuario=usuario.id,
+        id_categoria=_resolver_categoria(db, usuario.id, categoria),
+        data_debito=inicio,
+        compra=nome,
+        valor=valor,
+    )
+    db.add(item)
+    db.flush()
+    return item
+
+
+def _get_debito(db: Session, usuario: Usuario, item_uuid: str) -> Debito | None:
+    return (
+        db.query(Debito)
+        .filter(Debito.uuid == item_uuid, Debito.id_usuario == usuario.id)
+        .first()
+    )
+
+
+def atualizar_debito(
+    db: Session,
+    usuario: Usuario,
+    item_uuid: str,
+    *,
+    nome: str | None = None,
+    valor: float | None = None,
+    categoria: str | None = None,
+) -> Debito:
+    item = _get_debito(db, usuario, item_uuid)
+    if not item:
+        raise ValueError("Débito não encontrado.")
+    if nome is not None:
+        item.compra = nome
+    if valor is not None:
+        item.valor = valor
+    if categoria is not None:
+        item.id_categoria = _resolver_categoria(db, usuario.id, categoria)
+    db.flush()
+    return item
+
+
+def remover_debito(db: Session, usuario: Usuario, item_uuid: str) -> None:
+    item = _get_debito(db, usuario, item_uuid)
+    if not item:
+        raise ValueError("Débito não encontrado.")
+    db.delete(item)
+    db.flush()
+
+
+def criar_reservado(
+    db: Session,
+    usuario: Usuario,
+    *,
+    ano: int,
+    mes: str,
+    nome: str,
+    valor: float,
+    categoria: str = "",
+) -> Reservado:
+    get_or_create_mes(db, usuario, ano, mes)
+    inicio, _ = periodo_mes(ano, mes)
+    item = Reservado(
+        id_usuario=usuario.id,
+        id_categoria=_resolver_categoria(db, usuario.id, categoria),
+        data_reservado=inicio,
+        compra=nome,
+        valor=valor,
+    )
+    db.add(item)
+    db.flush()
+    return item
+
+
+def _get_reservado(db: Session, usuario: Usuario, item_uuid: str) -> Reservado | None:
+    return (
+        db.query(Reservado)
+        .filter(Reservado.uuid == item_uuid, Reservado.id_usuario == usuario.id)
+        .first()
+    )
+
+
+def atualizar_reservado(
+    db: Session,
+    usuario: Usuario,
+    item_uuid: str,
+    *,
+    nome: str | None = None,
+    valor: float | None = None,
+    categoria: str | None = None,
+) -> Reservado:
+    item = _get_reservado(db, usuario, item_uuid)
+    if not item:
+        raise ValueError("Reservado não encontrado.")
+    if nome is not None:
+        item.compra = nome
+    if valor is not None:
+        item.valor = valor
+    if categoria is not None:
+        item.id_categoria = _resolver_categoria(db, usuario.id, categoria)
+    db.flush()
+    return item
+
+
+def remover_reservado(db: Session, usuario: Usuario, item_uuid: str) -> None:
+    item = _get_reservado(db, usuario, item_uuid)
+    if not item:
+        raise ValueError("Reservado não encontrado.")
+    db.delete(item)
+    db.flush()
+
+
+def _get_compra_cartao(db: Session, usuario: Usuario, item_uuid: str) -> CompraCartao | None:
+    return (
+        db.query(CompraCartao)
+        .filter(CompraCartao.uuid == item_uuid, CompraCartao.id_usuario == usuario.id)
+        .first()
+    )
+
+
+def atualizar_compra_cartao(
+    db: Session,
+    usuario: Usuario,
+    item_uuid: str,
+    *,
+    nome: str | None = None,
+    valor: float | None = None,
+    categoria: str | None = None,
+) -> CompraCartao:
+    item = _get_compra_cartao(db, usuario, item_uuid)
+    if not item:
+        raise ValueError("Compra não encontrada.")
+    if nome is not None:
+        item.compra = nome
+    if valor is not None:
+        item.valor = valor
+    if categoria is not None:
+        item.id_categoria = _resolver_categoria(db, usuario.id, categoria)
+    db.flush()
+    return item
+
+
+def remover_compra_cartao(
+    db: Session, usuario: Usuario, item_uuid: str, *, futuras: bool = False
+) -> int:
+    """Remove uma compra do cartão. Com futuras=True e a compra fazendo parte de
+    uma série (parcelada ou recorrente), remove também as ocorrências desta
+    mesma série a partir deste mês (competência), usando serie_uuid — não mais
+    por igualdade de conteúdo, que colide quando duas compras têm mesmo
+    nome/valor."""
+    item = _get_compra_cartao(db, usuario, item_uuid)
+    if not item:
+        raise ValueError("Compra não encontrada.")
+
+    if futuras and item.serie_uuid:
+        removidas = (
+            db.query(CompraCartao)
+            .filter(
+                CompraCartao.id_usuario == usuario.id,
+                CompraCartao.serie_uuid == item.serie_uuid,
+                CompraCartao.data_competencia >= item.data_competencia,
+            )
+            .delete(synchronize_session=False)
+        )
+        db.flush()
+        return removidas
+
+    db.delete(item)
+    db.flush()
+    return 1
+
+
+def mover_compra_cartao(
+    db: Session, usuario: Usuario, item_uuid: str, *, ano: int, mes: str
+) -> CompraCartao:
+    """Move uma parcela para outro mês (usado para 'adiantar parcela')."""
+    item = _get_compra_cartao(db, usuario, item_uuid)
+    if not item:
+        raise ValueError("Compra não encontrada.")
+    get_or_create_mes(db, usuario, ano, mes)
+    inicio, _ = periodo_mes(ano, mes)
+    item.data_competencia = inicio
+    db.flush()
+    return item
+
+
+def atualizar_status_fatura(db: Session, usuario: Usuario, ano: int, mes: str, status: str) -> None:
+    ref = get_or_create_mes(db, usuario, ano, mes)
+    _update_fatura_status(db, ref, status)
+    db.flush()
 
 
 def resolver_usuario_por_chat_id(db: Session, chat_id: str | int) -> Usuario | None:
@@ -795,7 +981,7 @@ def _destino_mes_offset(ano: int, mes_index: int, offset: int) -> tuple[int, str
     return target_ano, MESES[target_mes_index]
 
 
-def _inserir_compra_cartao_integracao(
+def inserir_compra_cartao(
     db: Session,
     usuario: Usuario,
     *,
@@ -807,6 +993,13 @@ def _inserir_compra_cartao_integracao(
     total_parcelas: int = 1,
     recorrente: bool = False,
 ) -> dict[str, Any]:
+    """Cria a(s) linha(s) de uma compra no cartão (parcelada ou recorrente).
+
+    Todas as parcelas/ocorrências de uma mesma compra compartilham `serie_uuid`,
+    o que permite depois localizar "esta e as próximas" de forma confiável
+    (ex.: adiantar parcela, excluir recorrência) sem depender de comparar
+    nome/valor por igualdade de conteúdo.
+    """
     cartao_db_id = _resolver_cartao_id(db, usuario.id, cartao_id)
     if not cartao_db_id:
         raise ValueError("Informe final_cartao com os 4 últimos dígitos do cartão.")
@@ -815,6 +1008,7 @@ def _inserir_compra_cartao_integracao(
     mes_index = data_lanc.month - 1
     ano_base = data_lanc.year
     ano_limite = ano_base + ANO_LIMITE_OFFSET
+    serie = new_uuid()
     registros: list[CompraCartao] = []
 
     if recorrente:
@@ -836,6 +1030,7 @@ def _inserir_compra_cartao_integracao(
                     parcela_atual=1,
                     parcela_total=1,
                     recorrente=True,
+                    serie_uuid=serie,
                 )
             )
     else:
@@ -859,6 +1054,7 @@ def _inserir_compra_cartao_integracao(
                     parcela_atual=i + 1,
                     parcela_total=total_parcelas,
                     recorrente=False,
+                    serie_uuid=serie,
                 )
             )
 
@@ -879,6 +1075,7 @@ def _inserir_compra_cartao_integracao(
         "valor": valor,
         "parcelasRegistradas": len(registros),
         "totalParcelas": total_parcelas if not recorrente else "Recorrente",
+        "registros": registros,
     }
 
 
@@ -940,7 +1137,7 @@ def inserir_lancamento_integracao(
             situacao="pendente",
         )
     elif tipo_interno == "cartao":
-        return _inserir_compra_cartao_integracao(
+        return inserir_compra_cartao(
             db,
             usuario,
             data_lanc=data_lanc,

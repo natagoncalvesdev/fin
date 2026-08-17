@@ -44,10 +44,10 @@ def _calcular_totais(data: dict) -> dict[str, float]:
 def _montar_mensagem(mes: str, totais: dict[str, float]) -> str:
     return (
         f"Relatório de {mes}\n"
-        f"🔵Receita {_formatar_brl(totais['receita'])}\n"
-        f"🔴Contas {_formatar_brl(totais['contas'])}\n"
-        f"🟢Saldo {_formatar_brl(totais['saldo'])}\n"
-        f"🟡Reservado {_formatar_brl(totais['reservado'])}"
+        f"🔵Receita {formatar_brl(totais['receita'])}\n"
+        f"🔴Contas {formatar_brl(totais['contas'])}\n"
+        f"🟢Saldo {formatar_brl(totais['saldo'])}\n"
+        f"🟡Reservado {formatar_brl(totais['reservado'])}"
     )
 
 

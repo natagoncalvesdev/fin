@@ -10,3 +10,12 @@ def run_migrations(engine: Engine) -> None:
         conn.execute(
             text("ALTER TABLE usuario ADD COLUMN IF NOT EXISTS id_telegram VARCHAR(64)")
         )
+        conn.execute(
+            text("ALTER TABLE compra_cartao ADD COLUMN IF NOT EXISTS serie_uuid VARCHAR(36)")
+        )
+        conn.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_compra_cartao_serie_uuid "
+                "ON compra_cartao (serie_uuid)"
+            )
+        )

@@ -17,15 +17,20 @@
   --text-secondary: var(--slate-600);
   --border-color: var(--slate-200);
 
-  --sidebar-bg: var(--ink-950);
+  /* Sidebar — gradiente azul profundo (identidade "banking app") */
+  --sidebar-bg: #0B1230;
+  --sidebar-bg-2: #1D3FC4;
   --sidebar-text: #F8FAFC;
   --sidebar-item-bg: rgba(255, 255, 255, 0.06);
   --sidebar-item-hover: rgba(255, 255, 255, 0.1);
+  --sidebar-item-active-bg: #FFFFFF;
+  --sidebar-item-active-text: #1E3A8A;
 
-  /* Acento único — teal profundo, usado com moderação */
-  --accent: #0F766E;
-  --accent-dark: #115E59;
-  --accent-soft: rgba(15, 118, 110, 0.12);
+  /* Acento único — azul vívido, usado com moderação */
+  --accent: #2563EB;
+  --accent-dark: #1E3A8A;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --accent-gradient: linear-gradient(135deg, #2F6BFF 0%, #1E3A8A 100%);
 
   --positive: #15803D;
   --negative: #B91C1C;
@@ -171,6 +176,38 @@ button.btn-secondary {
 .btn-cancel:active,
 .btn-secondary:active {
   transform: translateY(0);
+}
+
+/* Botão de perigo — ações destrutivas (excluir) */
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px solid transparent;
+  border-radius: var(--btn-radius);
+  background: var(--negative);
+  color: #ffffff;
+  padding: 12px 28px;
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  letter-spacing: 0.01em;
+}
+
+.btn-danger:hover {
+  background: #991B1B;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-danger:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Scrollbar */
@@ -562,6 +599,11 @@ a.statement-row {
   font-size: 14px;
 }
 
+.info-text {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
 .section-actions {
   display: flex;
   flex-wrap: wrap;
@@ -579,4 +621,233 @@ input,
 textarea,
 button {
   font-family: var(--font-family);
+}
+
+/* =========================================================
+   Formulários, modais e botões inline — componentes
+   compartilhados por todas as páginas do financeiro
+   ========================================================= */
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.form-row input,
+.form-row select {
+  flex: 1;
+  min-width: 160px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-color);
+  background: var(--bg-section);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-family);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-row input:focus,
+.form-row select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 18, 48, 0.55);
+  backdrop-filter: blur(3px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: finFadeIn 0.2s ease;
+}
+
+.modal-overlay.visible {
+  display: flex;
+}
+
+@keyframes finFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes finSlideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-content {
+  background: var(--bg-section);
+  border-radius: 20px;
+  padding: 28px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: finSlideUp 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-content h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.modal-month-list {
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 12px 0;
+}
+
+.modal-month-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-month-item label {
+  flex: 1;
+  font-size: 14px;
+}
+
+.btn-inline {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn-inline:hover {
+  background: var(--slate-100);
+}
+
+.btn-inline.fin-btn-danger {
+  color: var(--negative);
+}
+
+.btn-inline.fin-btn-danger:hover {
+  background: rgba(185, 28, 28, 0.08);
+}
+
+.btn-icon-inline {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px;
+  color: var(--text-secondary);
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.btn-icon-inline:hover {
+  color: var(--accent);
+  transform: scale(1.08);
+}
+
+.fin-field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.fin-status-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.fin-status-opt {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-color);
+  background: var(--bg-section);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.fin-status-opt[data-status="pago"].active {
+  background: rgba(21, 128, 61, 0.12);
+  border-color: var(--positive);
+  color: var(--positive);
+}
+
+.fin-status-opt[data-status="pendente"].active {
+  background: rgba(180, 83, 9, 0.12);
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.fin-parcela-info {
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--slate-100);
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.fin-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.fin-checkbox-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.status-pill-clickable {
+  cursor: pointer;
+  transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.status-pill-clickable:hover {
+  filter: brightness(0.95);
+}
+
+.status-pill-clickable:active {
+  transform: scale(0.96);
 }

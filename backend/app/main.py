@@ -32,6 +32,11 @@ app.include_router(relatorios.router)
 app.include_router(integracoes.router)
 
 
+@app.get("/api/health")
+def health():
+    return {"status": "ok", "database": "postgresql"}
+
+
 def _frontend_dir() -> Path | None:
     candidates = [
         Path(__file__).resolve().parent.parent.parent / "frontend",
@@ -45,9 +50,6 @@ def _frontend_dir() -> Path | None:
 
 frontend_dir = _frontend_dir()
 if frontend_dir:
+    # Precisa ser o último mount: StaticFiles("/") captura qualquer caminho,
+    # então qualquer rota de API registrada depois dele seria inalcançável.
     app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
-
-
-@app.get("/api/health")
-def health():
-    return {"status": "ok", "database": "postgresql"}

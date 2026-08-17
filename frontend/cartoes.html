@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cartões | Fin</title>
+  <link rel="icon" href="img/icone.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="sidebar.css?v=6">
+  <link rel="stylesheet" href="css/theme.css?v=6">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=6">
+  <script src="js/fin-run-once.js"></script>
+  <script src="js/fin-sdk.js?v=4"></script>
+  <script src="js/fin-financeiro-shared.js?v=3"></script>
+  <script src="sidebar.js?v=6"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--font-family);
+      background: var(--bg-main);
+      display: flex;
+      min-height: 100vh;
+      color: var(--text-primary);
+    }
+
+    .content {
+      flex: 1;
+      padding: 40px;
+      margin-left: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      max-width: 1180px;
+    }
+
+    .cartoes-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .cartao-card {
+      position: relative;
+      overflow: hidden;
+      min-width: 260px;
+      max-width: 300px;
+      min-height: 160px;
+      border-radius: 18px;
+      padding: 22px;
+      cursor: pointer;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 10px 24px rgba(11, 18, 48, 0.18);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      background: linear-gradient(135deg, #526080 0%, #333e5c 100%);
+    }
+
+    .cartao-card:hover { transform: translateY(-3px); }
+    .cartao-card.selecionado { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+    .cartao-card.visa { background: linear-gradient(135deg, #1a1f71 0%, #0d1142 100%); }
+    .cartao-card.mastercard { background: linear-gradient(135deg, #eb001b 0%, #c20018 100%); }
+    .cartao-card.elo { background: linear-gradient(135deg, #ffcb05 0%, #ffa000 100%); color: #1a1a1a; }
+    .cartao-card.amex { background: linear-gradient(135deg, #006fcf 0%, #0052a3 100%); }
+    .cartao-card.hipercard { background: linear-gradient(135deg, #df0f50 0%, #b00d42 100%); }
+    .cartao-card.outro { background: linear-gradient(135deg, #6c7190 0%, #4a4f6e 100%); }
+
+    .cartao-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .cartao-chip { width: 34px; height: 26px; border-radius: 5px; background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); }
+    .cartao-bandeira-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; }
+    .cartao-numero { font-family: 'Courier New', monospace; font-size: 18px; letter-spacing: 2px; }
+    .cartao-vencimento { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+
+    .cartoes-toolbar { display: flex; flex-wrap: wrap; gap: 10px; }
+
+    .cartao-gerenciar-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      background: var(--slate-100);
+      border-radius: 12px;
+    }
+
+    .anticipate-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .anticipate-group-header {
+      background: var(--accent-soft);
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+
+    .anticipate-group-header label { line-height: 1.5; }
+
+    .anticipate-group-sub {
+      display: block;
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+
+    .anticipate-sub-item { padding-left: 26px; }
+  </style>
+</head>
+<body>
+
+  <main class="content">
+    <div class="page-header-row">
+      <div class="page-header">
+        <h1>Cartões</h1>
+        <p id="tituloPeriodo">Carregando…</p>
+      </div>
+      <div class="period-controls" style="display:flex; gap:10px;">
+        <select id="selectAno" style="min-width:110px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--border-color); background:var(--bg-section); color:var(--text-primary);"></select>
+        <select id="selectMes" style="min-width:140px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--border-color); background:var(--bg-section); color:var(--text-primary);"></select>
+      </div>
+    </div>
+
+    <section class="section-card">
+      <div class="page-header-row" style="margin-bottom:16px;">
+        <h2 class="section-card-title" style="margin:0;">Seus cartões</h2>
+        <button class="btn-cancel" id="btnGerenciarCartoes">Gerenciar cartões</button>
+      </div>
+      <div id="cartoesContainer" class="cartoes-container"></div>
+      <div id="cartoesVazio" class="statement-empty" style="display:none;">Nenhum cartão cadastrado ainda.</div>
+
+      <div class="cartoes-toolbar" id="cartaoAcoes" style="display:none; margin-top:18px;">
+        <button class="btn-add" id="btnAddCompra">+ Adicionar compra</button>
+        <button class="btn-cancel" id="btnAdiantar">Adiantar parcela</button>
+        <div class="fin-status-toggle" id="faturaStatusToggle" style="max-width:260px;">
+          <button type="button" class="fin-status-opt" data-status="pendente">Fatura pendente</button>
+          <button type="button" class="fin-status-opt" data-status="pago">Fatura paga</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <h2 class="section-card-title" id="tituloComprasCartao">Compras</h2>
+      <div id="listaCompras" class="statement-list"></div>
+    </section>
+  </main>
+
+  <!-- Modal: gerenciar cartões -->
+  <div id="gerenciarCartoesModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 620px;">
+      <h3>Gerenciar cartões</h3>
+      <div class="section-actions">
+        <button class="btn-add" id="btnNovoCartao">+ Novo cartão</button>
+      </div>
+      <div id="listaCartoesGerenciar" style="display:flex; flex-direction:column; gap:10px;"></div>
+
+      <div id="formCartao" style="display:none; flex-direction:column; gap:14px; border-top:1px solid var(--border-color); padding-top:18px;">
+        <h4 id="tituloFormCartao" style="margin:0;">Cadastrar cartão</h4>
+        <div class="form-row">
+          <div style="flex:1; min-width:140px;">
+            <label class="fin-field-label" for="cartaoNumeroModal">Final do cartão</label>
+            <input id="cartaoNumeroModal" placeholder="4 últimos dígitos" maxlength="4" inputmode="numeric" />
+          </div>
+          <div style="flex:1; min-width:140px;">
+            <label class="fin-field-label" for="cartaoBandeiraModal">Bandeira</label>
+            <select id="cartaoBandeiraModal">
+              <option value="">Selecione</option>
+              <option value="visa">Visa</option>
+              <option value="mastercard">Mastercard</option>
+              <option value="elo">Elo</option>
+              <option value="amex">American Express</option>
+              <option value="hipercard">Hipercard</option>
+              <option value="outro">Outro</option>
+            </select>
+          </div>
+          <div style="flex:1; min-width:140px;">
+            <label class="fin-field-label" for="cartaoVencimentoModal">Vencimento</label>
+            <select id="cartaoVencimentoModal"><option value="">Dia</option></select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" id="btnCancelarFormCartao">Cancelar</button>
+          <button class="btn-confirm" id="btnSalvarCartao">Cadastrar</button>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:8px;">
+        <button class="btn-cancel" id="btnFecharGerenciarCartoes">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: adicionar compra -->
+  <div id="compraModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 480px;">
+      <h3>Adicionar compra</h3>
+      <div class="form-row" style="flex-direction: column; gap: 14px;">
+        <div>
+          <label class="fin-field-label" for="compraCartaoNome">Descrição</label>
+          <input id="compraCartaoNome" placeholder="Ex.: Óculos" />
+        </div>
+        <div>
+          <label class="fin-field-label" for="compraCartaoValor">Valor da parcela</label>
+          <input id="compraCartaoValor" type="number" step="0.01" placeholder="Valor em R$" />
+        </div>
+        <div>
+          <label class="fin-field-label" for="compraCartaoParcelas">Total de parcelas</label>
+          <input id="compraCartaoParcelas" type="number" min="1" placeholder="Ex.: 10" value="1" />
+        </div>
+        <label class="fin-checkbox-row">
+          <input type="checkbox" id="compraCartaoRecorrente" />
+          <span>Compra recorrente (repete todo mês)</span>
+        </label>
+        <div>
+          <label class="fin-field-label" for="compraCartaoCategoria">Categoria</label>
+          <select id="compraCartaoCategoria"><option value="">Selecione uma categoria</option></select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btnCancelarCompra">Cancelar</button>
+        <button class="btn-confirm" id="btnSalvarCompra">Adicionar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: adiantar parcela -->
+  <div id="anticipateModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Adiantar parcelas para o mês atual</h3>
+      <div id="anticipateList" class="modal-month-list"><p class="info-text">Buscando parcelas futuras…</p></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btnCancelarAdiantar">Cancelar</button>
+        <button class="btn-confirm" id="btnConfirmarAdiantar">Concluir</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const auth = firebase.auth();
+    const F = window.finFinanceiro;
+
+    let periodo = null;
+    let observador = null;
+    let cartoesCache = [];
+    let cartaoSelecionado = null;
+    let dadosMesAtual = { cartao: [], cartaoStatus: 'pendente' };
+    let parcelasParaAdiantar = [];
+
+    function refCartao(cartao) {
+      return String((cartao && cartao.data && cartao.data.numero) || '').trim();
+    }
+
+    function compraPertenceAoCartao(compra, cartao) {
+      if (!compra || !cartao) return false;
+      const ref = refCartao(cartao);
+      return compra.cartaoId === ref || compra.cartaoId === cartao.id;
+    }
+
+    function rotuloCartao(cartao) {
+      const d = cartao.data || {};
+      const bandeira = (d.bandeira || '').charAt(0).toUpperCase() + (d.bandeira || '').slice(1);
+      return `${bandeira} · Final ${d.numero || '????'}`;
+    }
+
+    // --- Carrossel de cartões ---
+    async function carregarCartoes() {
+      cartoesCache = await F.api('/api/cartoes');
+      renderizarCartoes();
+      if (!cartaoSelecionado && cartoesCache.length) {
+        selecionarCartao(cartoesCache[0]);
+      } else if (cartaoSelecionado) {
+        const atualizado = cartoesCache.find((c) => c.id === cartaoSelecionado.id);
+        if (atualizado) cartaoSelecionado = atualizado;
+      }
+    }
+
+    function renderizarCartoes() {
+      const container = document.getElementById('cartoesContainer');
+      const vazio = document.getElementById('cartoesVazio');
+      container.innerHTML = '';
+      vazio.style.display = cartoesCache.length ? 'none' : 'block';
+      document.getElementById('cartaoAcoes').style.display = cartoesCache.length ? 'flex' : 'none';
+
+      cartoesCache.forEach((cartao) => {
+        const d = cartao.data || {};
+        const card = document.createElement('div');
+        card.className = `cartao-card ${d.bandeira || 'outro'}${cartaoSelecionado && cartaoSelecionado.id === cartao.id ? ' selecionado' : ''}`;
+        card.innerHTML = `
+          <div class="cartao-card-top">
+            <div class="cartao-chip"></div>
+            <span class="cartao-bandeira-tag">${d.bandeira || ''}</span>
+          </div>
+          <div>
+            <div class="cartao-numero">•••• ${d.numero || '????'}</div>
+            <div class="cartao-vencimento">${d.vencimento ? `Vence dia ${d.vencimento}` : ''}</div>
+          </div>
+        `;
+        card.addEventListener('click', () => selecionarCartao(cartao));
+        container.appendChild(card);
+      });
+    }
+
+    function selecionarCartao(cartao) {
+      cartaoSelecionado = cartao;
+      renderizarCartoes();
+      document.getElementById('tituloComprasCartao').textContent = `Compras — ${rotuloCartao(cartao)}`;
+      renderizarCompras();
+      atualizarToggleFatura();
+    }
+
+    function atualizarToggleFatura() {
+      const status = dadosMesAtual.cartaoStatus || 'pendente';
+      document.querySelectorAll('#faturaStatusToggle .fin-status-opt').forEach((b) => {
+        b.classList.toggle('active', b.dataset.status === status);
+      });
+    }
+
+    // --- Compras do cartão selecionado ---
+    function renderizarCompras() {
+      const lista = document.getElementById('listaCompras');
+      lista.innerHTML = '';
+      if (!cartaoSelecionado) {
+        lista.innerHTML = '<div class="statement-empty">Selecione um cartão para ver as compras.</div>';
+        return;
+      }
+      const compras = (dadosMesAtual.cartao || []).filter((c) => compraPertenceAoCartao(c, cartaoSelecionado));
+      if (!compras.length) {
+        lista.innerHTML = '<div class="statement-empty">Nenhuma compra registrada neste cartão para este mês.</div>';
+        return;
+      }
+      compras.forEach((item) => {
+        const subtitulo = item.recorrente ? 'Recorrente' : item.parcelas;
+        const row = F.renderStatementRow({
+          titulo: item.nome,
+          subtitulo,
+          valor: item.valor,
+          onClick: () => F.abrirModalItem({
+            tipo: 'compraCartao',
+            item,
+            onSalvo: () => observador && observador.forcar(),
+            onExcluido: () => observador && observador.forcar(),
+          }),
+        });
+        lista.appendChild(row);
+      });
+    }
+
+    function renderizarTudo(data) {
+      dadosMesAtual = data;
+      renderizarCompras();
+      atualizarToggleFatura();
+    }
+
+    // --- Fatura: pendente/pago ---
+    document.querySelectorAll('#faturaStatusToggle .fin-status-opt').forEach((btn) => {
+      btn.addEventListener('click', () => finRunOnce(btn, async () => {
+        const novo = btn.dataset.status;
+        await F.atualizarStatusFatura(periodo.ano, periodo.mes, novo);
+        observador && observador.forcar();
+      }));
+    });
+
+    // --- Adicionar compra ---
+    const compraModal = document.getElementById('compraModal');
+    document.getElementById('btnAddCompra').addEventListener('click', () => {
+      if (!cartaoSelecionado) return;
+      document.getElementById('compraCartaoNome').value = '';
+      document.getElementById('compraCartaoValor').value = '';
+      document.getElementById('compraCartaoParcelas').value = '1';
+      document.getElementById('compraCartaoRecorrente').checked = false;
+      F.popularSelectsCategoria(['compraCartaoCategoria']);
+      document.getElementById('compraCartaoCategoria').value = '';
+      compraModal.classList.add('visible');
+    });
+    document.getElementById('btnCancelarCompra').addEventListener('click', () => compraModal.classList.remove('visible'));
+    compraModal.addEventListener('click', (ev) => { if (ev.target === compraModal) compraModal.classList.remove('visible'); });
+
+    async function salvarCompra() {
+      const nome = document.getElementById('compraCartaoNome').value.trim();
+      const valor = Number(document.getElementById('compraCartaoValor').value);
+      const totalParcelas = Number(document.getElementById('compraCartaoParcelas').value) || 1;
+      const recorrente = document.getElementById('compraCartaoRecorrente').checked;
+      const categoria = document.getElementById('compraCartaoCategoria').value.trim();
+      if (!nome || !valor || valor <= 0) {
+        window.finToast?.('Preencha descrição e valor.', { type: 'error' });
+        return;
+      }
+      try {
+        await F.api('/api/financeiro/compras-cartao', {
+          method: 'POST',
+          body: JSON.stringify({
+            ano: Number(periodo.ano), mes: periodo.mes, nome, valor,
+            cartaoId: refCartao(cartaoSelecionado), categoria, totalParcelas, recorrente,
+          }),
+        });
+        compraModal.classList.remove('visible');
+        window.finToast?.('Compra adicionada.', { type: 'success' });
+        observador && observador.forcar();
+      } catch (err) {
+        window.finToast?.(err.message || 'Não foi possível adicionar.', { type: 'error' });
+      }
+    }
+    document.getElementById('btnSalvarCompra').addEventListener('click', (e) => finRunOnce(e, salvarCompra));
+
+    // --- Gerenciar cartões ---
+    const gerenciarModal = document.getElementById('gerenciarCartoesModal');
+    let cartaoEditando = null;
+
+    function popularVencimento(valor) {
+      const select = document.getElementById('cartaoVencimentoModal');
+      select.innerHTML = '<option value="">Dia</option>';
+      for (let d = 1; d <= 31; d++) {
+        const opt = document.createElement('option');
+        opt.value = String(d);
+        opt.textContent = `Dia ${d}`;
+        select.appendChild(opt);
+      }
+      if (valor) select.value = String(valor);
+    }
+
+    function renderizarListaGerenciar() {
+      const lista = document.getElementById('listaCartoesGerenciar');
+      lista.innerHTML = '';
+      if (!cartoesCache.length) {
+        lista.innerHTML = '<p class="info-text">Nenhum cartão cadastrado.</p>';
+        return;
+      }
+      cartoesCache.forEach((cartao) => {
+        const div = document.createElement('div');
+        div.className = 'cartao-gerenciar-item';
+        div.innerHTML = `
+          <span>${rotuloCartao(cartao)}</span>
+          <span style="display:flex; gap:6px;">
+            <button class="btn-icon-inline" data-acao="editar" title="Editar">✏️</button>
+            <button class="btn-inline fin-btn-danger" data-acao="excluir" title="Excluir">🗑️</button>
+          </span>
+        `;
+        div.querySelector('[data-acao="editar"]').addEventListener('click', () => editarCartao(cartao));
+        div.querySelector('[data-acao="excluir"]').addEventListener('click', (e) => finRunOnce(e, () => excluirCartao(cartao)));
+        lista.appendChild(div);
+      });
+    }
+
+    document.getElementById('btnGerenciarCartoes').addEventListener('click', () => {
+      gerenciarModal.classList.add('visible');
+      document.getElementById('formCartao').style.display = 'none';
+      renderizarListaGerenciar();
+    });
+    document.getElementById('btnFecharGerenciarCartoes').addEventListener('click', () => gerenciarModal.classList.remove('visible'));
+    gerenciarModal.addEventListener('click', (ev) => { if (ev.target === gerenciarModal) gerenciarModal.classList.remove('visible'); });
+
+    document.getElementById('btnNovoCartao').addEventListener('click', () => {
+      cartaoEditando = null;
+      document.getElementById('tituloFormCartao').textContent = 'Cadastrar cartão';
+      document.getElementById('btnSalvarCartao').textContent = 'Cadastrar';
+      document.getElementById('cartaoNumeroModal').value = '';
+      document.getElementById('cartaoBandeiraModal').value = '';
+      popularVencimento('');
+      document.getElementById('formCartao').style.display = 'flex';
+    });
+
+    function editarCartao(cartao) {
+      cartaoEditando = cartao;
+      const d = cartao.data || {};
+      document.getElementById('tituloFormCartao').textContent = 'Editar cartão';
+      document.getElementById('btnSalvarCartao').textContent = 'Salvar alterações';
+      document.getElementById('cartaoNumeroModal').value = d.numero || '';
+      document.getElementById('cartaoBandeiraModal').value = d.bandeira || '';
+      popularVencimento(d.vencimento || '');
+      document.getElementById('formCartao').style.display = 'flex';
+    }
+
+    document.getElementById('btnCancelarFormCartao').addEventListener('click', () => {
+      document.getElementById('formCartao').style.display = 'none';
+      cartaoEditando = null;
+    });
+
+    async function salvarCartao() {
+      const numero = document.getElementById('cartaoNumeroModal').value.trim();
+      const bandeira = document.getElementById('cartaoBandeiraModal').value;
+      const vencimento = Number(document.getElementById('cartaoVencimentoModal').value) || null;
+      if (!/^\d{4}$/.test(numero)) return window.finToast?.('Informe os 4 últimos dígitos do cartão.', { type: 'error' });
+      if (!bandeira) return window.finToast?.('Selecione a bandeira.', { type: 'error' });
+      if (!vencimento) return window.finToast?.('Selecione o dia de vencimento.', { type: 'error' });
+
+      const payload = { numero, bandeira, vencimento };
+      try {
+        if (cartaoEditando) {
+          await F.api(`/api/cartoes/${cartaoEditando.id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        } else {
+          await F.api('/api/cartoes', { method: 'POST', body: JSON.stringify(payload) });
+        }
+        document.getElementById('formCartao').style.display = 'none';
+        cartaoEditando = null;
+        await carregarCartoes();
+        renderizarListaGerenciar();
+        window.finToast?.('Cartão salvo.', { type: 'success' });
+      } catch (err) {
+        window.finToast?.(err.message || 'Não foi possível salvar o cartão.', { type: 'error' });
+      }
+    }
+    document.getElementById('btnSalvarCartao').addEventListener('click', (e) => finRunOnce(e, salvarCartao));
+
+    async function excluirCartao(cartao) {
+      if (!window.confirm('Excluir este cartão? Esta ação não pode ser desfeita.')) return;
+      try {
+        await F.api(`/api/cartoes/${cartao.id}`, { method: 'DELETE' });
+        if (cartaoSelecionado && cartaoSelecionado.id === cartao.id) cartaoSelecionado = null;
+        await carregarCartoes();
+        renderizarListaGerenciar();
+        window.finToast?.('Cartão excluído.', { type: 'success' });
+      } catch (err) {
+        window.finToast?.(err.message || 'Não foi possível excluir o cartão.', { type: 'error' });
+      }
+    }
+
+    // --- Adiantar parcela ---
+    const anticipateModal = document.getElementById('anticipateModal');
+    document.getElementById('btnAdiantar').addEventListener('click', async () => {
+      if (!cartaoSelecionado) return;
+      anticipateModal.classList.add('visible');
+      const lista = document.getElementById('anticipateList');
+      lista.innerHTML = '<p class="info-text">Buscando parcelas futuras…</p>';
+
+      const mesIndex = F.MESES.indexOf(periodo.mes);
+      const encontradas = [];
+      for (let i = 1; i <= 24; i++) {
+        const { ano: targetAno, mes: targetMes } = F.destinoMesOffset(Number(periodo.ano), mesIndex, i);
+        if (targetAno > F.ANO_LIMITE) break;
+        const data = await F.carregarMes(targetAno, targetMes);
+        (data.cartao || []).forEach((item) => {
+          if (!compraPertenceAoCartao(item, cartaoSelecionado)) return;
+          if (item.recorrente) return;
+          if (item.parcelas && item.parcelas.includes('/') && item.parcelas !== '1/1') {
+            encontradas.push({ ...item, origemAno: targetAno, origemMes: targetMes });
+          }
+        });
+      }
+
+      parcelasParaAdiantar = encontradas;
+      lista.innerHTML = '';
+      if (!encontradas.length) {
+        lista.innerHTML = '<p class="info-text">Nenhuma parcela futura encontrada.</p>';
+        return;
+      }
+
+      const grupos = {};
+      encontradas.forEach((item, idx) => {
+        if (!grupos[item.nome]) grupos[item.nome] = [];
+        grupos[item.nome].push({ ...item, idx });
+      });
+
+      Object.keys(grupos).forEach((nome, grupoIdx) => {
+        const itens = grupos[nome];
+        const total = itens.reduce((s, it) => s + Number(it.valor || 0), 0);
+
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'anticipate-group';
+
+        const header = document.createElement('div');
+        header.className = 'modal-month-item anticipate-group-header';
+        header.innerHTML = `
+          <input type="checkbox" id="adiantar-grupo-${grupoIdx}">
+          <label for="adiantar-grupo-${grupoIdx}">
+            <strong>${nome}</strong>
+            <span class="anticipate-group-sub">${itens.length} parcela(s) · Total ${F.formatar(total)}</span>
+          </label>
+        `;
+        header.querySelector('input').addEventListener('change', (ev) => {
+          groupDiv.querySelectorAll('.anticipate-sub-item input[type="checkbox"]').forEach((chk) => {
+            chk.checked = ev.target.checked;
+          });
+        });
+        groupDiv.appendChild(header);
+
+        itens.forEach((item) => {
+          const sub = document.createElement('div');
+          sub.className = 'modal-month-item anticipate-sub-item';
+          sub.innerHTML = `
+            <input type="checkbox" id="adiantar-${item.idx}" data-idx="${item.idx}">
+            <label for="adiantar-${item.idx}">Parcela ${item.parcelas} <span class="anticipate-group-sub">— ${item.origemMes}/${item.origemAno}</span></label>
+          `;
+          groupDiv.appendChild(sub);
+        });
+
+        lista.appendChild(groupDiv);
+      });
+    });
+
+    document.getElementById('btnCancelarAdiantar').addEventListener('click', () => anticipateModal.classList.remove('visible'));
+    anticipateModal.addEventListener('click', (ev) => { if (ev.target === anticipateModal) anticipateModal.classList.remove('visible'); });
+
+    async function confirmarAdiantamento() {
+      const checks = Array.from(document.querySelectorAll('#anticipateList input[type="checkbox"][data-idx]:checked'));
+      if (!checks.length) {
+        window.finToast?.('Selecione ao menos uma parcela.', { type: 'error' });
+        return;
+      }
+      let ok = 0;
+      for (const chk of checks) {
+        const item = parcelasParaAdiantar[Number(chk.dataset.idx)];
+        try {
+          await F.api(`/api/financeiro/compras-cartao/${item.id}/mover`, {
+            method: 'PUT',
+            body: JSON.stringify({ ano: Number(periodo.ano), mes: periodo.mes }),
+          });
+          ok += 1;
+        } catch (err) {
+          console.error('Erro ao adiantar parcela:', err);
+        }
+      }
+      window.finToast?.(`${ok} parcela(s) adiantada(s).`, { type: ok === checks.length ? 'success' : 'error' });
+      anticipateModal.classList.remove('visible');
+      observador && observador.forcar();
+    }
+    document.getElementById('btnConfirmarAdiantar').addEventListener('click', (e) => finRunOnce(e, confirmarAdiantamento));
+
+    // --- Inicialização ---
+    async function iniciar() {
+      periodo = F.criarControladorPeriodo({
+        selectAno: document.getElementById('selectAno'),
+        selectMes: document.getElementById('selectMes'),
+        onChange: (ano, mes) => {
+          document.getElementById('tituloPeriodo').textContent = `${mes} / ${ano}`;
+          if (observador) observador.parar();
+          observador = F.observarMes(() => ({ ano, mes }), renderizarTudo);
+        },
+      });
+      await F.carregarCategorias();
+      await carregarCartoes();
+    }
+
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      iniciar();
+    });
+  </script>
+  <script src="js/mobile-nav.js?v=9"></script>
+</body>
+</html>

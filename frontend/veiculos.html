@@ -5,45 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Controle de Veículos</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="sidebar.css?v=5">
-  <link rel="stylesheet" href="css/theme.css?v=5">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=5">
+  <link rel="stylesheet" href="sidebar.css?v=6">
+  <link rel="stylesheet" href="css/theme.css?v=6">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=6">
   <script src="js/fin-run-once.js"></script>
-  <script src="js/fin-sdk.js?v=3"></script>
-  <script src="sidebar.js?v=5"></script>
+  <script src="js/fin-sdk.js?v=4"></script>
+  <script src="sidebar.js?v=6"></script>
   <style>
     * { box-sizing: border-box; }
 
-    /* Scrollbar personalizado */
-    ::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #f1f5f9;
-      border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: linear-gradient(135deg, #cbd5e0 0%, #94a3b8 100%);
-      border-radius: 10px;
-      border: 2px solid #f1f5f9;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
-    }
-
     body {
-      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #F8FAFC;
+      font-family: var(--font-family);
+      background: var(--bg-main);
       display: flex;
       min-height: 100vh;
       margin: 0;
       color: var(--text-primary);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
 
     .content {
@@ -52,7 +29,8 @@
       margin-left: 280px;
       display: flex;
       flex-direction: column;
-      gap: 28px;
+      gap: 24px;
+      max-width: 1180px;
     }
 
     .header {
@@ -60,16 +38,11 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 20px;
+      gap: 16px;
     }
 
-    .header h1 {
-      margin: 0;
-    }
-
-    .content > h1 {
-      margin: 0;
-    }
+    .header h1 { margin: 0; }
+    .content > h1 { margin: 0; }
 
     .header .controls {
       display: flex;
@@ -77,357 +50,19 @@
       align-items: center;
     }
 
-    .btn {
-      padding: 12px 24px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: var(--shadow-sm);
-      letter-spacing: 0.01em;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
-      color: #fff;
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      background: linear-gradient(135deg, var(--accent-blue-hover) 0%, var(--accent-blue) 100%);
-    }
-    .btn-secondary {
-      background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
-      color: #fff;
-    }
-    .btn-secondary:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      background: linear-gradient(135deg, #4a5568 0%, #718096 100%);
-    }
-    .btn-add {
-      background: linear-gradient(135deg, var(--accent-green) 0%, #38a169 100%);
-      color: #fff;
-    }
-    .btn-add:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      background: linear-gradient(135deg, #38a169 0%, var(--accent-green) 100%);
-    }
-    .btn-danger {
-      background: linear-gradient(135deg, var(--accent-red) 0%, #e53e3e 100%);
-      color: #fff;
-    }
-    .btn-danger:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      background: linear-gradient(135deg, #e53e3e 0%, var(--accent-red) 100%);
-    }
-    .btn-confirm {
-      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
-      color: #fff;
-    }
-    .btn-confirm:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      background: linear-gradient(135deg, var(--accent-blue-hover) 0%, var(--accent-blue) 100%);
-    }
-    .btn-cancel {
-      background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
-      color: #fff;
-    }
-    .btn-cancel:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      background: linear-gradient(135deg, #4a5568 0%, #718096 100%);
-    }
-
-    select {
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: 2px solid var(--border-color) !important;
-      background: var(--bg-section) !important;
-      color: var(--text-primary) !important;
-      transition: all 0.3s ease;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: 'Montserrat', sans-serif;
-    }
-
-    select:focus {
-      outline: none;
-      border-color: var(--accent-blue) !important;
-      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
-      transform: translateY(-1px);
-    }
-
     .page-content {
-      display: flex; /* Renomeado de main-content */
+      display: flex;
       flex-direction: column;
       gap: 24px;
     }
 
-    .section {
-      background: var(--bg-section);
-      border-radius: 16px;
-      padding: 32px;
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      transition: all 0.3s ease;
-    }
-
-    .section:hover {
-      box-shadow: var(--shadow-lg);
-      transform: translateY(-2px);
-    }
-
-    .section h3 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: 600;
-      color: var(--text-primary);
-      letter-spacing: -0.01em;
-    }
-
-    .vehicle-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-
-    .vehicle-item {
-      padding: 16px;
-      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border: 1px solid var(--border-color);
-    }
-
-    .vehicle-item:hover {
-      background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
-      transform: translateX(4px);
-      box-shadow: var(--shadow-sm);
-      border-color: var(--accent-blue);
-    }
-    .info-text { font-size: 13px; color: var(--text-secondary); }
-
-    .vehicle-details-view, .vehicle-list-view {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .form-row { display: flex; flex-wrap: wrap; gap: 12px; }
-    .form-row input {
-      flex: 1;
-      min-width: 160px;
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: 2px solid var(--border-color);
-      background: var(--bg-section);
-      color: var(--text-primary);
-      font-size: 14px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      font-family: 'Montserrat', sans-serif;
-    }
-
-    .form-row input:focus {
-      outline: none;
-      border-color: var(--accent-blue);
-      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
-      transform: translateY(-1px);
-    }
-
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-    .stat-card {
-      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      transition: all 0.3s ease;
-      box-shadow: var(--shadow-sm);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-green) 100%);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-md);
-      border-color: var(--accent-blue);
-    }
-
-    .stat-card:hover::before {
-      transform: scaleX(1);
-    }
-    .stat-card .icon { font-size: 24px; } /* Mantido para compatibilidade com outras seções */
-    .stat-card .info { display: flex; flex-direction: column; align-items: center; text-align: center; }
-    .stat-card .info small { font-size: 13px; color: var(--text-secondary); }
-    .stat-card .info strong { font-size: 22px; font-weight: 600; }
-    .stat-card.orange strong { color: #f97316; }
-    .stat-card.blue .icon { color: var(--accent-blue); }
-    .stat-card.red .icon { color: var(--accent-red); }
-    .stat-card.red strong { color: var(--accent-red); }
-    .stat-card.blue strong { color: var(--accent-blue); }
-    .stat-card.green strong { color: var(--accent-green); }
-    /* Modal Styles */
     .modal-body-details p {
       margin: 8px 0;
-      font-size: 16px;
-    }
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      display: none; justify-content: center; align-items: center;
-      z-index: 1000;
-      animation: fadeIn 0.3s ease;
+      font-size: 15px;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .modal-overlay.visible { display: flex; }
-    .modal-content {
-      background: var(--bg-section); padding: 32px; border-radius: 20px;
-      width: 90%; max-width: 400px;
-      box-shadow: var(--shadow-xl);
-      border: 1px solid var(--border-color);
-      display: flex; flex-direction: column; gap: 20px;
-      animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-    }
-
-    @keyframes slideUp {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .modal-content h3 {
-      margin: 0;
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--text-primary);
-      letter-spacing: -0.02em;
-    }
-    .modal-content .form-row label {
-        font-size: 14px;
-        color: var(--text-secondary);
-        margin-top: 8px;
-    }
-    .modal-content input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-main); }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 12px; }
-  </style>
-  <style> /* Estilos para tabela de histórico e ações */
-    .table-wrapper {
-      overflow-x: auto;
-      width: 100%;
-    }
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    th, td {
-      padding: 16px;
-      text-align: left;
-      vertical-align: middle;
-      border-bottom: 1px solid var(--border-color);
-    }
-    th {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-secondary);
-      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-    tr {
-      transition: all 0.2s ease;
-    }
-    tbody tr:hover {
-      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-      transform: scale(1.01);
-    }
-    tr:last-child td {
-      border-bottom: none;
-    }
-    tbody tr {
-        cursor: pointer;
-    }
-    .btn-icon-inline {
-      border: none; background: none; cursor: pointer; font-size: 16px; padding: 5px;
-      color: var(--text-secondary);
-    }
-    .btn-icon-inline:hover { color: var(--accent-blue); }
-    .btn-icon-inline.delete:hover { color: var(--accent-red); }
-  </style>
-  <style> /* Estilos do footer da sidebar */
-    .footer-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: auto; /* Empurra para o final do container */
-    }
-    .footer-actions .btn-add {
-      flex: 1; /* Faz os botões terem o mesmo tamanho */
-      border: none;
-      border-radius: 10px; /* Cantos arredondados */
-      padding: 12px 14px; /* Espaçamento interno */
-      font-weight: 600;
-      color: #ffffff;
-    }
-  </style>
-  <style> /* Estilos para Mobile */
     @media (max-width: 768px) {
-      body { flex-direction: column; }
-
-      .footer-actions { display: none; }
-
-      .content {
-        margin-left: 0;
-        margin-top: 80px; /* Espaço para a barra superior fixa */
-        padding: 16px;
-      }
+      .content { max-width: 100%; }
     }
   </style>
 </head>
@@ -436,7 +71,7 @@
   <main class="content">
     <h1>Controle de Veículos</h1>
 
-    <div id="general-stats-section" class="section">
+    <div id="general-stats-section" class="section-card">
       <h4>Estatísticas Gerais (<span id="geral-stats-month-year"></span>)</h4>
       <div class="stat-row">
         <div class="stat-tile negative">
@@ -460,16 +95,16 @@
 
     <div class="page-content">
       <!-- Tela de Listagem de Veículos (Padrão) -->
-      <div id="vehicle-list-view" class="section">
+      <div id="vehicle-list-view" class="section-card">
         <h3>Meus Veículos</h3>
         <div class="header">
-          <div class="controls">
+          <div class="controls form-row">
             <select id="selectAno"></select>
             <select id="selectMes"></select>
-            <button class="btn btn-add" onclick="abrirModalAddVeiculo()">Adicionar</button>
+            <button class="btn-add" onclick="abrirModalAddVeiculo()">Adicionar</button>
           </div>
         </div>
-        <div id="listaVeiculos" class="vehicle-list" style="margin-top: 16px;">
+        <div id="listaVeiculos" class="statement-list" style="margin-top: 16px;">
           <p class="info-text">Carregando veículos...</p>
         </div>
       </div>
@@ -477,7 +112,7 @@
 
     <!-- Tela de Detalhes do Veículo (Oculta por padrão) -->
     <div id="vehicle-details-view" style="display: none; flex-direction: column; gap: 24px;">
-      <div class="section">
+      <div class="section-card">
         <h4>Estatísticas do mês (<span id="stats-vehicle-name"></span>)</h4>
         <div class="stat-row">
           <div class="stat-tile negative">
@@ -499,13 +134,13 @@
         </div>
       </div>
 
-      <div class="section">
+      <div class="section-card">
           <div style="display: flex; justify-content: space-between; align-items: center;">
               <h3 id="vehicle-name-details">Abastecimentos</h3>
-              <button class="btn btn-secondary" onclick="voltarParaListaVeiculos()">Voltar</button>
+              <button class="btn-cancel" onclick="voltarParaListaVeiculos()">Voltar</button>
           </div>
           <div class="header" style="flex-wrap: nowrap;">
-              <div class="controls">
+              <div class="controls form-row">
                 <select id="selectAnoDetalhes"></select>
                 <select id="selectMesDetalhes"></select>
               </div>
@@ -515,16 +150,16 @@
               <input id="veiculoKmAtual" type="number" placeholder="KM Atual">
               <input id="veiculoLitros" type="number" placeholder="Litros">
               <input id="veiculoValor" type="number" placeholder="Valor Total (R$)">
-              <button class="btn btn-primary" onclick="finRunOnce(event, () => registrarAbastecimento())">Registrar</button>
+              <button class="btn-confirm" onclick="finRunOnce(event, () => registrarAbastecimento())">Registrar</button>
           </div>
       </div>
 
-      <div class="section">
+      <div class="section-card">
         <h4>Histórico de Abastecimentos do Mês</h4>
         <div id="tabelaHistoricoAbastecimento" class="statement-list"></div>
       </div>
 
-      <div class="section">
+      <div class="section-card">
         <h3>Manutenção do Veículo</h3>
         <div class="form-row">
             <input id="manutencaoDescricao" type="text" placeholder="Descrição (ex: Troca de óleo)">
@@ -533,11 +168,11 @@
               <option value="Preventiva">Manutenção Preventiva</option>
               <option value="Conserto">Conserto</option>
             </select>
-            <button class="btn btn-primary" onclick="finRunOnce(event, () => registrarManutencao())">Registrar</button>
+            <button class="btn-confirm" onclick="finRunOnce(event, () => registrarManutencao())">Registrar</button>
         </div>
       </div>
 
-      <div class="section">
+      <div class="section-card">
         <h4>Histórico de Manutenções do Mês</h4>
         <div id="tabelaHistoricoManutencao" class="statement-list"></div>
       </div>
@@ -551,8 +186,8 @@
       <input id="addVeiculoNome" placeholder="Nome/Modelo (ex: Gol G5)">
       <input id="addVeiculoKmInicial" type="number" placeholder="Quilometragem Inicial">
       <div class="modal-actions">
-        <button class="btn btn-cancel" onclick="fecharModalAddVeiculo()">Cancelar</button>
-        <button class="btn btn-confirm" onclick="finRunOnce(event, () => salvarNovoVeiculo())">Salvar</button>
+        <button class="btn-cancel" onclick="fecharModalAddVeiculo()">Cancelar</button>
+        <button class="btn-confirm" onclick="finRunOnce(event, () => salvarNovoVeiculo())">Salvar</button>
       </div>
     </div>
   </div>
@@ -576,8 +211,8 @@
         <input id="editVeiculoValor" type="number" placeholder="Valor Total (R$)">
       </div>
       <div class="modal-actions">
-        <button class="btn btn-danger" onclick="finRunOnce(event, () => removerAbastecimento())">Excluir</button>
-        <button class="btn btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoAbastecimento())">Salvar</button>
+        <button class="btn-danger" onclick="finRunOnce(event, () => removerAbastecimento())">Excluir</button>
+        <button class="btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoAbastecimento())">Salvar</button>
       </div>
     </div>
   </div>
@@ -603,8 +238,8 @@
         <input id="editManutencaoValor" type="number" placeholder="Valor Gasto (R$)">
       </div>
       <div class="modal-actions">
-        <button class="btn btn-danger" onclick="finRunOnce(event, () => removerManutencao())">Excluir</button>
-        <button class="btn btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoManutencao())">Salvar</button>
+        <button class="btn-danger" onclick="finRunOnce(event, () => removerManutencao())">Excluir</button>
+        <button class="btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoManutencao())">Salvar</button>
       </div>
     </div>
   </div>
@@ -724,7 +359,7 @@
 
         // Se um veículo estiver selecionado, atualiza sua view
         if (veiculoSelecionadoId) {
-            renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('vehicle-name-details').textContent);
+            renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('stats-vehicle-name').textContent);
         }
         // Atualiza as estatísticas gerais sempre que o período mudar
         calcularEstatisticasGerais();
@@ -985,7 +620,7 @@
         const ref = db.collection('users').doc(currentUser.uid).collection('veiculos').doc(veiculoSelecionadoId).collection('abastecimentos');
         await ref.add(novoAbastecimento);
         alert(`Abastecimento registrado!\nConsumo: ${kmPorLitro.toFixed(2)} km/L`);
-        renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('vehicle-name-details').textContent);
+        renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('stats-vehicle-name').textContent);
       } catch (error) {
         console.error("Erro ao registrar abastecimento:", error);
         alert("Ocorreu um erro ao salvar. Tente novamente.");
@@ -1133,18 +768,23 @@
         const manutencaoRef = db.collection('users').doc(currentUser.uid).collection('veiculos').doc(veiculoSelecionadoId).collection('manutencoes').doc(manutencaoParaEditarId);
         const novaData = new Date(novaDataString + 'T12:00:00');
 
-        await manutencaoRef.update({
-            data: novaData.toISOString(),
-            descricao: novaDescricao,
-            tipo: novoTipo,
-            valor: novoValor,
-            mes: MESES[novaData.getMonth()],
-            ano: String(novaData.getFullYear())
-        });
+        try {
+            await manutencaoRef.update({
+                data: novaData.toISOString(),
+                descricao: novaDescricao,
+                tipo: novoTipo,
+                valor: novoValor,
+                mes: MESES[novaData.getMonth()],
+                ano: String(novaData.getFullYear())
+            });
 
-        alert("Manutenção atualizada com sucesso!");
-        fecharModalEditarManutencao();
-        renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('stats-vehicle-name').textContent);
+            alert("Manutenção atualizada com sucesso!");
+            fecharModalEditarManutencao();
+            renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('stats-vehicle-name').textContent);
+        } catch (error) {
+            console.error("Erro ao salvar edição da manutenção:", error);
+            alert("Ocorreu um erro ao salvar a edição. Tente novamente.");
+        }
     }
 
     async function salvarEdicaoAbastecimento() {
@@ -1220,7 +860,7 @@
             alert("Abastecimento atualizado com sucesso!");
             fecharModalEditarAbastecimento();
             calcularEstatisticasGerais(); // Atualiza as estatísticas gerais
-            renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('vehicle-name-details').textContent);
+            renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('stats-vehicle-name').textContent);
         } catch (error) {
             console.error("Erro ao salvar edição:", error);
             alert("Ocorreu um erro ao salvar a edição.");
@@ -1277,7 +917,7 @@
         
         fecharModalEditarAbastecimento();
         calcularEstatisticasGerais(); // Atualiza as estatísticas gerais
-        renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('vehicle-name-details').textContent);
+        renderizarDetalhesVeiculo(veiculoSelecionadoId, document.getElementById('stats-vehicle-name').textContent);
     }
 
     async function removerManutencao() {
@@ -1297,6 +937,6 @@
     }
 
   </script>
-  <script src="js/mobile-nav.js?v=8"></script>
+  <script src="js/mobile-nav.js?v=9"></script>
 </body>
 </html>

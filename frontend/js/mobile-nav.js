@@ -35,10 +35,6 @@
   }
 
   function obterPeriodoSalvo() {
-    if (paginaAtual() === 'financeiro.html' && typeof global.getPeriodoFinanceiroAtual === 'function') {
-      const atual = global.getPeriodoFinanceiroAtual();
-      if (atual?.mes && atual?.ano) return { mes: atual.mes, ano: String(atual.ano) };
-    }
     try {
       const salvo = JSON.parse(sessionStorage.getItem('financeiroPeriodo') || '{}');
       if (salvo.mes && salvo.ano) return { mes: salvo.mes, ano: String(salvo.ano) };
@@ -51,44 +47,44 @@
     return { mes: MESES[hoje.getMonth()], ano: String(hoje.getFullYear()) };
   }
 
-  function urlFinanceiro(tab) {
+  // Páginas do financeiro, na ordem usada pelo swipe mobile (irFinanceiroPagina).
+  const FINANCEIRO_PAGINAS = ['index.html', 'contas.html', 'cartoes.html', 'reservados.html'];
+
+  function urlFinanceiro(pagina) {
     const { mes, ano } = obterPeriodoSalvo();
     const params = new URLSearchParams();
-    if (tab) params.set('tab', tab);
     params.set('mes', mes);
     params.set('ano', ano);
-    return `financeiro.html?${params.toString()}`;
+    return `${pagina}?${params.toString()}`;
   }
 
   function navegarPara(url) {
     window.location.assign(url);
   }
 
-  function marcarNavegacaoFinanceiro() {
-    try {
-      sessionStorage.setItem('finNavPermitido', '1');
-    } catch (e) { /* ignore */ }
-  }
-
-  function navegarParaFinanceiro(url) {
-    marcarNavegacaoFinanceiro();
-    navegarPara(url);
-  }
-
   function irFinanceiroResumo() {
-    navegarParaFinanceiro(urlFinanceiro('mes'));
+    navegarPara(urlFinanceiro('index.html'));
   }
 
   function irContas() {
-    navegarParaFinanceiro(urlFinanceiro('contas'));
+    navegarPara(urlFinanceiro('contas.html'));
   }
 
   function irCartoes() {
-    navegarParaFinanceiro(urlFinanceiro('cartao'));
+    navegarPara(urlFinanceiro('cartoes.html'));
   }
 
   function irReservas() {
-    navegarParaFinanceiro(urlFinanceiro('reservados'));
+    navegarPara(urlFinanceiro('reservados.html'));
+  }
+
+  function irFinanceiroPagina(offset) {
+    const atual = paginaAtual();
+    const idx = FINANCEIRO_PAGINAS.indexOf(atual);
+    if (idx < 0) return;
+    const novoIdx = idx + offset;
+    if (novoIdx < 0 || novoIdx >= FINANCEIRO_PAGINAS.length) return;
+    navegarPara(urlFinanceiro(FINANCEIRO_PAGINAS[novoIdx]));
   }
 
   function irHome() {
@@ -306,8 +302,39 @@
     if (lastChartPayload) renderizarChartAgora();
   }
 
+  function deveIgnorarSwipe(target) {
+    return !!(target.closest('input, textarea, select, button, .modal-overlay, .cartoes-container, .sidebar, #mobileTopBar'));
+  }
+
+  function iniciarSwipeEntrePaginas() {
+    if (!isMobile() || FINANCEIRO_PAGINAS.indexOf(paginaAtual()) < 0) return;
+
+    let startX = 0;
+    let startY = 0;
+    let ativo = false;
+    const MIN_DIST = 60;
+
+    document.body.addEventListener('touchstart', (e) => {
+      if (deveIgnorarSwipe(e.target)) { ativo = false; return; }
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      ativo = true;
+    }, { passive: true });
+
+    document.body.addEventListener('touchend', (e) => {
+      if (!ativo) return;
+      ativo = false;
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = Math.abs(e.changedTouches[0].clientY - startY);
+      if (Math.abs(dx) > MIN_DIST && Math.abs(dx) > dy * 1.5) {
+        irFinanceiroPagina(dx > 0 ? -1 : 1);
+      }
+    }, { passive: true });
+  }
+
   function init() {
     aplicarShell();
+    iniciarSwipeEntrePaginas();
     window.addEventListener('resize', aplicarShell);
   }
 
@@ -360,6 +387,7 @@
     irContas,
     irCartoes,
     irReservas,
+    irFinanceiroPagina,
     irHome,
     irRelatorio,
     irVeiculos,

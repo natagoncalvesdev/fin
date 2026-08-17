@@ -977,5 +977,12 @@
   global.firebase.firestore.FieldValue = FieldValue;
   global.firebase.firestore.Timestamp = FinTimestamp;
 
+  // --- Acesso direto à API REST (usado pelas páginas novas, que não passam
+  // mais pelo formato de documento "mês inteiro" do shim acima) ---
+  global.finApi = {
+    request: apiRequest,
+    getToken,
+  };
+
   initAuth();
 })(window);

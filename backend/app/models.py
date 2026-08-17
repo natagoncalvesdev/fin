@@ -143,6 +143,7 @@ class CompraCartao(Base):
     parcela_atual: Mapped[int] = mapped_column(Integer, default=1)
     parcela_total: Mapped[int] = mapped_column(Integer, default=1)
     recorrente: Mapped[bool] = mapped_column(Boolean, default=False)
+    serie_uuid: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
 
     cartao: Mapped["Cartao"] = relationship()
     categoria: Mapped["Categoria | None"] = relationship()

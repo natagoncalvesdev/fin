@@ -91,6 +91,45 @@ def _get_abastecimento(db: Session, abastecimento_uuid: str, veiculo: Veiculo) -
     )
 
 
+def _consumo_por_abastecimento(
+    veiculo: Veiculo, todos: list[VeiculoAbastecimento]
+) -> dict[str, dict[str, float]]:
+    """Calcula km rodados e km/l de cada abastecimento a partir do histórico
+    completo do veículo (método do tanque cheio: distância desde o último
+    registro ÷ litros deste abastecimento).
+
+    O primeiro registro fica com km/l = 0 porque não há um abastecimento
+    anterior para delimitar o trecho — só o km inicial do veículo.
+    """
+    ordenados = sorted(todos, key=lambda a: (a.quilometragem_atual, a.id))
+    resultado: dict[str, dict[str, float]] = {}
+    km_anterior = veiculo.km_inicial
+    primeiro = True
+    for a in ordenados:
+        km_rodado = a.quilometragem_atual - km_anterior
+        if km_rodado < 0:
+            km_rodado = 0
+        if primeiro or km_rodado <= 0 or not a.litros_abastecido:
+            km_por_litro = 0.0
+        else:
+            km_por_litro = km_rodado / a.litros_abastecido
+        resultado[a.uuid] = {"kmRodado": km_rodado, "kmPorLitro": km_por_litro}
+        km_anterior = a.quilometragem_atual
+        primeiro = False
+    return resultado
+
+
+def _abastecimento_payload(
+    a: VeiculoAbastecimento, consumo: dict[str, dict[str, float]]
+) -> dict:
+    data = a.to_dict()
+    calc = consumo.get(a.uuid)
+    if calc:
+        data["kmRodado"] = calc["kmRodado"]
+        data["kmPorLitro"] = calc["kmPorLitro"]
+    return data
+
+
 def _get_manutencao(db: Session, manutencao_uuid: str, veiculo: Veiculo) -> ManutencaoVeiculo | None:
     return (
         db.query(ManutencaoVeiculo)
@@ -164,6 +203,12 @@ def list_abastecimentos(
     limit: int | None = Query(default=None),
 ):
     veiculo = get_veiculo_or_404(db, veiculo_id, current_user)
+    consumo = _consumo_por_abastecimento(
+        veiculo,
+        db.query(VeiculoAbastecimento)
+        .filter(VeiculoAbastecimento.id_veiculo == veiculo.id)
+        .all(),
+    )
     query = db.query(VeiculoAbastecimento).filter(VeiculoAbastecimento.id_veiculo == veiculo.id)
 
     if ano:
@@ -191,7 +236,7 @@ def list_abastecimentos(
         query = query.limit(limit)
 
     items = query.all()
-    return [{"id": a.uuid, "data": a.to_dict()} for a in items]
+    return [{"id": a.uuid, "data": _abastecimento_payload(a, consumo)} for a in items]
 
 
 @router.post("/{veiculo_id}/abastecimentos", status_code=status.HTTP_201_CREATED)
@@ -220,10 +265,8 @@ def create_abastecimento(
     )
     db.commit()
     db.refresh(abastecimento)
-    result = abastecimento.to_dict()
-    result["kmRodado"] = body.kmRodado
-    result["kmPorLitro"] = body.kmPorLitro
-    return {"id": abastecimento.uuid, "data": result}
+    consumo = _consumo_por_abastecimento(veiculo, list(veiculo.abastecimentos))
+    return {"id": abastecimento.uuid, "data": _abastecimento_payload(abastecimento, consumo)}
 
 
 @router.put("/{veiculo_id}/abastecimentos/{abastecimento_id}")
@@ -266,12 +309,8 @@ def update_abastecimento(
 
     db.commit()
     db.refresh(abastecimento)
-    result = abastecimento.to_dict()
-    if body.kmRodado is not None:
-        result["kmRodado"] = body.kmRodado
-    if body.kmPorLitro is not None:
-        result["kmPorLitro"] = body.kmPorLitro
-    return {"id": abastecimento.uuid, "data": result}
+    consumo = _consumo_por_abastecimento(veiculo, list(veiculo.abastecimentos))
+    return {"id": abastecimento.uuid, "data": _abastecimento_payload(abastecimento, consumo)}
 
 
 @router.delete("/{veiculo_id}/abastecimentos/{abastecimento_id}", status_code=status.HTTP_204_NO_CONTENT)

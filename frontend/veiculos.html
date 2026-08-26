@@ -601,9 +601,11 @@
         return alert("A quilometragem atual deve ser maior que a do último registro.");
       }
 
+      // Método do tanque cheio: distância desde o último abastecimento ÷ litros
+      // deste abastecimento. Primeiro registro do veículo fica sem consumo.
       const kmRodado = kmAtualInput - ultimoAbastecimentoCache.kmAtual;
-      const litrosAnterior = Number(ultimoAbastecimentoCache.litros);
-      const kmPorLitro = litrosAnterior > 0 ? kmRodado / litrosAnterior : 0;
+      const primeiroRegistro = ultimoAbastecimentoCache.litros == null;
+      const kmPorLitro = (!primeiroRegistro && litros > 0) ? kmRodado / litros : 0;
 
       const novoAbastecimento = {
         kmAtual: kmAtualInput,

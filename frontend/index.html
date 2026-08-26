@@ -360,8 +360,17 @@
     function atualizarChartStatusContas(data) {
       const canvas = document.getElementById('chartStatusContas');
       const contas = data.contas || [];
-      const pago = contas.filter((c) => c.status === 'pago').reduce((s, c) => s + Number(c.valor || 0), 0);
-      const pendente = contas.filter((c) => c.status !== 'pago').reduce((s, c) => s + Number(c.valor || 0), 0);
+      let pago = contas.filter((c) => c.status === 'pago').reduce((s, c) => s + Number(c.valor || 0), 0);
+      let pendente = contas.filter((c) => c.status !== 'pago').reduce((s, c) => s + Number(c.valor || 0), 0);
+
+      // Fatura do cartão de crédito entra como uma conta única, seguindo o
+      // status mensal da fatura (mesmo tratamento da página de Contas).
+      const totalCartao = (data.cartao || []).reduce((s, i) => s + Number(i.valor || 0), 0);
+      if (totalCartao > 0) {
+        if ((data.cartaoStatus || 'pendente') === 'pago') pago += totalCartao;
+        else pendente += totalCartao;
+      }
+
       document.getElementById('statusPagoValor').textContent = F.formatar(pago);
       document.getElementById('statusPendenteValor').textContent = F.formatar(pendente);
 

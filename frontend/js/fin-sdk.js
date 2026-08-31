@@ -7,7 +7,7 @@
 
   const TOKEN_KEY = 'fin_token';
   const USER_KEY = 'fin_user';
-  const POLL_INTERVAL = 2500;
+  const POLL_INTERVAL = 20000;
 
   const API_BASE = global.FIN_API_BASE || '';
 

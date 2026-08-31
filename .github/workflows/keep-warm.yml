@@ -1,0 +1,22 @@
+name: keep-warm
+
+# Mantém o serviço do Render (plano free) acordado — sem isto ele hiberna
+# após ~15 min sem tráfego e o primeiro acesso seguinte leva 30-50s.
+#
+# Observação: o agendador do GitHub Actions é "best effort" e costuma
+# atrasar 5-15 min; para algo mais firme use https://cron-job.org apontando
+# para o mesmo endpoint /api/health a cada 10 min.
+
+on:
+  schedule:
+    - cron: "*/12 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /api/health
+        run: |
+          curl -fsS --retry 2 --max-time 60 \
+            https://fin-jbaa.onrender.com/api/health || true

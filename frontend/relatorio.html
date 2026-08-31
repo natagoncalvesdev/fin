@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="css/mobile-shell.css?v=7">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
-  <script src="js/fin-sdk.js?v=4"></script>
+  <script src="js/fin-sdk.js?v=5"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <script src="sidebar.js?v=6"></script>
   <style>
@@ -559,15 +559,18 @@
         const totaisMensaisCategoriaFiltrada = {};
         const mesesParaProcessar = mes ? [mes] : MESES;
 
+        // Ano inteiro numa única requisição (antes eram 12 chamadas em série,
+        // ~15s; agora ~1s).
+        const resumo = await window.finApi.request(`/api/financeiro/anos/${ano}/resumo`);
+        const mesesDoAno = resumo.meses || {};
+
         for (const mesNome of mesesParaProcessar) {
           if (!totaisMensaisCategoriaFiltrada[mesNome]) {
             totaisMensaisCategoriaFiltrada[mesNome] = 0;
           }
-          const mesRef = db.collection('users').doc(currentUser.uid).collection('anos').doc(ano).collection('meses').doc(mesNome);
-          const doc = await mesRef.get();
-          if (!doc.exists) continue;
+          const data = mesesDoAno[mesNome];
+          if (!data) continue;
 
-          const data = doc.data();
           const tipos = ['contas', 'cartao', 'reservado', 'debito'];
 
           tipos.forEach(tipo => {

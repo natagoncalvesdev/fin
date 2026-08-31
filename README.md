@@ -113,5 +113,26 @@ Documentação Swagger: http://localhost:8000/docs
 | POST | `/api/auth/register` | Cadastro |
 | POST | `/api/auth/login` | Login |
 | GET | `/api/financeiro/anos/{ano}/meses/{mes}` | Dados do mês |
+| GET | `/api/financeiro/anos/{ano}/resumo` | Ano inteiro numa requisição (relatório / resumo anual) |
 | GET | `/api/veiculos` | Listar veículos |
 | GET | `/api/categorias` | Listar categorias |
+
+## Produção (Supabase + Render + Netlify, planos free)
+
+Notas de desempenho para o ambiente hospedado:
+
+- **Região do banco × backend:** o projeto Supabase e o serviço do Render
+  **devem estar na mesma região** (ex.: ambos em US East). Cada query paga a
+  latência de rede entre os dois; com regiões diferentes, uma tela que faz
+  ~6 queries fica visivelmente lenta.
+- **Connection string:** use o *connection pooler* do Supabase (o host
+  `...pooler.supabase.com`, porta `6543`, modo *transaction*) no
+  `DATABASE_URL`, não a conexão direta.
+- **Cold start do Render:** o plano free hiberna após ~15 min sem tráfego e o
+  próximo acesso leva 30-50s. O workflow `.github/workflows/keep-warm.yml`
+  faz um ping a cada ~12 min. Para algo mais confiável, configure o
+  [cron-job.org](https://cron-job.org) apontando para
+  `https://<app>.onrender.com/api/health` a cada 10 min.
+- **Relatório / resumo anual:** carregam o ano inteiro em **uma** requisição
+  (`/anos/{ano}/resumo`, ~6 queries) em vez de 12 requisições em série.
+- **Polling:** as telas do financeiro revalidam a cada 20s (antes 2,5-4s).

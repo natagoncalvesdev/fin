@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="css/theme.css?v=6">
   <link rel="stylesheet" href="css/mobile-shell.css?v=7">
   <script src="js/fin-config.js?v=1"></script>
-  <script src="js/fin-sdk.js?v=4"></script>
+  <script src="js/fin-sdk.js?v=5"></script>
   <script src="sidebar.js?v=6"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <style>
@@ -148,11 +148,9 @@
         return;
       }
 
-      const anoRef = db
-        .collection('users')
-        .doc(currentUser.uid)
-        .collection('anos')
-        .doc(String(ano));
+      // Ano inteiro numa única requisição (antes eram 12 chamadas em série).
+      const resumo = await window.finApi.request(`/api/financeiro/anos/${ano}/resumo`);
+      const mesesDoAno = resumo.meses || {};
 
       let totalAnoContas = 0;
       let totalAnoEntradas = 0;
@@ -161,11 +159,8 @@
       const linhasMensais = [];
 
       for (const mesNome of MESES) {
-        const mesRef = anoRef.collection('meses').doc(mesNome);
-        const doc = await mesRef.get();
-        const data = doc.exists
-          ? doc.data()
-          : { contas: [], adicionais: [], cartao: [], reservado: [], debito: [] };
+        const data = mesesDoAno[mesNome]
+          || { contas: [], adicionais: [], cartao: [], reservado: [], debito: [] };
 
         const contas = data.contas || [];
         const adicionais = data.adicionais || [];

@@ -18,7 +18,7 @@
   ];
   const ANO_BASE = 2025;
   const ANO_LIMITE = ANO_BASE + 10;
-  const POLL_INTERVAL = 4000;
+  const POLL_INTERVAL = 20000;
 
   const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const formatar = (valor) => moeda.format(Number(valor) || 0);
@@ -129,6 +129,16 @@
   async function carregarMes(ano, mes) {
     const res = await api(`/api/financeiro/anos/${ano}/meses/${encodeURIComponent(mes)}`);
     return res.data;
+  }
+
+  /**
+   * Ano inteiro numa única requisição. Retorna um objeto
+   * { "Janeiro": { contas, adicionais, cartao, reservado, debito, cartaoStatus }, ... }.
+   * Muito mais rápido que 12 chamadas a carregarMes em série.
+   */
+  async function carregarAno(ano) {
+    const res = await api(`/api/financeiro/anos/${ano}/resumo`);
+    return res.meses;
   }
 
   /**
@@ -541,6 +551,7 @@
     },
     periodoAtual: () => ({ ano: periodoAtualRef.ano, mes: periodoAtualRef.mes }),
     carregarMes,
+    carregarAno,
     observarMes,
     carregarCategorias,
     popularSelectsCategoria,

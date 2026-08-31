@@ -191,6 +191,30 @@ def get_or_create_mes(db: Session, usuario: Usuario, ano: int, mes: str) -> MesR
     )
 
 
+def mes_ref_somente_leitura(db: Session, usuario: Usuario, ano: int, mes: str) -> MesRef:
+    """Como get_or_create_mes, mas nunca grava — para requisições GET.
+
+    Antes, todo GET de um mês inseria (e dava commit) uma FaturaCartao 'pendente'
+    caso não existisse. Isso transformava cada leitura em escrita e, no relatório
+    anual, multiplicava por 12 os round-trips de escrita ao banco.
+    """
+    fatura = (
+        db.query(FaturaCartao)
+        .filter(
+            FaturaCartao.id_usuario == usuario.id,
+            FaturaCartao.ano == ano,
+            FaturaCartao.mes == mes,
+        )
+        .first()
+    )
+    return MesRef(
+        id_usuario=usuario.id,
+        ano=ano,
+        mes=mes,
+        cartao_status=fatura.situacao if fatura else "pendente",
+    )
+
+
 def init_ano_meses(db: Session, usuario: Usuario, ano: int) -> None:
     for mes in MESES:
         get_or_create_mes(db, usuario, ano, mes)
@@ -317,6 +341,84 @@ def mes_to_dict(db: Session, ref: MesRef) -> dict:
         "debito": debito,
         "cartaoStatus": fatura.situacao if fatura else ref.cartao_status,
     }
+
+
+def resumo_ano(db: Session, usuario: Usuario, ano: int) -> dict[str, dict]:
+    """Todos os 12 meses do ano em ~6 queries (uma por tabela), em vez de
+    ~7 queries * 12 meses = 84 e 12 requisições HTTP separadas.
+
+    Retorna { "Janeiro": {contas, adicionais, cartao, reservado, debito,
+    cartaoStatus}, ... } — o mesmo formato de mes_to_dict, por mês.
+    """
+    uid = usuario.id
+    inicio = date(ano, 1, 1)
+    fim = date(ano + 1, 1, 1)
+
+    meses: dict[str, dict] = {
+        mes: {
+            "contas": [],
+            "adicionais": [],
+            "cartao": [],
+            "reservado": [],
+            "debito": [],
+            "cartaoStatus": "pendente",
+        }
+        for mes in MESES
+    }
+
+    def bucket(d: date) -> dict:
+        return meses[MESES[d.month - 1]]
+
+    for c in (
+        db.query(Conta)
+        .options(joinedload(Conta.categoria))
+        .filter(Conta.id_usuario == uid, Conta.data_conta >= inicio, Conta.data_conta < fim)
+        .order_by(Conta.id)
+    ):
+        bucket(c.data_conta)["contas"].append(conta_to_dict(c))
+
+    for e in (
+        db.query(Entrada)
+        .filter(Entrada.id_usuario == uid, Entrada.data_entrada >= inicio, Entrada.data_entrada < fim)
+        .order_by(Entrada.id)
+    ):
+        bucket(e.data_entrada)["adicionais"].append(entrada_to_dict(e))
+
+    for d in (
+        db.query(Debito)
+        .options(joinedload(Debito.categoria))
+        .filter(Debito.id_usuario == uid, Debito.data_debito >= inicio, Debito.data_debito < fim)
+        .order_by(Debito.id.desc())
+    ):
+        bucket(d.data_debito)["debito"].append(debito_to_dict(d))
+
+    for r in (
+        db.query(Reservado)
+        .options(joinedload(Reservado.categoria))
+        .filter(Reservado.id_usuario == uid, Reservado.data_reservado >= inicio, Reservado.data_reservado < fim)
+        .order_by(Reservado.id)
+    ):
+        bucket(r.data_reservado)["reservado"].append(reservado_to_dict(r))
+
+    for compra in (
+        db.query(CompraCartao)
+        .options(joinedload(CompraCartao.cartao), joinedload(CompraCartao.categoria))
+        .filter(
+            CompraCartao.id_usuario == uid,
+            CompraCartao.data_competencia >= inicio,
+            CompraCartao.data_competencia < fim,
+        )
+        .order_by(CompraCartao.id.desc())
+    ):
+        bucket(compra.data_competencia)["cartao"].append(compra_to_dict(compra))
+
+    for fatura in (
+        db.query(FaturaCartao).filter(FaturaCartao.id_usuario == uid, FaturaCartao.ano == ano)
+    ):
+        if fatura.mes in meses:
+            meses[fatura.mes]["cartaoStatus"] = fatura.situacao
+
+    return meses
 
 
 def _mes_tem_dados(db: Session, ref: MesRef) -> bool:

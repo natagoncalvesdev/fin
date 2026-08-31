@@ -10,8 +10,8 @@
   <link rel="stylesheet" href="css/mobile-shell.css?v=7">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
-  <script src="js/fin-sdk.js?v=4"></script>
-  <script src="js/fin-financeiro-shared.js?v=4"></script>
+  <script src="js/fin-sdk.js?v=5"></script>
+  <script src="js/fin-financeiro-shared.js?v=5"></script>
   <script src="sidebar.js?v=6"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <style>
@@ -328,12 +328,18 @@
     async function atualizarChartTendencia() {
       const canvas = document.getElementById('chartTendencia');
       const idxAtual = F.MESES.indexOf(periodo.mes);
-      const pontos = [];
+      const alvos = [];
       for (let i = 5; i >= 0; i--) {
         const { ano, mes } = F.destinoMesOffset(Number(periodo.ano), idxAtual, -i);
-        const data = await F.carregarMes(ano, mes);
-        pontos.push({ label: `${mes.slice(0, 3)}/${String(ano).slice(2)}`, despesa: calcularTotais(data).despesas, atual: i === 0 });
+        alvos.push({ ano, mes, atual: i === 0 });
       }
+      // Busca os 6 meses em paralelo (antes era em série).
+      const dados = await Promise.all(alvos.map((a) => F.carregarMes(a.ano, a.mes)));
+      const pontos = alvos.map((a, k) => ({
+        label: `${a.mes.slice(0, 3)}/${String(a.ano).slice(2)}`,
+        despesa: calcularTotais(dados[k]).despesas,
+        atual: a.atual,
+      }));
       if (chartTendencia) { chartTendencia.destroy(); chartTendencia = null; }
       chartTendencia = new Chart(canvas.getContext('2d'), {
         type: 'bar',

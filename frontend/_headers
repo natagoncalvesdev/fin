@@ -1,0 +1,14 @@
+# Netlify — cache dos estáticos versionados (o cache-bust é feito pelo ?v=N no HTML).
+# Evita rebaixar JS/CSS a cada navegação entre páginas.
+
+/js/*
+  Cache-Control: public, max-age=86400, must-revalidate
+
+/css/*
+  Cache-Control: public, max-age=86400, must-revalidate
+
+/img/*
+  Cache-Control: public, max-age=604800
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate

@@ -22,11 +22,12 @@ from app.financeiro_service import (
     criar_reservado,
     debito_to_dict,
     entrada_to_dict,
-    get_or_create_mes,
     init_ano_meses,
     inserir_compra_cartao,
     list_meses_ano,
+    mes_ref_somente_leitura,
     mes_to_dict,
+    resumo_ano,
     mover_compra_cartao,
     remover_compra_cartao,
     remover_conta,
@@ -81,6 +82,16 @@ def init_ano(
     return {"ok": True, "ano": ano}
 
 
+@router.get("/anos/{ano}/resumo")
+def get_resumo_ano(
+    ano: int,
+    current_user: Annotated[Usuario, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Ano inteiro numa requisição — usado pelo relatório e pelo resumo anual."""
+    return {"ano": ano, "meses": resumo_ano(db, current_user, ano)}
+
+
 @router.get("/anos/{ano}/meses/{mes}")
 def get_mes(
     ano: int,
@@ -88,7 +99,8 @@ def get_mes(
     current_user: Annotated[Usuario, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    ref = get_or_create_mes(db, current_user, ano, mes)
+    _checar_mes(mes)
+    ref = mes_ref_somente_leitura(db, current_user, ano, mes)
     return {"id": f"{ano}_{mes}", "data": mes_to_dict(db, ref), "exists": True}
 
 

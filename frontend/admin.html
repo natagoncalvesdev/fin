@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="css/theme.css?v=6" />
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
-  <script src="js/fin-sdk.js?v=4"></script>
+  <script src="js/fin-sdk.js?v=5"></script>
   <style>
     body {
       background-color: var(--brand-bg);
@@ -169,11 +169,12 @@
           dadosMeses: {}
         };
 
+        // Ano inteiro numa única requisição.
+        const resumo = await window.finApi.request(`/api/financeiro/anos/${anoAtualAdmin}/resumo`);
         for (const mes of MESES) {
-          const mesRef = db.collection('users').doc(currentUser.uid).collection('anos').doc(anoAtualAdmin).collection('meses').doc(mes);
-          const doc = await mesRef.get();
-          if (doc.exists) {
-            dadosCompletosDoAno.dadosMeses[mes] = doc.data();
+          const data = (resumo.meses || {})[mes];
+          if (data) {
+            dadosCompletosDoAno.dadosMeses[mes] = data;
           }
         }
 

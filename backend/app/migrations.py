@@ -19,3 +19,26 @@ def run_migrations(engine: Engine) -> None:
                 "ON compra_cartao (serie_uuid)"
             )
         )
+
+        # Índices compostos (id_usuario, data): as leituras de mês/ano sempre
+        # filtram por usuário + intervalo de data. Sem isto o Postgres varre
+        # todas as linhas do usuário e filtra a data em memória.
+        for nome, tabela, coluna in (
+            ("ix_conta_usuario_data", "conta", "data_conta"),
+            ("ix_entrada_usuario_data", "entrada", "data_entrada"),
+            ("ix_debito_usuario_data", "debito", "data_debito"),
+            ("ix_reservado_usuario_data", "reservado", "data_reservado"),
+            ("ix_compra_cartao_usuario_comp", "compra_cartao", "data_competencia"),
+        ):
+            conn.execute(
+                text(
+                    f"CREATE INDEX IF NOT EXISTS {nome} "
+                    f"ON {tabela} (id_usuario, {coluna})"
+                )
+            )
+        conn.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_fatura_usuario_ano "
+                "ON fatura_cartao (id_usuario, ano)"
+            )
+        )

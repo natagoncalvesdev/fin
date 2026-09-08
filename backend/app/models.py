@@ -54,6 +54,7 @@ class Usuario(Base):
     pesos: Mapped[list["RegistroPeso"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
     medidas: Mapped[list["RegistroMedidas"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
     metas_peso: Mapped[list["MetaPeso"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
+    conquistas: Mapped[list["Conquista"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
 
     @property
     def id_externo(self) -> str:
@@ -328,6 +329,38 @@ class MetaPeso(Base):
             "dataAlvo": self.data_alvo.isoformat() if self.data_alvo else None,
             "situacao": self.situacao,
             "dataAtingida": self.data_atingida.isoformat() if self.data_atingida else None,
+        }
+
+
+class Conquista(Base):
+    """Medalha permanente. Concedida quando o usuário atinge uma meta de peso —
+    não é removida se a meta depois for revertida ou apagada."""
+
+    __tablename__ = "conquista"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, default=new_uuid, index=True)
+    id_usuario: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), nullable=False, index=True)
+    tipo: Mapped[str] = mapped_column(String(30), nullable=False, default="meta_peso")
+    titulo: Mapped[str] = mapped_column(String(120), nullable=False)
+    descricao: Mapped[str] = mapped_column(String(255), nullable=False)
+    nivel: Mapped[str] = mapped_column(String(20), nullable=False, default="bronze")
+    peso_alvo: Mapped[float | None] = mapped_column(Float, nullable=True)
+    meta_uuid: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    data_conquista: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    usuario: Mapped["Usuario"] = relationship(back_populates="conquistas")
+
+    def to_dict(self) -> dict:
+        return {
+            "tipo": self.tipo,
+            "titulo": self.titulo,
+            "descricao": self.descricao,
+            "nivel": self.nivel,
+            "pesoAlvo": self.peso_alvo,
+            "metaUuid": self.meta_uuid,
+            "dataConquista": self.data_conquista.isoformat(),
         }
 
 

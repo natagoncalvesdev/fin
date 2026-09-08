@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Saúde - Peso e Medidas</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="sidebar.css?v=7">
+  <link rel="stylesheet" href="sidebar.css?v=8">
   <link rel="stylesheet" href="css/theme.css?v=6">
   <link rel="stylesheet" href="css/mobile-shell.css?v=7">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=5"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-  <script src="sidebar.js?v=7"></script>
+  <script src="sidebar.js?v=8"></script>
   <style>
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
@@ -315,6 +315,14 @@
           <button type="button" class="periodo-opt" data-dias="365">Anual</button>
         </div>
 
+        <div class="form-row range-row" style="margin-top:12px; align-items:center;">
+          <input id="rangeInicio" type="date" title="Data inicial" aria-label="Data inicial">
+          <input id="rangeFim" type="date" title="Data final" aria-label="Data final">
+          <button type="button" class="btn-cancel" onclick="aplicarRange()">Filtrar intervalo</button>
+          <button type="button" class="btn-inline" id="btnLimparRange" onclick="limparRange()" hidden>Limpar</button>
+        </div>
+        <p class="info-text" id="rangeResumo" hidden></p>
+
         <div class="chart-container">
           <canvas id="graficoPeso"></canvas>
         </div>
@@ -341,7 +349,7 @@
       </div>
 
       <div class="section-card">
-        <h4>Histórico do período</h4>
+        <h4 id="listaPesoTitulo">Histórico do período</h4>
         <div id="listaPeso" class="statement-list"></div>
       </div>
     </section>
@@ -457,11 +465,25 @@
     let periodoDias = 30;
     let graficoPeso = null;
     let pesoEditId = null;
+    let rangeInicio = null;   // 'YYYY-MM-DD' — filtro de intervalo personalizado
+    let rangeFim = null;
 
+    const rangeAtivo = () => !!(rangeInicio || rangeFim);
     const pesoAtual = () => (pesosAll.length ? Number(pesosAll[pesosAll.length - 1].data.peso) : null);
     const metasAtivas = () => metas.filter((m) => m.data.situacao === 'ativa');
-    // Meta "principal" para o tile e a linha destacada: a ativa mais recente.
-    const metaPrincipal = () => metasAtivas()[0] || null;
+
+    // Meta "principal": entre as ativas, a mais fácil de bater — a que exige a
+    // menor mudança a partir do peso atual (o próximo degrau). Quando ela é
+    // batida, sai das ativas e a próxima assume automaticamente.
+    function metaPrincipal() {
+      const ativas = metasAtivas();
+      if (!ativas.length) return null;
+      const atual = pesoAtual();
+      if (atual == null) return ativas[0];
+      return ativas.reduce((melhor, m) =>
+        Math.abs(Number(m.data.pesoAlvo) - atual) < Math.abs(Number(melhor.data.pesoAlvo) - atual) ? m : melhor
+      );
+    }
 
     // 0..1 — quanto da distância inicial→alvo já foi percorrido.
     function progressoMeta(d, atual) {
@@ -492,15 +514,50 @@
 
     document.querySelectorAll('.periodo-opt').forEach((btn) => {
       btn.addEventListener('click', () => {
+        rangeInicio = rangeFim = null;
+        document.getElementById('rangeInicio').value = '';
+        document.getElementById('rangeFim').value = '';
+        persistRange();
         periodoDias = Number(btn.dataset.dias);
         try { localStorage.setItem('saudePeriodo', String(periodoDias)); } catch (e) { /* ignore */ }
-        marcarPeriodoAtivo();
         renderizarPeso();
       });
     });
 
+    function persistRange() {
+      try {
+        if (rangeInicio) localStorage.setItem('saudeRangeInicio', rangeInicio);
+        else localStorage.removeItem('saudeRangeInicio');
+        if (rangeFim) localStorage.setItem('saudeRangeFim', rangeFim);
+        else localStorage.removeItem('saudeRangeFim');
+      } catch (e) { /* ignore */ }
+    }
+
+    function aplicarRange() {
+      const ini = document.getElementById('rangeInicio').value;
+      const fim = document.getElementById('rangeFim').value;
+      if (!ini && !fim) return alert('Escolha ao menos uma data (início e/ou fim).');
+      if (ini && fim && ini > fim) return alert('A data inicial não pode ser maior que a final.');
+      rangeInicio = ini || null;
+      rangeFim = fim || null;
+      persistRange();
+      renderizarPeso();
+    }
+
+    function limparRange() {
+      rangeInicio = rangeFim = null;
+      document.getElementById('rangeInicio').value = '';
+      document.getElementById('rangeFim').value = '';
+      persistRange();
+      renderizarPeso();
+    }
+
     function marcarPeriodoAtivo() {
-      document.querySelectorAll('.periodo-opt').forEach((b) => b.classList.toggle('active', Number(b.dataset.dias) === periodoDias));
+      const custom = rangeAtivo();
+      document.querySelectorAll('.periodo-opt').forEach((b) => {
+        b.classList.toggle('active', !custom && Number(b.dataset.dias) === periodoDias);
+      });
+      document.getElementById('btnLimparRange').hidden = !custom;
     }
 
     document.querySelectorAll('.modal-overlay').forEach((overlay) => {
@@ -520,6 +577,12 @@
     }
 
     function pesosNoPeriodo() {
+      if (rangeAtivo()) {
+        return pesosAll.filter((p) => {
+          const d = p.data.data;
+          return (!rangeInicio || d >= rangeInicio) && (!rangeFim || d <= rangeFim);
+        });
+      }
       const limite = new Date();
       limite.setHours(0, 0, 0, 0);
       limite.setDate(limite.getDate() - periodoDias);
@@ -539,7 +602,26 @@
 
       const jp = janela.length ? Number(janela[0].data.peso) : null;
       const ju = janela.length ? Number(janela[janela.length - 1].data.peso) : null;
-      setDelta('statPesoPeriodo', jp != null && ju != null ? ju - jp : null);
+      const deltaJanela = jp != null && ju != null ? ju - jp : null;
+      setDelta('statPesoPeriodo', deltaJanela);
+
+      // Resumo do intervalo personalizado + título da lista
+      const custom = rangeAtivo();
+      document.getElementById('listaPesoTitulo').textContent = custom ? 'Pesos no intervalo' : 'Histórico do período';
+      document.querySelector('#statPesoPeriodo').closest('.stat-tile').querySelector('.stat-tile-label').textContent = custom ? 'No intervalo' : 'No período';
+      const resumo = document.getElementById('rangeResumo');
+      if (custom && janela.length) {
+        const de = janela[0].data.data;
+        const ate = janela[janela.length - 1].data.data;
+        const verbo = deltaJanela < 0 ? 'Perdeu' : deltaJanela > 0 ? 'Ganhou' : 'Variação de';
+        resumo.hidden = false;
+        resumo.textContent = `${dataBR(de)} → ${dataBR(ate)}: ${verbo} ${nf1.format(Math.abs(deltaJanela))} kg em ${janela.length} registro(s).`;
+      } else if (custom) {
+        resumo.hidden = false;
+        resumo.textContent = 'Nenhum peso registrado nesse intervalo.';
+      } else {
+        resumo.hidden = true;
+      }
 
       const metaTile = document.getElementById('statMetaTile');
       const principal = metaPrincipal();
@@ -588,19 +670,18 @@
         fill: true,
       }];
 
-      const ativas = metasAtivas();
-      if (labels.length) {
-        ativas.forEach((m) => {
-          const alvo = Number(m.data.pesoAlvo);
-          datasets.push({
-            label: `Meta ${nf1.format(alvo)} kg`,
-            data: labels.map(() => alvo),
-            borderColor: 'rgba(21, 128, 61, 0.9)',
-            borderDash: [6, 6],
-            borderWidth: 2,
-            pointRadius: 0,
-            fill: false,
-          });
+      // Só a meta "principal" (a próxima a bater) vira linha no gráfico.
+      const principal = metaPrincipal();
+      if (labels.length && principal) {
+        const alvo = Number(principal.data.pesoAlvo);
+        datasets.push({
+          label: `Meta ${nf1.format(alvo)} kg`,
+          data: labels.map(() => alvo),
+          borderColor: 'rgba(21, 128, 61, 0.9)',
+          borderDash: [6, 6],
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: false,
         });
       }
 
@@ -611,7 +692,7 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: ativas.length > 0 },
+            legend: { display: !!principal },
             tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${kg(c.parsed.y)}` } },
           },
           scales: {
@@ -660,7 +741,8 @@
       const novas = metas.filter((m) => m.data.situacao === 'atingida' && !antes.has(m.id));
       if (novas.length) {
         const alvos = novas.map((m) => `${nf1.format(Number(m.data.pesoAlvo))} kg`).join(', ');
-        alert(`🎉 Meta atingida: ${alvos}!`);
+        const medalha = novas.length > 1 ? `${novas.length} medalhas` : 'uma medalha';
+        alert(`🏅 Meta atingida: ${alvos}!\nVocê ganhou ${medalha} — veja na página Conquistas.`);
       }
     }
 
@@ -997,6 +1079,12 @@
       let tab = 'peso';
       try { tab = localStorage.getItem('saudeTab') || 'peso'; } catch (e) { /* ignore */ }
       try { periodoDias = Number(localStorage.getItem('saudePeriodo')) || 30; } catch (e) { /* ignore */ }
+      try {
+        rangeInicio = localStorage.getItem('saudeRangeInicio') || null;
+        rangeFim = localStorage.getItem('saudeRangeFim') || null;
+      } catch (e) { /* ignore */ }
+      if (rangeInicio) document.getElementById('rangeInicio').value = rangeInicio;
+      if (rangeFim) document.getElementById('rangeFim').value = rangeFim;
       ativarAba(tab);
       marcarPeriodoAtivo();
       atualizarSilhuetaForm();

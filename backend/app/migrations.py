@@ -43,12 +43,13 @@ def run_migrations(engine: Engine) -> None:
             )
         )
 
-        # Saúde: registros de peso, medidas e metas ficam em tabelas próprias
-        # (registro_peso / registro_medidas / meta_peso), criadas pelo create_all.
+        # Saúde: registros de peso, medidas, metas e conquistas ficam em tabelas
+        # próprias, criadas pelo create_all.
         for nome, tabela, coluna in (
             ("ix_registro_peso_usuario_data", "registro_peso", "data_registro"),
             ("ix_registro_medidas_usuario_data", "registro_medidas", "data_registro"),
             ("ix_meta_peso_usuario_situacao", "meta_peso", "situacao"),
+            ("ix_conquista_usuario_data", "conquista", "data_conquista"),
         ):
             conn.execute(
                 text(

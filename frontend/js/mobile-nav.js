@@ -87,6 +87,10 @@
     navegarPara('saude.html');
   }
 
+  function irConquistas() {
+    navegarPara('conquistas.html');
+  }
+
   function irConfiguracoes() {
     navegarPara('configuracoes.html');
   }
@@ -348,6 +352,7 @@
     irRelatorio,
     irVeiculos,
     irSaude,
+    irConquistas,
     irConfiguracoes
   };
 })(window);

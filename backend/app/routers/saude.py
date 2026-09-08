@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
 from app.database import get_db
-from app.models import MetaPeso, RegistroMedidas, RegistroPeso, Usuario
+from app.models import Conquista, MetaPeso, RegistroMedidas, RegistroPeso, Usuario
 
 router = APIRouter(prefix="/api/saude", tags=["saude"])
 
@@ -57,12 +57,53 @@ def _peso_atinge_meta(peso: float, meta: MetaPeso) -> bool:
     return peso >= meta.peso_alvo
 
 
+def _nivel_medalha(delta_kg: float | None) -> str:
+    """Nível da medalha pela distância percorrida (peso inicial -> alvo)."""
+    if delta_kg is None:
+        return "bronze"
+    if delta_kg >= 10:
+        return "ouro"
+    if delta_kg >= 5:
+        return "prata"
+    return "bronze"
+
+
+def _conceder_conquista(db: Session, usuario: Usuario, meta: MetaPeso) -> bool:
+    """Cria a medalha da meta atingida (uma por meta, idempotente pelo uuid da
+    meta). Retorna True se criou."""
+    ja_tem = (
+        db.query(Conquista)
+        .filter(Conquista.id_usuario == usuario.id, Conquista.meta_uuid == meta.uuid)
+        .first()
+    )
+    if ja_tem:
+        return False
+
+    delta = abs(meta.peso_inicial - meta.peso_alvo) if meta.peso_inicial is not None else None
+    alvo_txt = f"{meta.peso_alvo:.1f}".replace(".", ",")
+    quando = meta.data_atingida or date.today()
+    db.add(
+        Conquista(
+            id_usuario=usuario.id,
+            tipo="meta_peso",
+            titulo=f"Meta de {alvo_txt} kg",
+            descricao=f"Você atingiu {alvo_txt} kg em {quando.strftime('%d/%m/%Y')}.",
+            nivel=_nivel_medalha(delta),
+            peso_alvo=meta.peso_alvo,
+            meta_uuid=meta.uuid,
+            data_conquista=quando,
+        )
+    )
+    return True
+
+
 def _sincronizar_metas(db: Session, usuario: Usuario) -> bool:
     """Recalcula do zero a situação de cada meta não arquivada a partir de todo
     o histórico de peso. Idempotente: só promove "ativa" -> "atingida" (com a
     data do primeiro registro, posterior à criação da meta, que bate o alvo) ou
     volta para "ativa" se nenhum registro bate mais. "arquivada" nunca muda
-    automaticamente. Retorna True se algo mudou."""
+    automaticamente. Cada meta atingida rende uma medalha permanente (Conquista).
+    Retorna True se algo mudou."""
     metas = (
         db.query(MetaPeso)
         .filter(MetaPeso.id_usuario == usuario.id, MetaPeso.situacao != "arquivada")
@@ -92,6 +133,8 @@ def _sincronizar_metas(db: Session, usuario: Usuario) -> bool:
         if meta.situacao != nova or meta.data_atingida != atingida_em:
             meta.situacao = nova
             meta.data_atingida = atingida_em
+            mudou = True
+        if nova == "atingida" and _conceder_conquista(db, usuario, meta):
             mudou = True
     return mudou
 
@@ -387,3 +430,26 @@ def delete_meta(
     meta = _get_meta_or_404(db, meta_id, current_user)
     db.delete(meta)
     db.commit()
+
+
+# ---------------------------------------------------------------------------
+# Conquistas (medalhas)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/conquistas")
+def list_conquistas(
+    current_user: Annotated[Usuario, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    # Garante que metas já batidas (ex.: antes desta feature existir) rendam a
+    # medalha ao abrir a página.
+    if _sincronizar_metas(db, current_user):
+        db.commit()
+    itens = (
+        db.query(Conquista)
+        .filter(Conquista.id_usuario == current_user.id)
+        .order_by(Conquista.data_conquista.desc(), Conquista.id.desc())
+        .all()
+    )
+    return [{"id": c.uuid, "data": c.to_dict()} for c in itens]

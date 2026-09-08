@@ -89,7 +89,7 @@ body {
   object-fit: contain;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 500px) {
   .sidebar-logo {
     max-width: 120px;
     max-height: 40px;

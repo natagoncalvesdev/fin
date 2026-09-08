@@ -5,6 +5,9 @@
   'use strict';
 
   const MOBILE_MAX = 768;
+  // Celular deitado: a largura passa de 768, mas a altura fica baixa. Sem isto,
+  // girar o aparelho abria o layout desktop (sidebar fixa) num celular.
+  const MOBILE_MAX_ALTURA = 500;
   const CHART_COLORS = ['#0F766E', '#B91C1C', '#3B82F6', '#B45309', '#8B5CF6', '#475569'];
   const MESES = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -27,7 +30,7 @@
   }
 
   function isMobile() {
-    return window.innerWidth <= MOBILE_MAX;
+    return window.innerWidth <= MOBILE_MAX || window.innerHeight <= MOBILE_MAX_ALTURA;
   }
 
   function obterPeriodoSalvo() {
@@ -301,6 +304,8 @@
   function init() {
     aplicarShell();
     window.addEventListener('resize', aplicarShell);
+    // Girar o aparelho nem sempre dispara 'resize' de forma confiável.
+    window.addEventListener('orientationchange', () => setTimeout(aplicarShell, 100));
   }
 
   if (document.readyState === 'loading') {

@@ -1,6 +1,6 @@
 /* Shell mobile — top bar + drawer lateral */
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 500px) {
   body.mobile-shell {
     flex-direction: column;
     min-height: 100dvh;
@@ -44,7 +44,7 @@
   }
 }
 
-@media (min-width: 769px) {
+@media (min-width: 769px) and (min-height: 501px) {
   .mobile-only {
     display: none !important;
   }
@@ -121,7 +121,7 @@
   gap: 20px;
 }
 
-@media (min-width: 769px) {
+@media (min-width: 769px) and (min-height: 501px) {
   .mes-dashboard {
     max-width: 720px;
   }
@@ -189,7 +189,7 @@
   gap: 16px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 500px) {
   .mes-dashboard {
     gap: 14px;
   }

@@ -50,7 +50,6 @@ def run_migrations(engine: Engine) -> None:
             ("ix_meta_peso_usuario_situacao", "meta_peso", "situacao"),
             ("ix_conquista_usuario_data", "conquista", "data_conquista"),
             ("ix_cofrinho_usuario_situacao", "cofrinho", "situacao"),
-            ("ix_aporte_cofrinho_data", "aporte_cofrinho", "data_aporte"),
         ):
             conn.execute(
                 text(
@@ -59,11 +58,28 @@ def run_migrations(engine: Engine) -> None:
                 )
             )
 
-        # Colunas novas de `conquista` (caso a tabela já exista de uma versão
-        # anterior desta feature ainda não publicada).
+        # `conquista` mudou de forma durante o desenvolvimento. Adiciona as
+        # colunas novas e REMOVE as antigas — a coluna `nivel` era NOT NULL e,
+        # se ficar, quebra todo INSERT novo (o modelo atual não a preenche).
         for coluna, tipo in (
             ("chave", "VARCHAR(120)"),
             ("icone", "VARCHAR(30)"),
             ("valor", "DOUBLE PRECISION"),
         ):
             conn.execute(text(f"ALTER TABLE conquista ADD COLUMN IF NOT EXISTS {coluna} {tipo}"))
+        for coluna in ("nivel", "peso_alvo", "meta_uuid"):
+            conn.execute(text(f"ALTER TABLE conquista DROP COLUMN IF EXISTS {coluna}"))
+        # Linhas do schema antigo (sem `chave`) — a tabela é 100% derivada e se
+        # repovoa sozinha no próximo carregamento.
+        conn.execute(text("DELETE FROM conquista WHERE chave IS NULL"))
+
+        # `usuario.meta_peso` foi a 1ª versão da meta de peso; agrupada agora na
+        # tabela `meta_peso`. Coluna morta — remove.
+        conn.execute(text("ALTER TABLE usuario DROP COLUMN IF EXISTS meta_peso"))
+
+        # Cofrinhos: cada mês vira uma linha em `conta` (paga = guardada). O
+        # modelo antigo (aporte_cofrinho + débito-espelho) foi substituído.
+        conn.execute(text("ALTER TABLE conta ADD COLUMN IF NOT EXISTS id_cofrinho INTEGER"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_conta_id_cofrinho ON conta (id_cofrinho)"))
+        conn.execute(text("DROP TABLE IF EXISTS aporte_cofrinho"))
+        conn.execute(text("DELETE FROM debito WHERE compra LIKE 'Cofrinho: %'"))

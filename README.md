@@ -104,8 +104,7 @@ Todos os dados ficam no **PostgreSQL**:
 | `registro_peso` | Histórico de peso (kg + data) |
 | `registro_medidas` | Histórico de medidas corporais (cm + data) |
 | `meta_peso` | Metas de peso e histórico (ativa / atingida / arquivada) |
-| `cofrinho` | Metas de economia ("guardar dinheiro") |
-| `aporte_cofrinho` | Depósitos num cofrinho (cada um também vira um débito) |
+| `cofrinho` | Metas de economia — geram parcelas mensais em `conta` |
 | `conquista` | Medalhas (marcos de peso, metas, cofrinhos) |
 
 O Firebase **não é mais usado**. O frontend fala com a API Python, que persiste tudo no Postgres.

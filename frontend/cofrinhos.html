@@ -16,49 +16,16 @@
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
 
-    body {
-      font-family: var(--font-family);
-      background: var(--bg-main);
-      display: flex;
-      min-height: 100vh;
-      margin: 0;
-      color: var(--text-primary);
-    }
+    body { font-family: var(--font-family); background: var(--bg-main); display: flex; min-height: 100vh; margin: 0; color: var(--text-primary); }
+    .content { flex: 1; padding: 40px; margin-left: 280px; display: flex; flex-direction: column; gap: 24px; max-width: 1180px; }
 
-    .content {
-      flex: 1;
-      padding: 40px;
-      margin-left: 280px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      max-width: 1180px;
-    }
+    .header-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 
-    .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .cofre-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-      margin-top: 14px;
-    }
+    .cofre-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 14px; }
 
     .cofre-card {
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 18px;
-      background: var(--bg-section);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      cursor: pointer;
+      border: 1px solid var(--border-color); border-radius: 16px; padding: 18px; background: var(--bg-section);
+      display: flex; flex-direction: column; gap: 10px; cursor: pointer;
       transition: border-color 0.15s ease, transform 0.15s ease;
     }
     .cofre-card:hover { border-color: var(--accent); transform: translateY(-2px); }
@@ -72,14 +39,12 @@
     .cofre-badge.concluido { color: var(--positive); }
     .cofre-badge.arquivado { color: var(--text-secondary); }
 
-    .cofre-valores { font-size: 14px; }
     .cofre-valores strong { font-size: 18px; }
     .cofre-sub { font-size: 12.5px; color: var(--text-secondary); }
 
     .cofre-bar { height: 9px; border-radius: 999px; background: var(--slate-200); overflow: hidden; }
     .cofre-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--accent); transition: width 0.3s ease; }
-    .cofre-card.concluido .cofre-bar > span,
-    .cofre-bar.concluido > span { background: var(--positive); }
+    .cofre-card.concluido .cofre-bar > span, .cofre-bar.concluido > span { background: var(--positive); }
 
     .campo { display: flex; flex-direction: column; gap: 6px; }
     .campo > label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); }
@@ -97,20 +62,39 @@
     }
     .modo-opt.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 
-    .plano-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
-    .plano-table th, .plano-table td { padding: 8px 6px; border-bottom: 1px solid var(--border-color); text-align: right; }
-    .plano-table th:first-child, .plano-table td:first-child { text-align: left; color: var(--text-secondary); }
-    .plano-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); }
-
     .big-progress { display: flex; flex-direction: column; gap: 8px; }
     .big-progress .nums { display: flex; justify-content: space-between; align-items: baseline; }
     .big-progress .saldo { font-size: 26px; font-weight: 800; }
     .big-progress .alvo { color: var(--text-secondary); font-size: 14px; }
 
+    .parcela-row {
+      display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px;
+      border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-section);
+      cursor: pointer; text-align: left; font-family: inherit;
+    }
+    .parcela-row:hover { border-color: var(--slate-400); }
+    .parcela-mes { font-weight: 600; font-size: 14px; width: 84px; flex-shrink: 0; }
+    .parcela-valor { flex: 1; font-weight: 700; }
+    .parcela-tag {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+    }
+    .parcela-tag.pago { background: rgba(21,128,61,0.12); color: var(--positive); }
+    .parcela-tag.pendente { background: rgba(180,83,9,0.12); color: var(--warning); }
+    .parcela-tag.vencida { background: rgba(185,28,28,0.12); color: var(--negative); }
+
+    .toggle-status { display: flex; gap: 8px; }
+    .toggle-status button {
+      flex: 1; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border-color);
+      background: var(--bg-section); color: var(--text-secondary); font-weight: 600; font-size: 13px;
+      cursor: pointer; font-family: var(--font-family);
+    }
+    .toggle-status button[data-s="pendente"].active { background: rgba(180,83,9,0.12); border-color: var(--warning); color: var(--warning); }
+    .toggle-status button[data-s="pago"].active { background: rgba(21,128,61,0.12); border-color: var(--positive); color: var(--positive); }
+
     @media (max-width: 768px) {
       .content { max-width: 100%; padding: 20px 16px 40px; margin-left: 0; }
       .cofre-grid { grid-template-columns: 1fr; }
-      .plano-wrap { overflow-x: auto; }
     }
   </style>
 </head>
@@ -122,7 +106,7 @@
       <div class="header-row">
         <div class="page-header">
           <h1>Cofrinhos</h1>
-          <p>Metas de economia: junte dinheiro mês a mês até chegar no valor.</p>
+          <p>Metas de economia: cada mês vira uma parcela nas suas contas. Pagou = guardou.</p>
         </div>
         <button class="btn-add" onclick="abrirModalNovo()">Novo cofrinho</button>
       </div>
@@ -144,9 +128,7 @@
         </div>
       </div>
 
-      <div id="listaCofrinhos" class="cofre-grid">
-        <p class="info-text">Carregando…</p>
-      </div>
+      <div id="listaCofrinhos" class="cofre-grid"><p class="info-text">Carregando…</p></div>
     </section>
 
     <!-- DETALHE -->
@@ -173,28 +155,9 @@
       </div>
 
       <div class="section-card">
-        <h3 class="section-card-title">Registrar aporte</h3>
-        <div class="form-row">
-          <input id="aporteValor" type="number" step="0.01" min="0" placeholder="Valor guardado (R$)">
-          <input id="aporteData" type="date">
-          <button class="btn-confirm" onclick="finRunOnce(event, () => registrarAporte())">Guardar</button>
-        </div>
-        <p class="info-text" style="margin:8px 0 0;">Cada aporte também entra como saída do mês no financeiro.</p>
-      </div>
-
-      <div class="section-card" id="detPlanoCard">
-        <h3 class="section-card-title">Plano mês a mês</h3>
-        <div class="plano-wrap">
-          <table class="plano-table">
-            <thead><tr><th>Mês</th><th>Guardar</th><th>Acumulado previsto</th></tr></thead>
-            <tbody id="detPlano"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="section-card">
-        <h4>Aportes</h4>
-        <div id="detAportes" class="statement-list"></div>
+        <h3 class="section-card-title">Parcelas</h3>
+        <p class="info-text" style="margin:0 0 12px;">Toque numa parcela para marcar como paga ou ajustar o valor. Também aparecem na tela de Contas.</p>
+        <div id="detParcelas" class="statement-list"></div>
       </div>
     </section>
   </main>
@@ -211,7 +174,7 @@
       </div>
 
       <div class="campo" id="campoValorAlvo"><label for="novoValorAlvo">Valor alvo (R$)</label><input id="novoValorAlvo" type="number" step="0.01" min="0" placeholder="10000"></div>
-      <div class="campo" id="campoAporte" hidden><label for="novoAporte">Aporte mensal (R$)</label><input id="novoAporte" type="number" step="0.01" min="0" placeholder="500"></div>
+      <div class="campo" id="campoAporte" hidden><label for="novoAporte">Guardar por mês (R$)</label><input id="novoAporte" type="number" step="0.01" min="0" placeholder="500"></div>
 
       <div id="campoAte">
         <div class="form-row">
@@ -234,11 +197,12 @@
       <h3>Editar cofrinho</h3>
       <div class="campo"><label for="edNome">Nome</label><input id="edNome"></div>
       <div class="campo" id="edCampoValor"><label for="edValorAlvo">Valor alvo (R$)</label><input id="edValorAlvo" type="number" step="0.01" min="0"></div>
-      <div class="campo" id="edCampoAporte"><label for="edAporte">Aporte mensal (R$)</label><input id="edAporte" type="number" step="0.01" min="0"></div>
+      <div class="campo" id="edCampoAporte"><label for="edAporte">Guardar por mês (R$)</label><input id="edAporte" type="number" step="0.01" min="0"></div>
       <div class="form-row">
         <div class="campo" style="flex:1;"><label for="edMes">Até o mês</label><select id="edMes"></select></div>
         <div class="campo" style="flex:1;"><label for="edAno">Ano</label><select id="edAno"></select></div>
       </div>
+      <p class="info-text" style="margin:0;">As parcelas ainda não pagas serão recalculadas.</p>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="fecharModal('modalEditar')">Cancelar</button>
         <button class="btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoCofrinho())">Salvar</button>
@@ -246,15 +210,21 @@
     </div>
   </div>
 
-  <!-- Modal: editar aporte -->
-  <div id="modalAporte" class="modal-overlay">
+  <!-- Modal: parcela -->
+  <div id="modalParcela" class="modal-overlay">
     <div class="modal-content">
-      <h3>Editar aporte</h3>
-      <div class="campo"><label for="edApData">Data</label><input id="edApData" type="date"></div>
-      <div class="campo"><label for="edApValor">Valor (R$)</label><input id="edApValor" type="number" step="0.01" min="0"></div>
+      <h3 id="mpTitulo">Parcela</h3>
+      <div class="campo"><label for="mpValor">Valor (R$)</label><input id="mpValor" type="number" step="0.01" min="0"></div>
+      <div class="campo">
+        <label>Status</label>
+        <div class="toggle-status" id="mpStatus">
+          <button type="button" data-s="pendente">Pendente</button>
+          <button type="button" data-s="pago">Pago (guardado)</button>
+        </div>
+      </div>
       <div class="modal-actions">
-        <button class="btn-danger" onclick="finRunOnce(event, () => excluirAporte())">Excluir</button>
-        <button class="btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoAporte())">Salvar</button>
+        <button class="btn-cancel" onclick="fecharModal('modalParcela')">Cancelar</button>
+        <button class="btn-confirm" onclick="finRunOnce(event, () => salvarParcela())">Salvar</button>
       </div>
     </div>
   </div>
@@ -265,15 +235,13 @@
     const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
     const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
     const money = (v) => brl.format(Number(v) || 0);
-    const hoje = () => new Date().toISOString().slice(0, 10);
-    const dataBR = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR');
 
     let cofres = [];
-    let detId = null;         // uuid do cofrinho aberto no detalhe
+    let detId = null;
     let novoModo = 'valor';
-    let aporteEditId = null;
+    let mpParcelaId = null;
+    let mpStatusSel = 'pendente';
 
-    // ---------- selects de mês/ano ----------
     function popularMesAno(selMes, selAno) {
       selMes.innerHTML = MESES.map((m) => `<option value="${m}">${m}</option>`).join('');
       const anoAtual = new Date().getFullYear();
@@ -281,10 +249,9 @@
       for (let a = anoAtual; a <= anoAtual + 6; a++) selAno.innerHTML += `<option value="${a}">${a}</option>`;
     }
 
-    // ---------- carregar / render ----------
     async function carregar() {
       cofres = await api('/api/cofrinhos');
-      if (detId && !cofres.some((c) => c.id === detId)) { detId = null; }
+      if (detId && !cofres.some((c) => c.id === detId)) detId = null;
       if (detId) renderDetalhe(); else renderLista();
     }
 
@@ -318,13 +285,12 @@
     }
 
     function linhaResumo(c) {
-      if (c.situacao === 'concluido') return `🏅 Concluído${c.dataConcluido ? ' em ' + dataBR(c.dataConcluido) : ''}`;
-      const prazo = c.mesAlvo ? `${c.mesAlvo}/${c.anoAlvo}` : '';
-      if (c.modo === 'valor_prazo') {
-        if (!c.mesesRestantes) return `Faltam ${money(c.restante)} — prazo (${prazo}) vencido`;
-        return `Guarde ${money(c.aporteSugerido)}/mês até ${prazo} · faltam ${money(c.restante)}`;
-      }
-      return `${money(c.aporteMensal)}/mês até ${prazo} · projeção ${money(c.projecaoFinal)}`;
+      if (c.situacao === 'concluido') return `🏅 Concluído${c.dataConcluido ? ' em ' + c.dataConcluido.split('-').reverse().join('/') : ''}`;
+      const prazo = c.mesAlvo ? `${c.mesAlvo.slice(0,3)}/${c.anoAlvo}` : '';
+      const parc = c.aporteSugerido != null ? `${money(c.aporteSugerido)}/mês` : '';
+      const pagas = `${c.parcelasPagas}/${c.parcelasTotais} parcelas`;
+      if (c.modo === 'aporte_prazo') return `${parc} até ${prazo} · ${pagas} · projeção ${money(c.projecaoFinal)}`;
+      return `${parc} até ${prazo} · ${pagas} · faltam ${money(c.restante)}`;
     }
 
     function renderDetalhe() {
@@ -341,34 +307,27 @@
       document.getElementById('detSub').textContent = linhaResumo(c);
       document.getElementById('detBtnArquivar').textContent = c.situacao === 'arquivado' ? 'Reativar' : 'Arquivar';
 
-      // plano
-      const plano = document.getElementById('detPlano');
-      document.getElementById('detPlanoCard').hidden = !c.plano || !c.plano.length;
-      plano.innerHTML = (c.plano || []).map((p) => `
-        <tr><td>${p.mes.slice(0,3)}/${p.ano}</td><td>${money(p.valor)}</td><td>${money(p.acumulado)}</td></tr>
-      `).join('');
-
-      // aportes
-      const box = document.getElementById('detAportes');
-      if (!c.aportes || !c.aportes.length) {
-        box.innerHTML = '<div class="statement-empty">Nenhum aporte ainda.</div>';
-      } else {
-        box.innerHTML = c.aportes.slice().reverse().map((a) => `
-          <button type="button" class="statement-row" onclick="abrirModalAporte('${a.id}')">
-            <span class="statement-row-icon">💰</span>
-            <span class="statement-row-body">
-              <span class="statement-row-title">${money(a.data.valor)}</span>
-              <span class="statement-row-subtitle">${dataBR(a.data.data)}</span>
-            </span>
-            <span class="statement-row-end"><span class="statement-row-value" style="color:var(--slate-400);font-weight:400;">›</span></span>
-          </button>`).join('');
+      const box = document.getElementById('detParcelas');
+      if (!c.parcelas || !c.parcelas.length) {
+        box.innerHTML = '<div class="statement-empty">Sem parcelas — defina um mês-alvo no cofrinho.</div>';
+        return;
       }
+      box.innerHTML = c.parcelas.map((p) => {
+        const tag = p.status === 'pago' ? 'pago' : (p.vencida ? 'vencida' : 'pendente');
+        const rotulo = p.status === 'pago' ? 'Pago' : (p.vencida ? 'Vencida' : 'Pendente');
+        return `
+          <button type="button" class="parcela-row" onclick="abrirModalParcela('${p.id}')">
+            <span class="parcela-mes">${p.mes.slice(0,3)}/${p.ano}</span>
+            <span class="parcela-valor">${money(p.valor)}</span>
+            <span class="parcela-tag ${tag}">${rotulo}</span>
+          </button>`;
+      }).join('');
     }
 
-    function abrirDetalhe(id) { detId = id; document.getElementById('aporteData').value = hoje(); renderDetalhe(); }
+    function abrirDetalhe(id) { detId = id; renderDetalhe(); }
     function voltarLista() { detId = null; renderLista(); }
 
-    // ---------- novo cofrinho ----------
+    // ---------- novo ----------
     function abrirModalNovo() {
       document.getElementById('novoNome').value = '';
       document.getElementById('novoValorAlvo').value = '';
@@ -378,7 +337,6 @@
       popularMesAno(document.getElementById('novoMes'), document.getElementById('novoAno'));
       document.getElementById('modalNovo').classList.add('visible');
     }
-
     function setModoNovo(modo) {
       novoModo = modo;
       document.querySelectorAll('#modalNovo .modo-opt').forEach((b) => b.classList.toggle('active', b.dataset.modo === modo));
@@ -387,11 +345,11 @@
       document.getElementById('campoAte').hidden = modo !== 'valor';
       document.getElementById('campoDurante').hidden = modo !== 'aporte';
     }
-
     document.querySelectorAll('#modalNovo .modo-opt').forEach((b) => b.addEventListener('click', () => setModoNovo(b.dataset.modo)));
 
     function mesAnoDaqui(n) {
       const d = new Date();
+      d.setDate(1);
       d.setMonth(d.getMonth() + n);
       return { mes: MESES[d.getMonth()], ano: d.getFullYear() };
     }
@@ -408,7 +366,7 @@
         body.anoAlvo = Number(document.getElementById('novoAno').value);
       } else {
         const v = Number(document.getElementById('novoAporte').value);
-        if (!v || v <= 0) return alert('Informe o aporte mensal.');
+        if (!v || v <= 0) return alert('Informe quanto vai guardar por mês.');
         const n = Math.max(1, Number(document.getElementById('novoDurante').value) || 1);
         const alvo = mesAnoDaqui(n - 1);
         body.aporteMensal = v;
@@ -460,55 +418,47 @@
     }
 
     async function excluirCofrinho() {
-      if (!detId || !confirm('Excluir este cofrinho? Os aportes e os débitos ligados a ele também serão removidos.')) return;
+      if (!detId || !confirm('Excluir este cofrinho? As parcelas ainda não pagas somem das contas; as já pagas continuam no financeiro.')) return;
       await api(`/api/cofrinhos/${detId}`, { method: 'DELETE' });
       detId = null;
       await carregar();
     }
 
-    // ---------- aportes ----------
-    async function registrarAporte() {
-      if (!detId) return;
-      const valor = Number(document.getElementById('aporteValor').value);
-      const data = document.getElementById('aporteData').value || hoje();
-      if (!valor || valor <= 0) return alert('Informe o valor do aporte.');
+    // ---------- parcela ----------
+    function abrirModalParcela(id) {
+      const c = cofres.find((x) => x.id === detId);
+      const p = c && c.parcelas.find((x) => x.id === id);
+      if (!p) return;
+      mpParcelaId = id;
+      document.getElementById('mpTitulo').textContent = `Parcela de ${p.mes}/${p.ano}`;
+      document.getElementById('mpValor').value = p.valor;
+      setMpStatus(p.status === 'pago' ? 'pago' : 'pendente');
+      document.getElementById('modalParcela').classList.add('visible');
+    }
+    function setMpStatus(s) {
+      mpStatusSel = s;
+      document.querySelectorAll('#mpStatus button').forEach((b) => b.classList.toggle('active', b.dataset.s === s));
+    }
+    document.querySelectorAll('#mpStatus button').forEach((b) => b.addEventListener('click', () => setMpStatus(b.dataset.s)));
+
+    async function salvarParcela() {
+      if (!mpParcelaId) return;
+      const valor = Number(document.getElementById('mpValor').value);
+      if (!valor || valor <= 0) return alert('Informe o valor.');
       const antes = (cofres.find((x) => x.id === detId) || {}).situacao;
-      await api(`/api/cofrinhos/${detId}/aportes`, { method: 'POST', body: JSON.stringify({ valor, data }) });
-      document.getElementById('aporteValor').value = '';
+      // A parcela é uma conta do financeiro — atualiza por lá; o backend
+      // repercute no cofrinho (recalcula pendentes / conclui).
+      await api(`/api/financeiro/contas/${mpParcelaId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ valor, status: mpStatusSel }),
+      });
+      fecharModal('modalParcela');
+      mpParcelaId = null;
       await carregar();
       const depois = (cofres.find((x) => x.id === detId) || {}).situacao;
       if (antes !== 'concluido' && depois === 'concluido') {
         alert('🏅 Cofrinho concluído! Você ganhou uma medalha — veja na página Conquistas.');
       }
-    }
-
-    function abrirModalAporte(id) {
-      const c = cofres.find((x) => x.id === detId);
-      const a = c && c.aportes.find((x) => x.id === id);
-      if (!a) return;
-      aporteEditId = id;
-      document.getElementById('edApData').value = a.data.data;
-      document.getElementById('edApValor').value = a.data.valor;
-      document.getElementById('modalAporte').classList.add('visible');
-    }
-
-    async function salvarEdicaoAporte() {
-      if (!aporteEditId) return;
-      const valor = Number(document.getElementById('edApValor').value);
-      const data = document.getElementById('edApData').value;
-      if (!valor || valor <= 0 || !data) return alert('Preencha data e valor.');
-      await api(`/api/cofrinhos/${detId}/aportes/${aporteEditId}`, { method: 'PUT', body: JSON.stringify({ valor, data }) });
-      fecharModal('modalAporte');
-      aporteEditId = null;
-      await carregar();
-    }
-
-    async function excluirAporte() {
-      if (!aporteEditId || !confirm('Excluir este aporte? O débito correspondente também será removido.')) return;
-      await api(`/api/cofrinhos/${detId}/aportes/${aporteEditId}`, { method: 'DELETE' });
-      fecharModal('modalAporte');
-      aporteEditId = null;
-      await carregar();
     }
 
     // ---------- modais ----------
@@ -519,7 +469,6 @@
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) { window.location.href = 'login.html'; return; }
-      document.getElementById('aporteData').value = hoje();
       try {
         await carregar();
       } catch (err) {

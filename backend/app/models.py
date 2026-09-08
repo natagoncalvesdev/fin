@@ -87,6 +87,12 @@ class Conta(Base):
     valor: Mapped[float] = mapped_column(Float, nullable=False)
     data_vencimento: Mapped[date | None] = mapped_column(Date, nullable=True)
     situacao: Mapped[str] = mapped_column(String(20), default="pendente")
+    # Parcela mensal de um cofrinho (meta de economia). Quando a conta é paga,
+    # o valor entra no montante guardado do cofrinho. SET NULL ao excluir o
+    # cofrinho: as parcelas já pagas continuam no histórico do financeiro.
+    id_cofrinho: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("cofrinho.id", ondelete="SET NULL"), nullable=True, index=True
+    )
 
     categoria: Mapped["Categoria | None"] = relationship()
 
@@ -412,9 +418,12 @@ class RegistroMedidas(Base):
 
 class Cofrinho(Base):
     """Meta de economia ("guardar dinheiro"). Dois modos:
-      - valor_alvo definido: quero juntar R$ X até mês/ano -> sugere aporte/mês;
-      - aporte_mensal definido: vou guardar R$ Y/mês até mês/ano -> projeta o total.
-    Cada aporte também vira um Débito no financeiro daquele mês (reduz o saldo).
+      - valor_alvo definido: quero juntar R$ X até mês/ano -> divide em parcelas;
+      - aporte_mensal definido: vou guardar R$ Y/mês até mês/ano.
+
+    Ao criar, o cofrinho gera uma parcela por mês como uma linha em `conta`
+    ("Cofrinho: <nome>"). Marcar a conta como paga = guardar aquele valor. O
+    montante do cofrinho é a soma das parcelas pagas.
     """
 
     __tablename__ = "cofrinho"
@@ -433,26 +442,3 @@ class Cofrinho(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     usuario: Mapped["Usuario"] = relationship(back_populates="cofrinhos")
-    aportes: Mapped[list["AporteCofrinho"]] = relationship(
-        back_populates="cofrinho", cascade="all, delete-orphan"
-    )
-
-
-class AporteCofrinho(Base):
-    __tablename__ = "aporte_cofrinho"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, default=new_uuid, index=True)
-    id_cofrinho: Mapped[int] = mapped_column(Integer, ForeignKey("cofrinho.id", ondelete="CASCADE"), nullable=False, index=True)
-    id_usuario: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), nullable=False, index=True)
-    data_aporte: Mapped[date] = mapped_column(Date, nullable=False)
-    valor: Mapped[float] = mapped_column(Float, nullable=False)
-    # Débito-espelho no financeiro (o aporte "conta como saída do mês"). SET NULL
-    # se o usuário apagar o débito direto na tela de Contas.
-    id_debito: Mapped[int | None] = mapped_column(Integer, ForeignKey("debito.id", ondelete="SET NULL"), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
-    cofrinho: Mapped["Cofrinho"] = relationship(back_populates="aportes")
-
-    def to_dict(self) -> dict:
-        return {"valor": self.valor, "data": self.data_aporte.isoformat()}

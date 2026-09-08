@@ -12,5 +12,4 @@ GRANT ALL PRIVILEGES ON DATABASE fin TO fin;
 --   usuario, categoria, conta, entrada, cartao, compra_cartao,
 --   debito, reservado, fatura_cartao,
 --   veiculo, veiculo_historico, veiculo_abastecimento, manutencao_veiculo,
---   registro_peso, registro_medidas, meta_peso, conquista,
---   cofrinho, aporte_cofrinho
+--   registro_peso, registro_medidas, meta_peso, conquista, cofrinho

@@ -470,6 +470,7 @@ def criar_conta(
     valor: float,
     status: str = "pendente",
     categoria: str = "",
+    id_cofrinho: int | None = None,
 ) -> Conta:
     get_or_create_mes(db, usuario, ano, mes)
     inicio, _ = periodo_mes(ano, mes)
@@ -480,6 +481,7 @@ def criar_conta(
         nome=nome,
         valor=valor,
         situacao=status or "pendente",
+        id_cofrinho=id_cofrinho,
     )
     db.add(item)
     db.flush()

@@ -1100,11 +1100,18 @@
       marcarPeriodoAtivo();
       atualizarSilhuetaForm();
 
-      try {
-        await Promise.all([carregarPeso(), carregarMetas(), carregarMedidas(), sincronizarMedalhas(false)]);
-      } catch (err) {
-        console.error('Erro ao carregar dados de saúde:', err);
-        alert('Não foi possível carregar os dados. Tente recarregar a página.');
+      // Cada carga é independente: se uma falhar (ex.: metas), as outras
+      // ainda renderizam.
+      const cargas = { Peso: carregarPeso, Metas: carregarMetas, Medidas: carregarMedidas };
+      const res = await Promise.allSettled([
+        ...Object.values(cargas).map((fn) => fn()),
+        sincronizarMedalhas(false),
+      ]);
+      const falharam = Object.keys(cargas).filter((_, i) => res[i].status === 'rejected');
+      if (falharam.length) {
+        console.error('Falhas ao carregar saúde:', res.filter((r) => r.status === 'rejected'));
+        const msg = `Não foi possível carregar: ${falharam.join(', ')}. Tente recarregar a página.`;
+        if (window.finToast) window.finToast(msg, { type: 'error' }); else alert(msg);
       }
     });
   </script>

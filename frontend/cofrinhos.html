@@ -92,9 +92,43 @@
     .toggle-status button[data-s="pendente"].active { background: rgba(180,83,9,0.12); border-color: var(--warning); color: var(--warning); }
     .toggle-status button[data-s="pago"].active { background: rgba(21,128,61,0.12); border-color: var(--positive); color: var(--positive); }
 
+    /* Convites + participantes */
+    .convite-banner {
+      border: 1px solid var(--accent); border-radius: 14px; padding: 14px 16px;
+      background: var(--accent-soft); display: flex; align-items: center; gap: 12px;
+      justify-content: space-between; flex-wrap: wrap; margin-top: 16px;
+    }
+    .convite-banner .cb-txt { font-size: 13.5px; font-weight: 600; }
+
+    .part-row {
+      display: flex; align-items: center; gap: 10px; padding: 10px 0;
+      border-bottom: 1px solid var(--border-color); font-size: 13.5px; flex-wrap: wrap;
+    }
+    .part-row:last-child { border-bottom: none; }
+    .part-nome { flex: 1 1 160px; min-width: 0; font-weight: 600; }
+    .part-nome small { display: block; font-weight: 400; color: var(--text-secondary); }
+    .part-valor { font-weight: 700; white-space: nowrap; }
+    .part-tag {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      color: var(--text-secondary);
+    }
+    .part-tag.pendente { color: var(--warning); }
+
+    .user-result { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 4px; max-height: 220px; overflow-y: auto; }
+    .user-result button {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+      width: 100%; text-align: left; padding: 10px 12px; border: 1px solid var(--border-color);
+      border-radius: 10px; background: var(--bg-section); cursor: pointer; font-family: inherit;
+    }
+    .user-result button:hover, .user-result button.sel { border-color: var(--accent); background: var(--accent-soft); }
+    .user-result .u-nome { font-weight: 600; font-size: 13.5px; }
+    .user-result .u-email { font-size: 12px; color: var(--text-secondary); }
+
     @media (max-width: 768px), (max-height: 500px) {
       .content { max-width: 100%; padding: 20px 16px 40px; margin-left: 0; }
       .cofre-grid { grid-template-columns: 1fr; }
+      .part-nome { flex-basis: 100%; }
+      .part-row .btn-inline { margin-left: auto; }
     }
   </style>
 </head>
@@ -110,6 +144,8 @@
         </div>
         <button class="btn-add" onclick="abrirModalNovo()">Novo cofrinho</button>
       </div>
+
+      <div id="conviteBanner" class="convite-banner" hidden></div>
 
       <div class="section-card" style="margin-top:16px;">
         <div class="stat-row">
@@ -154,8 +190,21 @@
         </div>
       </div>
 
+      <div class="section-card" id="detParticipantesCard" hidden>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+          <h3 class="section-card-title" style="margin:0;">Participantes</h3>
+          <button class="btn-add" id="detBtnAddPessoa" onclick="abrirModalAddPessoa()" hidden>Adicionar pessoa</button>
+        </div>
+        <p class="info-text" style="margin:8px 0 0;">Cada participante guarda o próprio valor por mês; as parcelas de todos somam no total.</p>
+        <div id="detParticipantes" style="margin-top:10px;"></div>
+        <div class="modal-actions" style="margin-top:12px;">
+          <button class="btn-inline" id="detBtnMeuAporte" onclick="abrirModalMeuAporte()" hidden>Alterar meu aporte</button>
+          <button class="btn-inline fin-btn-danger" id="detBtnSair" onclick="finRunOnce(event, () => sairDaCaixinha())" hidden>Sair da caixinha</button>
+        </div>
+      </div>
+
       <div class="section-card">
-        <h3 class="section-card-title">Parcelas</h3>
+        <h3 class="section-card-title">Minhas parcelas</h3>
         <p class="info-text" style="margin:0 0 12px;">Toque numa parcela para marcar como paga ou ajustar o valor. Também aparecem na tela de Contas.</p>
         <div id="detParcelas" class="statement-list"></div>
       </div>
@@ -229,6 +278,46 @@
     </div>
   </div>
 
+  <!-- Modal: adicionar pessoa -->
+  <div id="modalAddPessoa" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Adicionar pessoa à caixinha</h3>
+      <div class="campo"><label for="buscaPessoa">Buscar por nome ou e-mail</label><input id="buscaPessoa" autocomplete="off" placeholder="Digite ao menos 2 letras"></div>
+      <div id="buscaResultado" class="user-result"></div>
+      <p class="info-text" style="margin:0;">A pessoa recebe um convite e escolhe quanto vai guardar por mês.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="fecharModal('modalAddPessoa')">Cancelar</button>
+        <button class="btn-confirm" id="btnConvidar" onclick="finRunOnce(event, () => enviarConvite())" disabled>Convidar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: aceitar convite de caixinha -->
+  <div id="modalConvite" class="modal-overlay">
+    <div class="modal-content">
+      <h3 id="mcTitulo">Convite de caixinha</h3>
+      <p class="info-text" id="mcInfo" style="margin:0;"></p>
+      <div class="campo"><label for="mcAporte">Vou guardar por mês (R$)</label><input id="mcAporte" type="number" step="0.01" min="0" placeholder="500"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel fin-btn-danger" onclick="finRunOnce(event, () => recusarConvite())">Recusar</button>
+        <button class="btn-confirm" onclick="finRunOnce(event, () => aceitarConvite())">Aceitar e entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: alterar meu aporte -->
+  <div id="modalMeuAporte" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Meu aporte mensal</h3>
+      <div class="campo"><label for="maValor">Vou guardar por mês (R$)</label><input id="maValor" type="number" step="0.01" min="0"></div>
+      <p class="info-text" style="margin:0;">As parcelas ainda não pagas são recriadas com o novo valor.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="fecharModal('modalMeuAporte')">Cancelar</button>
+        <button class="btn-confirm" onclick="finRunOnce(event, () => salvarMeuAporte())">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const auth = firebase.auth();
     const api = (path, opts) => window.finApi.request(path, opts);
@@ -237,10 +326,14 @@
     const money = (v) => brl.format(Number(v) || 0);
 
     let cofres = [];
+    let convites = [];
     let detId = null;
     let novoModo = 'valor';
     let mpParcelaId = null;
     let mpStatusSel = 'pendente';
+    let conviteAtivo = null;
+    let buscaTimer = null;
+    let usuarioSelecionado = null;
 
     function popularMesAno(selMes, selAno) {
       selMes.innerHTML = MESES.map((m) => `<option value="${m}">${m}</option>`).join('');
@@ -253,6 +346,54 @@
       cofres = await api('/api/cofrinhos');
       if (detId && !cofres.some((c) => c.id === detId)) detId = null;
       if (detId) renderDetalhe(); else renderLista();
+    }
+
+    async function carregarConvites() {
+      try { convites = await api('/api/cofrinhos/convites'); }
+      catch (e) { convites = []; }
+      renderConviteBanner();
+    }
+
+    function renderConviteBanner() {
+      const banner = document.getElementById('conviteBanner');
+      if (!convites.length) { banner.hidden = true; banner.innerHTML = ''; return; }
+      banner.hidden = false;
+      const n = convites.length;
+      banner.innerHTML = `
+        <span class="cb-txt">Você tem ${n} convite${n > 1 ? 's' : ''} de caixinha compartilhada.</span>
+        <button class="btn-confirm" onclick="abrirModalConvite('${convites[0].id}')">Ver convite${n > 1 ? 's' : ''}</button>`;
+    }
+
+    function abrirModalConvite(id) {
+      conviteAtivo = convites.find((x) => x.id === id) || convites[0];
+      if (!conviteAtivo) return;
+      const c = conviteAtivo;
+      document.getElementById('mcTitulo').textContent = `Caixinha "${c.cofrinhoNome}"`;
+      const meta = c.valorAlvo ? `Meta de ${money(c.valorAlvo)}` : 'Meta combinada';
+      const prazo = c.mesAlvo ? ` até ${c.mesAlvo.slice(0,3)}/${c.anoAlvo}` : '';
+      document.getElementById('mcInfo').textContent = `${c.donoNome} convidou você. ${meta}${prazo}.`;
+      document.getElementById('mcAporte').value = '';
+      document.getElementById('modalConvite').classList.add('visible');
+    }
+
+    async function aceitarConvite() {
+      if (!conviteAtivo) return;
+      const v = Number(document.getElementById('mcAporte').value);
+      if (!v || v <= 0) return alert('Informe quanto vai guardar por mês.');
+      await api(`/api/cofrinhos/convites/${conviteAtivo.id}/aceitar`, {
+        method: 'POST', body: JSON.stringify({ aporteMensal: v }),
+      });
+      fecharModal('modalConvite');
+      conviteAtivo = null;
+      await Promise.all([carregarConvites(), carregar()]);
+    }
+
+    async function recusarConvite() {
+      if (!conviteAtivo) return;
+      await api(`/api/cofrinhos/convites/${conviteAtivo.id}/recusar`, { method: 'POST' });
+      fecharModal('modalConvite');
+      conviteAtivo = null;
+      await carregarConvites();
     }
 
     function renderLista() {
@@ -289,8 +430,45 @@
       const prazo = c.mesAlvo ? `${c.mesAlvo.slice(0,3)}/${c.anoAlvo}` : '';
       const parc = c.aporteSugerido != null ? `${money(c.aporteSugerido)}/mês` : '';
       const pagas = `${c.parcelasPagas}/${c.parcelasTotais} parcelas`;
+      if (c.compartilhado) {
+        const qtd = (c.participantes || []).filter((p) => p.situacao === 'ativo').length;
+        return `Compartilhada · ${qtd} participantes · ${parc} seu · faltam ${money(c.restante)}`;
+      }
       if (c.modo === 'aporte_prazo') return `${parc} até ${prazo} · ${pagas} · projeção ${money(c.projecaoFinal)}`;
       return `${parc} até ${prazo} · ${pagas} · faltam ${money(c.restante)}`;
+    }
+
+    function renderParticipantes(c) {
+      const card = document.getElementById('detParticipantesCard');
+      const box = document.getElementById('detParticipantes');
+      // O card aparece para o dono (mesmo numa caixinha solo, para poder
+      // convidar) e para qualquer participante de uma caixinha compartilhada.
+      card.hidden = !(c.souDono || c.compartilhado);
+      if (c.compartilhado) {
+        box.hidden = false;
+        box.innerHTML = (c.participantes || []).map((p) => {
+          const tag = p.situacao === 'pendente'
+            ? '<span class="part-tag pendente">convite pendente</span>'
+            : `<span class="part-tag">${p.papel === 'dono' ? 'dono' : 'membro'}</span>`;
+          const rem = (c.souDono && p.papel !== 'dono')
+            ? `<button class="btn-inline" onclick="finRunOnce(event, () => removerParticipante('${p.id}'))">Remover</button>`
+            : '';
+          const aporte = p.aporteMensal != null ? `${money(p.aporteMensal)}/mês` : '—';
+          return `
+            <div class="part-row">
+              <span class="part-nome">${p.nome}${p.souEu ? ' (você)' : ''}<small>guardou ${money(p.guardado)}</small></span>
+              ${tag}
+              <span class="part-valor">${aporte}</span>
+              ${rem}
+            </div>`;
+        }).join('');
+      } else {
+        box.hidden = true;
+        box.innerHTML = '';
+      }
+      document.getElementById('detBtnAddPessoa').hidden = !c.souDono;
+      document.getElementById('detBtnMeuAporte').hidden = !(c.compartilhado && !c.souDono && c.meuAporte != null);
+      document.getElementById('detBtnSair').hidden = !(c.compartilhado && !c.souDono);
     }
 
     function renderDetalhe() {
@@ -306,10 +484,15 @@
       document.getElementById('detBar').parentElement.classList.toggle('concluido', c.situacao === 'concluido');
       document.getElementById('detSub').textContent = linhaResumo(c);
       document.getElementById('detBtnArquivar').textContent = c.situacao === 'arquivado' ? 'Reativar' : 'Arquivar';
+      // Editar / Arquivar / Excluir só para o dono
+      const acoesDono = document.querySelector('#detailView .section-card .modal-actions');
+      if (acoesDono) acoesDono.style.display = c.souDono ? '' : 'none';
+
+      renderParticipantes(c);
 
       const box = document.getElementById('detParcelas');
       if (!c.parcelas || !c.parcelas.length) {
-        box.innerHTML = '<div class="statement-empty">Sem parcelas — defina um mês-alvo no cofrinho.</div>';
+        box.innerHTML = '<div class="statement-empty">Sem parcelas para você nesta caixinha.</div>';
         return;
       }
       box.innerHTML = c.parcelas.map((p) => {
@@ -384,10 +567,12 @@
       if (!c) return;
       popularMesAno(document.getElementById('edMes'), document.getElementById('edAno'));
       document.getElementById('edNome').value = c.nome;
-      document.getElementById('edCampoValor').hidden = c.modo !== 'valor_prazo';
-      document.getElementById('edCampoAporte').hidden = c.modo !== 'aporte_prazo';
+      // Compartilhada: o dono edita a meta única (valor) e o próprio aporte.
+      document.getElementById('edCampoValor').hidden = !(c.modo === 'valor_prazo' || c.compartilhado);
+      document.getElementById('edCampoAporte').hidden = !(c.modo === 'aporte_prazo' || c.compartilhado);
+      document.querySelector('#edCampoAporte label').textContent = c.compartilhado ? 'Seu aporte mensal (R$)' : 'Guardar por mês (R$)';
       document.getElementById('edValorAlvo').value = c.valorAlvo ?? '';
-      document.getElementById('edAporte').value = c.aporteMensal ?? '';
+      document.getElementById('edAporte').value = (c.compartilhado ? c.meuAporte : c.aporteMensal) ?? '';
       if (c.mesAlvo) document.getElementById('edMes').value = c.mesAlvo;
       if (c.anoAlvo) document.getElementById('edAno').value = c.anoAlvo;
       document.getElementById('modalEditar').classList.add('visible');
@@ -401,8 +586,14 @@
         mesAlvo: document.getElementById('edMes').value,
         anoAlvo: Number(document.getElementById('edAno').value),
       };
-      if (c.modo === 'valor_prazo') body.valorAlvo = Number(document.getElementById('edValorAlvo').value) || null;
-      else body.aporteMensal = Number(document.getElementById('edAporte').value) || null;
+      if (c.compartilhado) {
+        body.valorAlvo = Number(document.getElementById('edValorAlvo').value) || null;
+        body.aporteMensal = Number(document.getElementById('edAporte').value) || null;
+      } else if (c.modo === 'valor_prazo') {
+        body.valorAlvo = Number(document.getElementById('edValorAlvo').value) || null;
+      } else {
+        body.aporteMensal = Number(document.getElementById('edAporte').value) || null;
+      }
       if (!body.nome) return alert('O nome não pode ficar vazio.');
       await api(`/api/cofrinhos/${detId}`, { method: 'PUT', body: JSON.stringify(body) });
       fecharModal('modalEditar');
@@ -461,6 +652,92 @@
       }
     }
 
+    // ---------- participantes ----------
+    function abrirModalAddPessoa() {
+      usuarioSelecionado = null;
+      document.getElementById('buscaPessoa').value = '';
+      document.getElementById('buscaResultado').innerHTML = '';
+      document.getElementById('btnConvidar').disabled = true;
+      document.getElementById('modalAddPessoa').classList.add('visible');
+      setTimeout(() => document.getElementById('buscaPessoa').focus(), 50);
+    }
+
+    document.getElementById('buscaPessoa').addEventListener('input', (e) => {
+      const q = e.target.value.trim();
+      usuarioSelecionado = null;
+      document.getElementById('btnConvidar').disabled = true;
+      clearTimeout(buscaTimer);
+      if (q.length < 2) { document.getElementById('buscaResultado').innerHTML = ''; return; }
+      buscaTimer = setTimeout(() => buscarUsuarios(q), 300);
+    });
+
+    async function buscarUsuarios(q) {
+      let res = [];
+      try { res = await api(`/api/users/buscar?q=${encodeURIComponent(q)}`); }
+      catch (e) { res = []; }
+      const box = document.getElementById('buscaResultado');
+      if (!res.length) { box.innerHTML = '<p class="info-text">Ninguém encontrado.</p>'; return; }
+      box.innerHTML = res.map((u) => `
+        <button type="button" data-id="${u.id}" data-nome="${u.nome.replace(/"/g, '&quot;')}">
+          <span class="u-nome">${u.nome}</span>
+          <span class="u-email">${u.email}</span>
+        </button>`).join('');
+      box.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+        box.querySelectorAll('button').forEach((x) => x.classList.remove('sel'));
+        b.classList.add('sel');
+        usuarioSelecionado = { id: b.dataset.id, nome: b.dataset.nome };
+        document.getElementById('btnConvidar').disabled = false;
+      }));
+    }
+
+    async function enviarConvite() {
+      if (!usuarioSelecionado || !detId) return;
+      try {
+        await api(`/api/cofrinhos/${detId}/participantes`, {
+          method: 'POST', body: JSON.stringify({ usuarioId: usuarioSelecionado.id }),
+        });
+      } catch (e) {
+        alert(e && e.message ? e.message : 'Não foi possível convidar.');
+        return;
+      }
+      fecharModal('modalAddPessoa');
+      if (window.finToast) window.finToast(`Convite enviado para ${usuarioSelecionado.nome}.`, { type: 'success' });
+      await carregar();
+    }
+
+    function abrirModalMeuAporte() {
+      const c = cofres.find((x) => x.id === detId);
+      if (!c) return;
+      document.getElementById('maValor').value = c.meuAporte ?? '';
+      document.getElementById('modalMeuAporte').classList.add('visible');
+    }
+
+    async function salvarMeuAporte() {
+      const v = Number(document.getElementById('maValor').value);
+      if (!v || v <= 0) return alert('Informe quanto vai guardar por mês.');
+      await api(`/api/cofrinhos/${detId}/participantes/me`, {
+        method: 'PUT', body: JSON.stringify({ aporteMensal: v }),
+      });
+      fecharModal('modalMeuAporte');
+      await carregar();
+    }
+
+    async function removerParticipante(participanteId) {
+      if (!confirm('Remover esta pessoa da caixinha? As parcelas pendentes dela somem; as pagas ficam no financeiro.')) return;
+      await api(`/api/cofrinhos/${detId}/participantes/${participanteId}`, { method: 'DELETE' });
+      await carregar();
+    }
+
+    async function sairDaCaixinha() {
+      const c = cofres.find((x) => x.id === detId);
+      const eu = c && (c.participantes || []).find((p) => p.souEu);
+      if (!eu) return;
+      if (!confirm('Sair desta caixinha? Suas parcelas pendentes somem; as pagas ficam no financeiro.')) return;
+      await api(`/api/cofrinhos/${detId}/participantes/${eu.id}`, { method: 'DELETE' });
+      detId = null;
+      await carregar();
+    }
+
     // ---------- modais ----------
     function fecharModal(id) { document.getElementById(id).classList.remove('visible'); }
     document.querySelectorAll('.modal-overlay').forEach((ov) => {
@@ -470,7 +747,7 @@
     auth.onAuthStateChanged(async (user) => {
       if (!user) { window.location.href = 'login.html'; return; }
       try {
-        await carregar();
+        await Promise.all([carregar(), carregarConvites()]);
       } catch (err) {
         console.error('Erro ao carregar cofrinhos:', err);
         document.getElementById('listaCofrinhos').innerHTML = '<div class="statement-empty">Não foi possível carregar.</div>';

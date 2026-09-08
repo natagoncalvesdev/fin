@@ -14,6 +14,7 @@ from app.routers import (
     cofrinhos,
     conquistas,
     financeiro,
+    grupos,
     saude,
     users,
     veiculos,
@@ -42,6 +43,7 @@ app.include_router(veiculos.router)
 app.include_router(saude.router)
 app.include_router(cofrinhos.router)
 app.include_router(conquistas.router)
+app.include_router(grupos.router)
 
 
 @app.get("/api/health")

@@ -85,3 +85,16 @@ def run_migrations(engine: Engine) -> None:
         conn.execute(text("CREATE INDEX IF NOT EXISTS ix_conta_id_cofrinho ON conta (id_cofrinho)"))
         conn.execute(text("DROP TABLE IF EXISTS aporte_cofrinho"))
         conn.execute(text("DELETE FROM debito WHERE compra LIKE 'Cofrinho: %'"))
+
+        # Grupos (saúde) + cofrinhos compartilhados: tabelas próprias criadas pelo
+        # create_all. As leituras sempre filtram por (usuário|grupo|cofrinho) +
+        # situação (pendente/ativo).
+        for nome, tabela, colunas in (
+            ("ix_grupo_membro_usuario", "grupo_membro", "id_usuario, situacao"),
+            ("ix_grupo_membro_grupo", "grupo_membro", "id_grupo, situacao"),
+            ("ix_cofrinho_participante_usuario", "cofrinho_participante", "id_usuario, situacao"),
+            ("ix_cofrinho_participante_cofrinho", "cofrinho_participante", "id_cofrinho, situacao"),
+        ):
+            conn.execute(
+                text(f"CREATE INDEX IF NOT EXISTS {nome} ON {tabela} ({colunas})")
+            )

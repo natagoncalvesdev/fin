@@ -105,7 +105,9 @@ Todos os dados ficam no **PostgreSQL**:
 | `registro_medidas` | Histórico de medidas corporais (cm + data) |
 | `meta_peso` | Metas de peso e histórico (ativa / atingida / arquivada) |
 | `cofrinho` | Metas de economia — geram parcelas mensais em `conta` |
+| `cofrinho_participante` | Participantes de uma caixinha compartilhada (aporte por pessoa) |
 | `conquista` | Medalhas (marcos de peso, metas, cofrinhos) |
+| `grupo` / `grupo_membro` | Grupos (hoje só de saúde) e seus membros / convites |
 
 O Firebase **não é mais usado**. O frontend fala com a API Python, que persiste tudo no Postgres.
 
@@ -124,7 +126,13 @@ Documentação Swagger: http://localhost:8000/docs
 | GET | `/api/saude/peso?dias=7\|30\|365` | Registros de peso na janela |
 | GET | `/api/saude/medidas` | Registros de medidas corporais |
 | GET | `/api/saude/metas` | Metas de peso (com histórico) |
-| GET | `/api/cofrinhos` | Metas de economia (saldo, plano mensal, aportes) |
+| GET | `/api/cofrinhos` | Metas de economia (saldo, plano mensal, aportes, participantes) |
+| POST | `/api/cofrinhos/{id}/participantes` | Convidar alguém para a caixinha (só o dono) |
+| GET | `/api/cofrinhos/convites` | Convites de caixinha pendentes para mim |
+| GET | `/api/grupos?tipo=saude` | Grupos de que participo |
+| GET | `/api/grupos/{id}` | Detalhe do grupo + rankings de peso/medidas |
+| GET | `/api/grupos/convites` | Convites de grupo pendentes para mim |
+| GET | `/api/users/buscar?q=` | Buscar pessoas para convidar |
 | GET | `/api/conquistas` | Medalhas (peso + cofrinhos) |
 
 ## Produção (Supabase + Render + Netlify, planos free)

@@ -18,8 +18,8 @@ def list_conquistas(
 ):
     # Concede medalhas pendentes antes de listar (marcos de peso, metas já
     # batidas, cofrinhos já cheios) — cobre dados criados antes desta feature.
-    mudou = saude_service.sincronizar(db, current_user)
-    mudou = cofrinhos_service.sincronizar_todos(db, current_user) or mudou
-    if mudou:
-        db.commit()
+    saude_service.sincronizar(db, current_user)
+    cofrinhos_service.sincronizar_todos(db, current_user)
+    # sincronizar_todos também faz o backfill do participante-dono; commita sempre.
+    db.commit()
     return conquistas_service.listar(db, current_user)

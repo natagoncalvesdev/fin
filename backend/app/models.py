@@ -424,6 +424,11 @@ class Cofrinho(Base):
     Ao criar, o cofrinho gera uma parcela por mês como uma linha em `conta`
     ("Cofrinho: <nome>"). Marcar a conta como paga = guardar aquele valor. O
     montante do cofrinho é a soma das parcelas pagas.
+
+    Cofrinho compartilhado: outras pessoas entram como `CofrinhoParticipante` e
+    cada uma define o próprio aporte mensal; `valor_alvo` é a meta única e a soma
+    das parcelas pagas de todos conclui o cofrinho. `aporte_mensal` na tabela é
+    só a origem do backfill do participante-dono dos cofrinhos antigos.
     """
 
     __tablename__ = "cofrinho"
@@ -442,3 +447,72 @@ class Cofrinho(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     usuario: Mapped["Usuario"] = relationship(back_populates="cofrinhos")
+    participantes: Mapped[list["CofrinhoParticipante"]] = relationship(
+        back_populates="cofrinho", cascade="all, delete-orphan"
+    )
+
+
+class CofrinhoParticipante(Base):
+    """Uma pessoa participando de um cofrinho compartilhado. O dono também tem uma
+    linha (papel="dono"). Cada participante tem o próprio `aporte_mensal` — as
+    parcelas mensais dele são linhas em `conta` do id_usuario dele. Um convite
+    fica `pendente` até a pessoa aceitar (e definir o aporte)."""
+
+    __tablename__ = "cofrinho_participante"
+    __table_args__ = (
+        UniqueConstraint("id_cofrinho", "id_usuario", name="uq_cofrinho_participante"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, default=new_uuid, index=True)
+    id_cofrinho: Mapped[int] = mapped_column(Integer, ForeignKey("cofrinho.id", ondelete="CASCADE"), nullable=False, index=True)
+    id_usuario: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), nullable=False, index=True)
+    papel: Mapped[str] = mapped_column(String(10), nullable=False, default="membro")  # "dono" | "membro"
+    situacao: Mapped[str] = mapped_column(String(12), nullable=False, default="pendente")  # "pendente" | "ativo"
+    aporte_mensal: Mapped[float | None] = mapped_column(Float, nullable=True)
+    convidado_por: Mapped[int | None] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="SET NULL"), nullable=True)
+    entrou_em: Mapped[date | None] = mapped_column(Date, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    cofrinho: Mapped["Cofrinho"] = relationship(back_populates="participantes")
+
+
+class Grupo(Base):
+    """Grupo genérico com membros de várias contas. `tipo` diz a área ("saude"
+    hoje; outras no futuro). O dono também tem uma linha em `grupo_membro`."""
+
+    __tablename__ = "grupo"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, default=new_uuid, index=True)
+    id_dono: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), nullable=False, index=True)
+    tipo: Mapped[str] = mapped_column(String(20), nullable=False, default="saude")
+    nome: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    membros: Mapped[list["GrupoMembro"]] = relationship(
+        back_populates="grupo", cascade="all, delete-orphan"
+    )
+
+
+class GrupoMembro(Base):
+    """Participação de um usuário num grupo. Convite fica `pendente` até aceitar;
+    recusar apaga a linha. `entrou_em` (data da aprovação) é a base dos rankings
+    de saúde — só conta o que a pessoa registrou dessa data em diante."""
+
+    __tablename__ = "grupo_membro"
+    __table_args__ = (
+        UniqueConstraint("id_grupo", "id_usuario", name="uq_grupo_membro"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, default=new_uuid, index=True)
+    id_grupo: Mapped[int] = mapped_column(Integer, ForeignKey("grupo.id", ondelete="CASCADE"), nullable=False, index=True)
+    id_usuario: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), nullable=False, index=True)
+    papel: Mapped[str] = mapped_column(String(10), nullable=False, default="membro")  # "dono" | "membro"
+    situacao: Mapped[str] = mapped_column(String(12), nullable=False, default="pendente")  # "pendente" | "ativo"
+    convidado_por: Mapped[int | None] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="SET NULL"), nullable=True)
+    entrou_em: Mapped[date | None] = mapped_column(Date, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    grupo: Mapped["Grupo"] = relationship(back_populates="membros")

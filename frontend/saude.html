@@ -67,7 +67,8 @@
       box-shadow: var(--shadow-sm);
     }
 
-    .tab-panel { display: flex; flex-direction: column; gap: 24px; }
+    .tab-panel { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+    #grupoListView, #grupoDetailView { min-width: 0; }
 
     /* Toggle de período do gráfico */
     .periodo-toggle { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -143,7 +144,7 @@
 
     .meta-acoes { display: flex; gap: 4px; flex-wrap: wrap; }
 
-    .campo { display: flex; flex-direction: column; gap: 6px; }
+    .campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
     .campo > label {
       font-size: 11px;
       font-weight: 700;
@@ -152,6 +153,8 @@
       color: var(--text-secondary);
     }
     .campo > input {
+      width: 100%;
+      min-width: 0;
       padding: 11px 13px;
       border-radius: 10px;
       border: 1.5px solid var(--border-color);
@@ -160,6 +163,10 @@
       font-size: 14px;
       font-family: var(--font-family);
     }
+    /* setinhas do number ocupam largura à toa neste formulário */
+    .medidas-form input[type="number"] { -moz-appearance: textfield; }
+    .medidas-form input[type="number"]::-webkit-outer-spin-button,
+    .medidas-form input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .campo > input:focus {
       outline: none;
       border-color: var(--accent);
@@ -191,6 +198,7 @@
     .membros-row-label { font-weight: 600; font-size: 14px; }
     .membros-grid input {
       width: 100%;
+      min-width: 0;
       padding: 11px 13px;
       border-radius: 10px;
       border: 1.5px solid var(--border-color);
@@ -203,7 +211,7 @@
 
     .tronco-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: 14px;
     }
 
@@ -284,19 +292,146 @@
       cursor: pointer;
     }
 
+    /* ================= ABA GRUPO ================= */
+    .tab-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      margin-left: 6px;
+      border-radius: 999px;
+      background: var(--negative);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .grupo-convites { display: flex; flex-direction: column; gap: 10px; }
+    .convite-card {
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--accent-soft);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      justify-content: space-between;
+    }
+    .convite-card .conv-txt { font-size: 13.5px; }
+    .convite-card .conv-acoes { display: flex; gap: 8px; }
+
+    .grupo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .grupo-card {
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 16px;
+      background: var(--bg-section);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+    .grupo-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .grupo-card .g-nome { font-size: 15px; font-weight: 700; }
+    .grupo-card .g-sub { font-size: 12.5px; color: var(--text-secondary); }
+
+    .rank-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .rank-box h4 { margin: 0 0 8px; font-size: 13px; }
+    .rank-list { display: flex; flex-direction: column; }
+    .rank-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .rank-pos { width: 24px; font-weight: 700; color: var(--accent); }
+    .rank-nome { flex: 1; }
+    .rank-val { font-weight: 700; }
+    .rank-row.semdados .rank-nome,
+    .rank-row.semdados .rank-val { color: var(--text-secondary); font-weight: 400; }
+
+    .membros-lista { display: flex; flex-direction: column; }
+    .membro-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13.5px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+    }
+    .membro-row:last-child { border-bottom: none; }
+    .membro-row .m-nome { flex: 1; min-width: 0; font-weight: 600; }
+
+    .grupo-cartoes {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 14px;
+    }
+    .grupo-cartoes .compare-table td:last-child { width: auto; white-space: nowrap; }
+    .membro-row .m-tag {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+    }
+
+    .user-result {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 8px 0 4px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .user-result button {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: var(--bg-section);
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .user-result button:hover,
+    .user-result button.sel { border-color: var(--accent); background: var(--accent-soft); }
+    .user-result .u-nome { font-weight: 600; font-size: 13.5px; }
+    .user-result .u-email { font-size: 12px; color: var(--text-secondary); }
+
     @media (max-width: 768px), (max-height: 500px) {
+      .rank-cols { grid-template-columns: 1fr; }
+      .grupo-cartoes { grid-template-columns: 1fr; }
       .content { max-width: 100%; padding: 20px 16px 40px; margin-left: 0; }
       .chart-container { height: 280px; }
       .saude-tabs { width: 100%; }
       .saude-tab { flex: 1; padding: 10px 8px; }
 
-      .membros-grid { grid-template-columns: 78px 1fr 1fr; gap: 10px; }
-      .membros-row-label { font-size: 13px; }
-      .tronco-grid { grid-template-columns: 1fr 1fr; }
+      .membros-grid { grid-template-columns: 68px minmax(0, 1fr) minmax(0, 1fr); gap: 8px 10px; }
+      .membros-row-label { font-size: 12px; }
+      .membros-col-head { font-size: 11px; }
+      .tronco-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px 10px; }
       .silhueta-wrap { max-width: 200px; }
       .medidas-form-footer { flex-direction: column; align-items: stretch; }
       .medidas-form-footer .btn-confirm { width: 100%; }
-      .medidas-centrais { grid-template-columns: 1fr 1fr; }
+      .medidas-centrais { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 
       /* Comparação: cards NÃO empilham — rolam na horizontal, para o usuário
          deitar o celular e dar pinch-zoom. */
@@ -325,6 +460,7 @@
     <div class="saude-tabs">
       <button type="button" class="saude-tab" data-tab="peso">Peso</button>
       <button type="button" class="saude-tab" data-tab="medidas">Medidas</button>
+      <button type="button" class="saude-tab" data-tab="grupo">Grupo<span id="grupoBadge" class="tab-badge" hidden>0</span></button>
     </div>
 
     <!-- ================= ABA PESO ================= -->
@@ -467,6 +603,56 @@
         <div id="compareTrack" class="compare-track"></div>
       </div>
     </section>
+
+    <!-- ================= ABA GRUPO ================= -->
+    <section id="tabGrupo" class="tab-panel" hidden>
+      <!-- LISTA -->
+      <div id="grupoListView">
+        <div class="section-card" id="grupoConvitesCard" hidden>
+          <h3 class="section-card-title">Convites de grupo</h3>
+          <div id="grupoConvites" class="grupo-convites"></div>
+        </div>
+
+        <div class="section-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+            <h3 class="section-card-title" style="margin:0;">Meus grupos</h3>
+            <button class="btn-add" onclick="abrirModalNovoGrupo()">Criar grupo</button>
+          </div>
+          <p class="info-text" style="margin:8px 0 0;">Crie um grupo e convide outras pessoas para comparar a evolução de peso e medidas.</p>
+          <div id="grupoLista" class="grupo-grid"></div>
+        </div>
+      </div>
+
+      <!-- DETALHE -->
+      <div id="grupoDetailView" hidden>
+        <div class="section-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+            <h3 class="section-card-title" style="margin:0;" id="grupoDetNome">Grupo</h3>
+            <button class="btn-inline" onclick="voltarListaGrupos()">Voltar</button>
+          </div>
+          <div class="membros-lista" id="grupoMembros" style="margin-top:12px;"></div>
+          <div class="modal-actions" style="margin-top:14px;">
+            <button class="btn-add" id="grupoBtnAddPessoa" onclick="abrirModalAddPessoa()" hidden>Adicionar pessoa</button>
+            <button class="btn-inline" id="grupoBtnSair" onclick="finRunOnce(event, () => sairDoGrupo())" hidden>Sair do grupo</button>
+            <button class="btn-inline fin-btn-danger" id="grupoBtnExcluir" onclick="finRunOnce(event, () => excluirGrupo())" hidden>Excluir grupo</button>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <h3 class="section-card-title">Rankings</h3>
+          <p class="info-text" style="margin:0 0 12px;">Contam a partir do primeiro registro de cada pessoa depois de entrar no grupo.</p>
+          <div class="rank-cols">
+            <div class="rank-box"><h4>Mais perderam peso</h4><div id="rankPeso" class="rank-list"></div></div>
+            <div class="rank-box"><h4>Mais perderam medidas</h4><div id="rankMedidas" class="rank-list"></div></div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <h3 class="section-card-title">Membros</h3>
+          <div id="grupoCartoes" class="grupo-cartoes"></div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Modal editar peso -->
@@ -504,6 +690,31 @@
       <div class="modal-actions">
         <button class="btn-danger" onclick="finRunOnce(event, () => removerMedidas())">Excluir</button>
         <button class="btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoMedidas())">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal criar grupo -->
+  <div id="novoGrupoModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Criar grupo</h3>
+      <div class="campo"><label for="novoGrupoNome">Nome do grupo</label><input id="novoGrupoNome" maxlength="120" placeholder="Ex: Foco 2026"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="fecharModal('novoGrupoModal')">Cancelar</button>
+        <button class="btn-confirm" onclick="finRunOnce(event, () => criarGrupo())">Criar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal adicionar pessoa -->
+  <div id="addPessoaModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Adicionar pessoa ao grupo</h3>
+      <div class="campo"><label for="buscaPessoa">Buscar por nome ou e-mail</label><input id="buscaPessoa" autocomplete="off" placeholder="Digite ao menos 2 letras"></div>
+      <div id="buscaResultado" class="user-result"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="fecharModal('addPessoaModal')">Cancelar</button>
+        <button class="btn-confirm" id="btnConvidar" onclick="finRunOnce(event, () => enviarConvite())" disabled>Convidar</button>
       </div>
     </div>
   </div>
@@ -578,8 +789,10 @@
       document.querySelectorAll('.saude-tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === nome));
       document.getElementById('tabPeso').hidden = nome !== 'peso';
       document.getElementById('tabMedidas').hidden = nome !== 'medidas';
+      document.getElementById('tabGrupo').hidden = nome !== 'grupo';
       try { localStorage.setItem('saudeTab', nome); } catch (e) { /* ignore */ }
       if (nome === 'peso' && graficoPeso) graficoPeso.resize();
+      if (nome === 'grupo') carregarGrupos().catch(() => {});
     }
 
     document.querySelectorAll('.saude-tab').forEach((btn) => {
@@ -1197,6 +1410,233 @@
       document.getElementById('comparacaoResultado').hidden = true;
     }
 
+    // ================= GRUPO =================
+
+    let grupos = [];
+    let convitesGrupo = [];
+    let grupoAtualId = null;
+    let grupoAtualDetalhe = null;
+    let buscaTimer = null;
+    let usuarioSelecionado = null;
+
+    function fecharModal(id) { document.getElementById(id).classList.remove('visible'); }
+
+    async function carregarGrupos() {
+      grupos = await api('/api/grupos?tipo=saude');
+      if (grupoAtualId && !grupos.some((g) => g.id === grupoAtualId)) grupoAtualId = null;
+      if (grupoAtualId) await renderGrupoDetalhe();
+      else renderGrupos();
+    }
+
+    async function carregarConvitesGrupo() {
+      try { convitesGrupo = await api('/api/grupos/convites'); }
+      catch (e) { convitesGrupo = []; }
+      const badge = document.getElementById('grupoBadge');
+      badge.hidden = convitesGrupo.length === 0;
+      badge.textContent = convitesGrupo.length;
+      renderConvitesGrupo();
+    }
+
+    function renderConvitesGrupo() {
+      const card = document.getElementById('grupoConvitesCard');
+      const box = document.getElementById('grupoConvites');
+      if (!convitesGrupo.length) { card.hidden = true; box.innerHTML = ''; return; }
+      card.hidden = false;
+      box.innerHTML = convitesGrupo.map((c) => `
+        <div class="convite-card">
+          <span class="conv-txt"><strong>${c.donoNome}</strong> convidou você para o grupo <strong>${c.grupoNome}</strong>.</span>
+          <span class="conv-acoes">
+            <button class="btn-confirm" onclick="finRunOnce(event, () => responderConvite('${c.id}', true))">Aceitar</button>
+            <button class="btn-inline" onclick="finRunOnce(event, () => responderConvite('${c.id}', false))">Recusar</button>
+          </span>
+        </div>`).join('');
+    }
+
+    async function responderConvite(id, aceitar) {
+      await api(`/api/grupos/convites/${id}/${aceitar ? 'aceitar' : 'recusar'}`, { method: 'POST' });
+      await Promise.all([carregarConvitesGrupo(), carregarGrupos()]);
+    }
+
+    function renderGrupos() {
+      document.getElementById('grupoListView').hidden = false;
+      document.getElementById('grupoDetailView').hidden = true;
+      const lista = document.getElementById('grupoLista');
+      if (!grupos.length) {
+        lista.innerHTML = '<div class="statement-empty">Você ainda não participa de nenhum grupo.</div>';
+        return;
+      }
+      lista.innerHTML = grupos.map((g) => `
+        <div class="grupo-card" onclick="abrirGrupo('${g.id}')">
+          <span class="g-nome">${g.nome}</span>
+          <span class="g-sub">${g.totalMembros} ${g.totalMembros === 1 ? 'membro' : 'membros'}${g.souDono ? ' · você é o dono' : ''}</span>
+        </div>`).join('');
+    }
+
+    async function abrirGrupo(id) {
+      grupoAtualId = id;
+      await renderGrupoDetalhe();
+    }
+
+    function voltarListaGrupos() {
+      grupoAtualId = null;
+      grupoAtualDetalhe = null;
+      renderGrupos();
+    }
+
+    function rotuloDelta(valor, unidade) {
+      if (valor == null) return '—';
+      const sinal = valor < 0 ? '+' : valor > 0 ? '−' : '';
+      return `${sinal}${nf1.format(Math.abs(valor))} ${unidade}`;
+    }
+
+    function linhasRanking(linhas, unidade) {
+      if (!linhas || !linhas.length) return '<div class="statement-empty">Sem participantes.</div>';
+      return linhas.map((l) => {
+        if (l.posicao == null) {
+          return `<div class="rank-row semdados"><span class="rank-pos">–</span><span class="rank-nome">${l.nome}</span><span class="rank-val">sem dados</span></div>`;
+        }
+        return `<div class="rank-row"><span class="rank-pos">${l.posicao}º</span><span class="rank-nome">${l.nome}</span><span class="rank-val">${rotuloDelta(l.valor, unidade)}</span></div>`;
+      }).join('');
+    }
+
+    function cartaoMembro(m) {
+      const linhasMed = MEDIDAS_CAMPOS
+        .map((c) => `<tr><td>${c.label}</td><td>${cm(m.medidasRecentes ? m.medidasRecentes[c.key] : null)}</td></tr>`)
+        .join('');
+      return `
+        <div class="compare-card">
+          <h4>${m.nome}${m.souDono ? ' · dono' : ''}</h4>
+          <table class="compare-table"><tbody>
+            <tr><td>Peso atual</td><td>${m.pesoAtual == null ? '—' : kg(m.pesoAtual)}</td></tr>
+            <tr><td>Perdeu (peso)</td><td>${rotuloDelta(m.pesoPerdido, 'kg')}</td></tr>
+            <tr><td>Perdeu (medidas)</td><td>${rotuloDelta(m.cmPerdidos, 'cm')}</td></tr>
+          </tbody></table>
+          ${m.medidasRecentes
+            ? `<table class="compare-table"><tbody>${linhasMed}</tbody></table>`
+            : '<p class="info-text">Sem medidas registradas.</p>'}
+        </div>`;
+    }
+
+    async function renderGrupoDetalhe() {
+      let g;
+      try { g = await api(`/api/grupos/${grupoAtualId}`); }
+      catch (e) { voltarListaGrupos(); return; }
+      grupoAtualDetalhe = g;
+      document.getElementById('grupoListView').hidden = true;
+      document.getElementById('grupoDetailView').hidden = false;
+      document.getElementById('grupoDetNome').textContent = g.nome;
+
+      document.getElementById('grupoBtnAddPessoa').hidden = !g.souDono;
+      document.getElementById('grupoBtnExcluir').hidden = !g.souDono;
+      document.getElementById('grupoBtnSair').hidden = !!g.souDono;
+
+      document.getElementById('grupoMembros').innerHTML = g.membros.map((m) => {
+        const podeRemover = g.souDono && m.papel !== 'dono';
+        const tag = m.situacao === 'pendente' ? 'convite pendente' : (m.papel === 'dono' ? 'dono' : 'membro');
+        return `
+          <div class="membro-row">
+            <span class="m-nome">${m.nome}</span>
+            <span class="m-tag">${tag}</span>
+            ${podeRemover ? `<button class="btn-inline" onclick="finRunOnce(event, () => removerMembroGrupo('${m.id}'))">Remover</button>` : ''}
+          </div>`;
+      }).join('');
+
+      const resumo = g.resumo || { rankingPeso: [], rankingMedidas: [], membros: [] };
+      document.getElementById('rankPeso').innerHTML = linhasRanking(resumo.rankingPeso, 'kg');
+      document.getElementById('rankMedidas').innerHTML = linhasRanking(resumo.rankingMedidas, 'cm');
+      document.getElementById('grupoCartoes').innerHTML =
+        (resumo.membros || []).map(cartaoMembro).join('') ||
+        '<div class="statement-empty">Sem dados de saúde ainda.</div>';
+    }
+
+    function abrirModalNovoGrupo() {
+      document.getElementById('novoGrupoNome').value = '';
+      document.getElementById('novoGrupoModal').classList.add('visible');
+    }
+
+    async function criarGrupo() {
+      const nome = document.getElementById('novoGrupoNome').value.trim();
+      if (!nome) return alert('Dê um nome ao grupo.');
+      const g = await api('/api/grupos', { method: 'POST', body: JSON.stringify({ nome, tipo: 'saude' }) });
+      fecharModal('novoGrupoModal');
+      await carregarGrupos();
+      abrirGrupo(g.id);
+    }
+
+    async function excluirGrupo() {
+      if (!grupoAtualId || !confirm('Excluir este grupo? Todos os membros perdem o acesso.')) return;
+      await api(`/api/grupos/${grupoAtualId}`, { method: 'DELETE' });
+      voltarListaGrupos();
+      await Promise.all([carregarGrupos(), carregarConvitesGrupo()]);
+    }
+
+    async function sairDoGrupo() {
+      if (!grupoAtualDetalhe || !grupoAtualDetalhe.meuMembroId) return;
+      if (!confirm('Sair deste grupo? Você perde o acesso aos dados compartilhados.')) return;
+      await api(`/api/grupos/${grupoAtualId}/membros/${grupoAtualDetalhe.meuMembroId}`, { method: 'DELETE' });
+      voltarListaGrupos();
+      await carregarGrupos();
+    }
+
+    async function removerMembroGrupo(membroId) {
+      if (!confirm('Remover esta pessoa do grupo?')) return;
+      await api(`/api/grupos/${grupoAtualId}/membros/${membroId}`, { method: 'DELETE' });
+      await renderGrupoDetalhe();
+    }
+
+    // -------- Adicionar pessoa (busca de usuários) --------
+    function abrirModalAddPessoa() {
+      usuarioSelecionado = null;
+      document.getElementById('buscaPessoa').value = '';
+      document.getElementById('buscaResultado').innerHTML = '';
+      document.getElementById('btnConvidar').disabled = true;
+      document.getElementById('addPessoaModal').classList.add('visible');
+      setTimeout(() => document.getElementById('buscaPessoa').focus(), 50);
+    }
+
+    document.getElementById('buscaPessoa').addEventListener('input', (e) => {
+      const q = e.target.value.trim();
+      usuarioSelecionado = null;
+      document.getElementById('btnConvidar').disabled = true;
+      clearTimeout(buscaTimer);
+      if (q.length < 2) { document.getElementById('buscaResultado').innerHTML = ''; return; }
+      buscaTimer = setTimeout(() => buscarUsuarios(q), 300);
+    });
+
+    async function buscarUsuarios(q) {
+      let res = [];
+      try { res = await api(`/api/users/buscar?q=${encodeURIComponent(q)}`); }
+      catch (e) { res = []; }
+      const box = document.getElementById('buscaResultado');
+      if (!res.length) { box.innerHTML = '<p class="info-text">Ninguém encontrado.</p>'; return; }
+      box.innerHTML = res.map((u) => `
+        <button type="button" data-id="${u.id}" data-nome="${u.nome.replace(/"/g, '&quot;')}">
+          <span class="u-nome">${u.nome}</span>
+          <span class="u-email">${u.email}</span>
+        </button>`).join('');
+      box.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+        box.querySelectorAll('button').forEach((x) => x.classList.remove('sel'));
+        b.classList.add('sel');
+        usuarioSelecionado = { id: b.dataset.id, nome: b.dataset.nome };
+        document.getElementById('btnConvidar').disabled = false;
+      }));
+    }
+
+    async function enviarConvite() {
+      if (!usuarioSelecionado || !grupoAtualId) return;
+      try {
+        await api(`/api/grupos/${grupoAtualId}/membros`, {
+          method: 'POST', body: JSON.stringify({ usuarioId: usuarioSelecionado.id }),
+        });
+      } catch (e) {
+        alert(e && e.message ? e.message : 'Não foi possível convidar.');
+        return;
+      }
+      fecharModal('addPessoaModal');
+      if (window.finToast) window.finToast(`Convite enviado para ${usuarioSelecionado.nome}.`, { type: 'success' });
+      await renderGrupoDetalhe();
+    }
+
     // ================= INIT =================
 
     auth.onAuthStateChanged(async (user) => {
@@ -1225,6 +1665,7 @@
         ...Object.values(cargas).map((fn) => fn()),
         sincronizarMedalhas(false),
         carregarSexo(),
+        carregarConvitesGrupo(),
       ]);
       const falharam = Object.keys(cargas).filter((_, i) => res[i].status === 'rejected');
       if (falharam.length) {

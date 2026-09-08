@@ -37,23 +37,33 @@ from app.financeiro_service import (
     reservado_to_dict,
 )
 from app import cofrinhos_service
-from app.models import MESES, Cofrinho, Conta, Usuario, periodo_mes
+from app.models import MESES, Cofrinho, CofrinhoParticipante, Conta, Usuario, periodo_mes
 
 router = APIRouter(prefix="/api/financeiro", tags=["financeiro"])
 
 
 def _repercutir_no_cofrinho(db: Session, usuario: Usuario, id_cofrinho: int | None) -> None:
     """Uma parcela de cofrinho foi paga/editada/removida na tela de Contas —
-    redistribui as pendentes e reavalia a conclusão do cofrinho."""
+    redistribui as pendentes e reavalia a conclusão do cofrinho. Vale tanto para
+    o dono quanto para um participante ativo de uma caixinha compartilhada."""
     if not id_cofrinho:
         return
-    cofrinho = (
-        db.query(Cofrinho)
-        .filter(Cofrinho.id == id_cofrinho, Cofrinho.id_usuario == usuario.id)
-        .first()
-    )
-    if cofrinho:
-        cofrinhos_service.apos_mudanca_conta(db, usuario, cofrinho)
+    cofrinho = db.query(Cofrinho).filter(Cofrinho.id == id_cofrinho).first()
+    if not cofrinho:
+        return
+    if cofrinho.id_usuario != usuario.id:
+        participa = (
+            db.query(CofrinhoParticipante)
+            .filter(
+                CofrinhoParticipante.id_cofrinho == cofrinho.id,
+                CofrinhoParticipante.id_usuario == usuario.id,
+                CofrinhoParticipante.situacao == "ativo",
+            )
+            .first()
+        )
+        if not participa:
+            return
+    cofrinhos_service.apos_mudanca_conta(db, cofrinho)
 
 
 class ItemResponse(BaseModel):

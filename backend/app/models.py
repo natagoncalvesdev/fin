@@ -44,7 +44,7 @@ class Usuario(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     senha: Mapped[str] = mapped_column(String(255), nullable=False)
     telefone: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    id_telegram: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    sexo: Mapped[str | None] = mapped_column(String(20), nullable=True)  # "masculino" | "feminino"
     adm: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 

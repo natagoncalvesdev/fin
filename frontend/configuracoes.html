@@ -68,7 +68,8 @@
       color: var(--slate-600);
     }
 
-    .form-group input {
+    .form-group input,
+    .form-group select {
       width: 100%;
       padding: 12px 14px;
       border: 1px solid var(--slate-200);
@@ -77,43 +78,14 @@
       font-size: 14px;
       box-sizing: border-box;
       color: var(--ink-950);
+      background: #FFFFFF;
     }
 
-    .form-group input:focus {
+    .form-group input:focus,
+    .form-group select:focus {
       outline: none;
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
-    }
-
-    .form-group.campo-destaque {
-      padding: 12px;
-      margin: -4px -12px 16px;
-      border-radius: 12px;
-      background: rgba(239, 68, 68, 0.06);
-      border: 1px solid rgba(239, 68, 68, 0.35);
-    }
-
-    .form-group.campo-destaque label {
-      color: var(--negative);
-    }
-
-    .form-group.campo-destaque input {
-      border-color: #FCA5A5;
-    }
-
-    .form-group.campo-destaque input:focus {
-      border-color: var(--negative);
-      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
-    }
-
-    .campo-obrigatorio-msg {
-      margin: 0 0 16px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      font-size: 14px;
-      background: rgba(239, 68, 68, 0.08);
-      color: var(--negative);
-      border: 1px solid rgba(239, 68, 68, 0.2);
     }
 
     .form-hint {
@@ -171,9 +143,6 @@
     </div>
 
     <div id="configMessage" class="config-message" role="alert"></div>
-    <p id="campoObrigatorioMsg" class="campo-obrigatorio-msg" style="display:none;" role="status">
-      Informe seu ID Telegram para receber relatórios. Este campo é obrigatório para gerar relatórios.
-    </p>
 
     <section class="config-card">
       <h2>Dados pessoais</h2>
@@ -181,6 +150,15 @@
         <div class="form-group">
           <label for="inputNome">Nome</label>
           <input type="text" id="inputNome" autocomplete="name" required />
+        </div>
+        <div class="form-group">
+          <label for="inputSexo">Sexo</label>
+          <select id="inputSexo">
+            <option value="">Não informado</option>
+            <option value="masculino">Masculino</option>
+            <option value="feminino">Feminino</option>
+          </select>
+          <p class="form-hint">Usado para escolher a silhueta na página de Medidas.</p>
         </div>
         <div class="form-group">
           <label for="inputEmail">Email</label>
@@ -194,11 +172,6 @@
         <div class="form-group">
           <label for="inputCpf">CPF</label>
           <input type="text" id="inputCpf" autocomplete="off" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" />
-        </div>
-        <div class="form-group" id="grupoIdTelegram">
-          <label for="inputIdTelegram">ID Telegram</label>
-          <input type="text" id="inputIdTelegram" autocomplete="off" inputmode="numeric" placeholder="Ex.: 123456789" />
-          <p class="form-hint">Seu chat ID do Telegram para receber relatórios financeiros.</p>
         </div>
         <div class="form-group">
           <label for="inputSenhaAtualPerfil">Senha atual</label>
@@ -243,7 +216,7 @@
     const USER_KEY = 'fin_user';
     const API_BASE = window.FIN_API_BASE || '';
 
-    let dadosOriginais = { name: '', email: '', phone: '', cpf: '', id_telegram: '' };
+    let dadosOriginais = { name: '', email: '', phone: '', cpf: '', sexo: '' };
 
     function apenasDigitos(valor) {
       return String(valor || '').replace(/\D/g, '');
@@ -319,10 +292,10 @@
 
     function preencherFormulario(user) {
       document.getElementById('inputNome').value = user.name || '';
+      document.getElementById('inputSexo').value = user.sexo || '';
       document.getElementById('inputEmail').value = user.email || '';
       document.getElementById('inputTelefone').value = mascaraTelefone(user.phone || '');
       document.getElementById('inputCpf').value = mascaraCpf(user.cpf || '');
-      document.getElementById('inputIdTelegram').value = user.id_telegram || '';
     }
 
     function normalizarContato(user) {
@@ -331,17 +304,8 @@
         email: user.email || '',
         phone: mascaraTelefone(user.phone || ''),
         cpf: mascaraCpf(user.cpf || ''),
-        id_telegram: (user.id_telegram || '').trim(),
+        sexo: user.sexo || '',
       };
-    }
-
-    function destacarCampoIdTelegram() {
-      const grupo = document.getElementById('grupoIdTelegram');
-      const msg = document.getElementById('campoObrigatorioMsg');
-      grupo.classList.add('campo-destaque');
-      msg.style.display = 'block';
-      grupo.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      document.getElementById('inputIdTelegram').focus();
     }
 
     function aplicarSessao(res) {
@@ -370,11 +334,6 @@
       const user = await response.json();
       dadosOriginais = normalizarContato(user);
       preencherFormulario(user);
-
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('focus') === 'id-telegram') {
-        destacarCampoIdTelegram();
-      }
     }
 
     document.getElementById('formPerfil').addEventListener('submit', (e) => {
@@ -385,7 +344,7 @@
         const email = document.getElementById('inputEmail').value.trim().toLowerCase();
         const telefone = mascaraTelefone(document.getElementById('inputTelefone').value);
         const cpf = mascaraCpf(document.getElementById('inputCpf').value);
-        const idTelegram = document.getElementById('inputIdTelegram').value.trim();
+        const sexo = document.getElementById('inputSexo').value;
         const senhaAtual = document.getElementById('inputSenhaAtualPerfil').value;
 
         if (!nome || !email) {
@@ -395,6 +354,7 @@
 
         const body = {};
         if (nome !== dadosOriginais.name) body.name = nome;
+        if (sexo !== dadosOriginais.sexo) body.sexo = sexo;
         if (email !== dadosOriginais.email) {
           body.email = email;
           if (!senhaAtual) {
@@ -405,7 +365,6 @@
         }
         if (telefone !== dadosOriginais.phone) body.phone = telefone;
         if (cpf !== dadosOriginais.cpf) body.cpf = cpf;
-        if (idTelegram !== dadosOriginais.id_telegram) body.id_telegram = idTelegram;
 
         if (!Object.keys(body).length) {
           mostrarMensagem('Nenhuma alteração para salvar.', 'error');
@@ -416,8 +375,6 @@
           const res = await apiPatchPerfil(body);
           aplicarSessao(res);
           document.getElementById('inputSenhaAtualPerfil').value = '';
-          document.getElementById('grupoIdTelegram').classList.remove('campo-destaque');
-          document.getElementById('campoObrigatorioMsg').style.display = 'none';
           mostrarMensagem('Dados atualizados com sucesso.', 'success');
         } catch (err) {
           mostrarMensagem(err.message, 'error');

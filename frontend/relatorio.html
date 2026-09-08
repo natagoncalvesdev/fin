@@ -286,7 +286,6 @@
           <!-- Categorias serão populadas via JS -->
         </select>
         <button class="btn-cancel" onclick="carregarRelatorios()">Filtrar</button>
-        <button class="btn-add" id="btnGerarRelatorio" onclick="finRunOnce(event, () => gerarRelatorio())">Gerar Relatório</button>
       </div>
     </div>
 
@@ -335,8 +334,6 @@
   <script>
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const TOKEN_KEY = 'fin_token';
-    const API_BASE = window.FIN_API_BASE || '';
 
     const MESES = [
       "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -489,52 +486,6 @@
       } catch (error) {
         console.error("Erro ao remover categoria:", error);
         alert("Erro ao remover categoria. Tente novamente.");
-      }
-    }
-
-    async function carregarPerfilUsuario() {
-      const token = localStorage.getItem(TOKEN_KEY);
-      if (!token) return null;
-      const response = await fetch(`${API_BASE}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) return null;
-      return response.json();
-    }
-
-    async function gerarRelatorio() {
-      if (!currentUser) return;
-
-      const selectAno = document.getElementById("selectAno");
-      const selectMes = document.getElementById("selectMes");
-      const ano = Number(selectAno.value);
-      const mes = selectMes.value;
-
-      if (!ano) {
-        return alert("Por favor, selecione um ano.");
-      }
-      if (!mes) {
-        return alert("Selecione um mês específico para gerar o relatório.");
-      }
-
-      const perfil = await carregarPerfilUsuario();
-      if (!perfil?.id_telegram) {
-        window.location.href = 'configuracoes.html?focus=id-telegram';
-        return;
-      }
-
-      try {
-        // O backend monta a mensagem e envia pelo n8n — o navegador nunca
-        // fala direto com o webhook (que não tem autenticação própria e
-        // aceitaria chat_id/mensagem de qualquer um que descobrisse a URL).
-        await window.finApi.request('/api/relatorios/gerar', {
-          method: 'POST',
-          body: JSON.stringify({ ano, mes }),
-        });
-        alert('Relatório enviado com sucesso.');
-      } catch (error) {
-        console.error("Erro ao gerar relatório:", error);
-        alert(error.message || 'Erro ao gerar relatório. Tente novamente.');
       }
     }
 

@@ -166,27 +166,51 @@
       box-shadow: 0 0 0 3px var(--accent-soft);
     }
 
-    /* Formulário de medidas com silhueta */
-    .medidas-layout {
-      display: flex;
-      gap: 28px;
-      align-items: flex-start;
-      justify-content: center;
-      flex-wrap: wrap;
+    /* Formulário de medidas — blocos Membros / Tronco / Visualização */
+    .medidas-form { display: flex; flex-direction: column; gap: 4px; }
+
+    .medidas-bloco { border-top: 1px solid var(--border-color); padding: 18px 0; }
+    .medidas-bloco:first-child { border-top: none; padding-top: 0; }
+
+    .medidas-bloco-titulo {
+      margin: 0 0 14px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
     }
 
-    .medidas-col {
-      display: flex;
-      flex-direction: column;
+    .membros-grid {
+      display: grid;
+      grid-template-columns: 120px 1fr 1fr;
+      gap: 12px 16px;
+      align-items: center;
+    }
+    .membros-col-head { text-align: center; font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+    .membros-row-label { font-weight: 600; font-size: 14px; }
+    .membros-grid input {
+      width: 100%;
+      padding: 11px 13px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border-color);
+      background: var(--bg-section);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: var(--font-family);
+    }
+    .membros-grid input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+    .tronco-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 14px;
-      min-width: 150px;
-      flex: 1;
-      max-width: 220px;
     }
 
     .silhueta-wrap {
-      width: 220px;
-      flex-shrink: 0;
+      width: 100%;
+      max-width: 240px;
+      margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -198,6 +222,19 @@
     .silhueta .rotulo { fill: var(--text-secondary); font: 600 9px var(--font-family); }
     .silhueta .valor { fill: var(--text-primary); font: 700 12px var(--font-family); }
 
+    .medidas-form-footer {
+      border-top: 1px solid var(--border-color);
+      padding-top: 18px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .campo-inline { flex-direction: row; align-items: center; gap: 10px; }
+    .campo-inline label { margin: 0; white-space: nowrap; }
+
+    /* usado só no modal de edição */
     .medidas-centrais {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -253,10 +290,12 @@
       .saude-tabs { width: 100%; }
       .saude-tab { flex: 1; padding: 10px 8px; }
 
-      /* Silhueta no topo; todos os inputs juntos logo abaixo, em 2 colunas. */
-      .medidas-layout { flex-direction: column; align-items: stretch; gap: 12px; }
-      .medidas-layout .silhueta-wrap { order: -1; width: 170px; align-self: center; margin: 0 auto 4px; }
-      .medidas-col { max-width: none; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .membros-grid { grid-template-columns: 78px 1fr 1fr; gap: 10px; }
+      .membros-row-label { font-size: 13px; }
+      .tronco-grid { grid-template-columns: 1fr 1fr; }
+      .silhueta-wrap { max-width: 200px; }
+      .medidas-form-footer { flex-direction: column; align-items: stretch; }
+      .medidas-form-footer .btn-confirm { width: 100%; }
       .medidas-centrais { grid-template-columns: 1fr 1fr; }
 
       /* Comparação: cards NÃO empilham — rolam na horizontal, para o usuário
@@ -362,33 +401,51 @@
       <div class="section-card">
         <h3 class="section-card-title">Registrar medidas (cm)</h3>
 
-        <div class="medidas-layout">
-          <div class="medidas-col">
-            <div class="campo"><label for="mBracoDir">Braço direito</label><input id="mBracoDir" type="number" step="0.1" min="0" title="Meio do braço, relaxado"></div>
-            <div class="campo"><label for="mCoxaDir">Coxa direita</label><input id="mCoxaDir" type="number" step="0.1" min="0" title="Parte mais larga da coxa"></div>
-            <div class="campo"><label for="mPanturrilhaDir">Panturrilha direita</label><input id="mPanturrilhaDir" type="number" step="0.1" min="0" title="Parte mais larga da panturrilha"></div>
+        <div class="medidas-form">
+          <div class="medidas-bloco">
+            <h4 class="medidas-bloco-titulo">Membros</h4>
+            <div class="membros-grid">
+              <span></span>
+              <span class="membros-col-head">Direito</span>
+              <span class="membros-col-head">Esquerdo</span>
+
+              <span class="membros-row-label">Braço</span>
+              <input id="mBracoDir" type="number" step="0.1" min="0" placeholder="cm" title="Meio do braço, relaxado" aria-label="Braço direito">
+              <input id="mBracoEsq" type="number" step="0.1" min="0" placeholder="cm" title="Meio do braço, relaxado" aria-label="Braço esquerdo">
+
+              <span class="membros-row-label">Coxa</span>
+              <input id="mCoxaDir" type="number" step="0.1" min="0" placeholder="cm" title="Parte mais larga da coxa" aria-label="Coxa direita">
+              <input id="mCoxaEsq" type="number" step="0.1" min="0" placeholder="cm" title="Parte mais larga da coxa" aria-label="Coxa esquerda">
+
+              <span class="membros-row-label">Panturrilha</span>
+              <input id="mPanturrilhaDir" type="number" step="0.1" min="0" placeholder="cm" title="Parte mais larga da panturrilha" aria-label="Panturrilha direita">
+              <input id="mPanturrilhaEsq" type="number" step="0.1" min="0" placeholder="cm" title="Parte mais larga da panturrilha" aria-label="Panturrilha esquerda">
+            </div>
           </div>
 
-          <div class="silhueta-wrap" id="silhuetaForm"></div>
-
-          <div class="medidas-col">
-            <div class="campo"><label for="mBracoEsq">Braço esquerdo</label><input id="mBracoEsq" type="number" step="0.1" min="0" title="Meio do braço, relaxado"></div>
-            <div class="campo"><label for="mCoxaEsq">Coxa esquerda</label><input id="mCoxaEsq" type="number" step="0.1" min="0" title="Parte mais larga da coxa"></div>
-            <div class="campo"><label for="mPanturrilhaEsq">Panturrilha esquerda</label><input id="mPanturrilhaEsq" type="number" step="0.1" min="0" title="Parte mais larga da panturrilha"></div>
+          <div class="medidas-bloco">
+            <h4 class="medidas-bloco-titulo">Tronco</h4>
+            <div class="tronco-grid">
+              <div class="campo"><label for="mPescoco">Pescoço</label><input id="mPescoco" type="number" step="0.1" min="0" placeholder="cm" title="Circunferência do pescoço"></div>
+              <div class="campo"><label for="mPeito">Peito / tórax</label><input id="mPeito" type="number" step="0.1" min="0" placeholder="cm" title="Na altura mais larga do peito"></div>
+              <div class="campo"><label for="mCintura">Cintura</label><input id="mCintura" type="number" step="0.1" min="0" placeholder="cm" title="Região mais estreita do tronco (ou na altura do umbigo)"></div>
+              <div class="campo"><label for="mAbdomen">Abdômen</label><input id="mAbdomen" type="number" step="0.1" min="0" placeholder="cm" title="Na altura do umbigo"></div>
+              <div class="campo"><label for="mQuadril">Quadril</label><input id="mQuadril" type="number" step="0.1" min="0" placeholder="cm" title="Parte mais larga do bumbum"></div>
+            </div>
           </div>
-        </div>
 
-        <div class="medidas-centrais">
-          <div class="campo"><label for="mPescoco">Pescoço</label><input id="mPescoco" type="number" step="0.1" min="0" title="Circunferência do pescoço"></div>
-          <div class="campo"><label for="mPeito">Peito / Tórax</label><input id="mPeito" type="number" step="0.1" min="0" title="Na altura mais larga do peito"></div>
-          <div class="campo"><label for="mCintura">Cintura</label><input id="mCintura" type="number" step="0.1" min="0" title="Região mais estreita do tronco (ou na altura do umbigo)"></div>
-          <div class="campo"><label for="mAbdomen">Abdômen</label><input id="mAbdomen" type="number" step="0.1" min="0" title="Na altura do umbigo"></div>
-          <div class="campo"><label for="mQuadril">Quadril</label><input id="mQuadril" type="number" step="0.1" min="0" title="Parte mais larga do bumbum"></div>
-          <div class="campo"><label for="medidasData">Data</label><input id="medidasData" type="date"></div>
-        </div>
+          <div class="medidas-bloco">
+            <h4 class="medidas-bloco-titulo">Visualização</h4>
+            <div class="silhueta-wrap" id="silhuetaForm"></div>
+            <p class="info-text" id="silhuetaHint" hidden style="text-align:center;margin:8px 0 0;">
+              Defina Masculino ou Feminino em <a href="configuracoes.html">Configurações</a> para a silhueta certa.
+            </p>
+          </div>
 
-        <div class="modal-actions" style="margin-top:18px;">
-          <button class="btn-confirm" onclick="finRunOnce(event, () => salvarMedidas())">Salvar registro</button>
+          <div class="medidas-form-footer">
+            <div class="campo campo-inline"><label for="medidasData">Data</label><input id="medidasData" type="date"></div>
+            <button class="btn-confirm" onclick="finRunOnce(event, () => salvarMedidas())">Salvar registro</button>
+          </div>
         </div>
       </div>
 
@@ -512,6 +569,7 @@
     }
 
     let medidasAll = [];
+    let sexoUsuario = null;  // "masculino" | "feminino" — define a silhueta
     const selecionadas = new Set();
     let medidasEditId = null;
 
@@ -643,7 +701,9 @@
       const principal = metaPrincipal();
       if (principal && ultimo != null) {
         metaTile.hidden = false;
-        setDelta('statMeta', ultimo - Number(principal.data.pesoAlvo));
+        // Quanto falta para chegar na meta (alvo − atual): negativo = precisa
+        // perder, positivo = precisa ganhar.
+        setDelta('statMeta', Number(principal.data.pesoAlvo) - ultimo, { meta: true });
       } else {
         metaTile.hidden = true;
       }
@@ -653,7 +713,7 @@
       renderizarListaMetas();
     }
 
-    function setDelta(id, delta) {
+    function setDelta(id, delta, opts) {
       const el = document.getElementById(id);
       const tile = el.closest('.stat-tile');
       if (delta == null) {
@@ -662,7 +722,13 @@
         return;
       }
       el.textContent = sinalKg(delta);
-      // Perder peso (delta negativo) = verde; ganhar = vermelho.
+      if (opts && opts.meta) {
+        // "Para a meta": verde só quando já bateu; senão sem cor de bom/ruim.
+        tile.classList.toggle('positive', Math.abs(delta) < 0.05);
+        tile.classList.remove('negative');
+        return;
+      }
+      // Variação: perder peso (delta negativo) = verde; ganhar = vermelho.
       tile.classList.toggle('positive', delta < -0.01);
       tile.classList.toggle('negative', delta > 0.01);
     }
@@ -902,9 +968,32 @@
 
     // ================= MEDIDAS =================
 
+    // Corpo da silhueta — masculino (ombros largos, tronco reto) ou feminino
+    // (ombros menores, cintura marcada, quadril largo, cabelo).
+    const CORPO_MASCULINO = `
+      <circle class="corpo" cx="120" cy="30" r="18"/>
+      <path class="corpo" d="M112 45 h16 v14 h-16 Z"/>
+      <path class="corpo" d="M88 60 Q120 52 152 60 L150 150 Q152 186 150 214 L90 214 Q88 186 90 150 Z"/>
+      <path class="corpo" d="M88 62 L72 68 L62 152 L60 224 L74 224 L82 154 L94 84 Z"/>
+      <path class="corpo" d="M152 62 L168 68 L178 152 L180 224 L166 224 L158 154 L146 84 Z"/>
+      <path class="corpo" d="M100 214 L96 316 L94 386 L114 386 L118 318 L120 226 Z"/>
+      <path class="corpo" d="M140 214 L144 316 L146 386 L126 386 L122 318 L120 226 Z"/>`;
+
+    const CORPO_FEMININO = `
+      <circle class="corpo" cx="120" cy="30" r="16"/>
+      <path class="corpo" d="M104 24 Q97 56 105 96 L114 94 Q108 55 113 26 Z"/>
+      <path class="corpo" d="M136 24 Q143 56 135 96 L126 94 Q132 55 127 26 Z"/>
+      <path class="corpo" d="M112 44 h16 v12 h-16 Z"/>
+      <path class="corpo" d="M98 58 Q120 51 142 58 L137 100 Q129 122 129 140 Q140 168 149 208 Q151 220 137 220 L103 220 Q89 220 91 208 Q100 168 111 140 Q111 122 103 100 Z"/>
+      <path class="corpo" d="M92 62 L80 68 L70 158 L68 214 L80 214 L88 160 L102 88 Z"/>
+      <path class="corpo" d="M148 62 L160 68 L170 158 L172 214 L160 214 L152 160 L138 88 Z"/>
+      <path class="corpo" d="M104 220 L100 314 L98 384 L114 384 L118 316 L120 228 Z"/>
+      <path class="corpo" d="M136 220 L140 314 L142 384 L126 384 L122 316 L120 228 Z"/>`;
+
     // Silhueta frontal reutilizável. `vals` é um objeto com as chaves de
-    // MEDIDAS_CAMPOS; valores ausentes viram "—".
-    function silhuetaSVG(vals) {
+    // MEDIDAS_CAMPOS; valores ausentes viram "—". `sexo`: "feminino" usa o corpo
+    // feminino; qualquer outro valor usa o masculino.
+    function silhuetaSVG(vals, sexo) {
       const v = vals || {};
       const val = (k) => (v[k] == null || v[k] === '' ? '—' : nf1.format(Number(v[k])));
       const L = (y, x1, txt, key) => `
@@ -915,26 +1004,21 @@
         <line class="leader" x1="${x1}" y1="${y}" x2="186" y2="${y}"/>
         <text class="rotulo" x="188" y="${y - 3}">${txt}</text>
         <text class="valor" x="188" y="${y + 11}">${val(key)}</text>`;
+      const corpo = sexo === 'feminino' ? CORPO_FEMININO : CORPO_MASCULINO;
       return `
         <svg class="silhueta" viewBox="0 0 240 400" role="img" aria-label="Silhueta com medidas">
-          <circle class="corpo" cx="120" cy="38" r="20"/>
-          <path class="corpo" d="M96 62 L144 62 Q150 62 152 74 L160 120 Q152 150 150 182 L152 216 Q152 228 140 228 L100 228 Q88 228 88 216 L90 182 Q88 150 80 120 L88 74 Q90 62 96 62 Z"/>
-          <path class="corpo" d="M88 76 L74 84 L60 152 L57 212 L70 214 L78 154 L92 98 Z"/>
-          <path class="corpo" d="M152 76 L166 84 L180 152 L183 212 L170 214 L162 154 L148 98 Z"/>
-          <path class="corpo" d="M100 228 L96 312 L92 384 L110 384 L116 314 L119 240 Z"/>
-          <path class="corpo" d="M140 228 L144 312 L148 384 L130 384 L124 314 L121 240 Z"/>
-
-          ${L(60, 118, 'PESCOÇO', 'pescoco')}
-          ${R(92, 156, 'PEITO', 'peito')}
-          ${L(120, 64, 'BRAÇO DIR', 'bracoDir')}
-          ${R(120, 176, 'BRAÇO ESQ', 'bracoEsq')}
-          ${L(152, 84, 'CINTURA', 'cintura')}
-          ${R(184, 150, 'ABDÔMEN', 'abdomen')}
-          ${L(214, 88, 'QUADRIL', 'quadril')}
+          ${corpo}
+          ${L(60, 116, 'PESCOÇO', 'pescoco')}
+          ${R(92, 148, 'PEITO', 'peito')}
+          ${L(120, 66, 'BRAÇO DIR', 'bracoDir')}
+          ${R(120, 172, 'BRAÇO ESQ', 'bracoEsq')}
+          ${L(152, 92, 'CINTURA', 'cintura')}
+          ${R(184, 148, 'ABDÔMEN', 'abdomen')}
+          ${L(214, 90, 'QUADRIL', 'quadril')}
           ${L(276, 106, 'COXA DIR', 'coxaDir')}
           ${R(276, 134, 'COXA ESQ', 'coxaEsq')}
-          ${L(344, 100, 'PANT DIR', 'panturrilhaDir')}
-          ${R(344, 140, 'PANT ESQ', 'panturrilhaEsq')}
+          ${L(344, 102, 'PANT DIR', 'panturrilhaDir')}
+          ${R(344, 138, 'PANT ESQ', 'panturrilhaEsq')}
         </svg>`;
     }
 
@@ -953,10 +1037,21 @@
     }
 
     function atualizarSilhuetaForm() {
-      document.getElementById('silhuetaForm').innerHTML = silhuetaSVG(lerFormMedidas());
+      document.getElementById('silhuetaForm').innerHTML = silhuetaSVG(lerFormMedidas(), sexoUsuario);
+      document.getElementById('silhuetaHint').hidden = !!sexoUsuario;
     }
 
-    document.querySelectorAll('.medidas-layout input, .medidas-centrais input').forEach((inp) => {
+    async function carregarSexo() {
+      try {
+        const me = await api('/api/auth/me');
+        sexoUsuario = me && me.sexo ? me.sexo : null;
+      } catch (e) {
+        sexoUsuario = null;
+      }
+      atualizarSilhuetaForm();
+    }
+
+    document.querySelectorAll('.medidas-form input').forEach((inp) => {
       inp.addEventListener('input', atualizarSilhuetaForm);
     });
 
@@ -1015,7 +1110,7 @@
       const preenchidos = MEDIDAS_CAMPOS.some((c) => payload[c.key] != null);
       if (!preenchidos) return alert('Preencha pelo menos uma medida.');
       await api('/api/saude/medidas', { method: 'POST', body: JSON.stringify(payload) });
-      document.querySelectorAll('.medidas-layout input, .medidas-centrais input').forEach((i) => { if (i.type === 'number') i.value = ''; });
+      document.querySelectorAll('.medidas-form input').forEach((i) => { if (i.type === 'number') i.value = ''; });
       atualizarSilhuetaForm();
       await carregarMedidas();
       alert('Registro de medidas salvo.');
@@ -1026,7 +1121,7 @@
     function abrirViewMedidas(m) {
       medidaVista = m;
       document.getElementById('verMedidasTitulo').textContent = `Medidas de ${dataBR(m.data.data)}`;
-      document.getElementById('verMedidasSilhueta').innerHTML = silhuetaSVG(m.data);
+      document.getElementById('verMedidasSilhueta').innerHTML = silhuetaSVG(m.data, sexoUsuario);
       document.getElementById('verMedidasTabela').innerHTML = MEDIDAS_CAMPOS
         .map((c) => `<tr><td>${c.label}</td><td>${cm(m.data[c.key])}</td></tr>`).join('');
       document.getElementById('verMedidasModal').classList.add('visible');
@@ -1106,7 +1201,7 @@
         return `
           <div class="compare-card">
             <h4>${dataBR(d.data)}${legenda}</h4>
-            <div class="silhueta-wrap">${silhuetaSVG(d)}</div>
+            <div class="silhueta-wrap">${silhuetaSVG(d, sexoUsuario)}</div>
             <table class="compare-table"><tbody>${linhas}</tbody></table>
           </div>`;
       }).join('');
@@ -1147,6 +1242,7 @@
       const res = await Promise.allSettled([
         ...Object.values(cargas).map((fn) => fn()),
         sincronizarMedalhas(false),
+        carregarSexo(),
       ]);
       const falharam = Object.keys(cargas).filter((_, i) => res[i].status === 'rejected');
       if (falharam.length) {

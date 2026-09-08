@@ -8,8 +8,10 @@ def run_migrations(engine: Engine) -> None:
     """Aplica alterações incrementais em bancos já existentes."""
     with engine.begin() as conn:
         conn.execute(
-            text("ALTER TABLE usuario ADD COLUMN IF NOT EXISTS id_telegram VARCHAR(64)")
+            text("ALTER TABLE usuario ADD COLUMN IF NOT EXISTS sexo VARCHAR(20)")
         )
+        # Integração com Telegram removida.
+        conn.execute(text("ALTER TABLE usuario DROP COLUMN IF EXISTS id_telegram"))
         conn.execute(
             text("ALTER TABLE compra_cartao ADD COLUMN IF NOT EXISTS serie_uuid VARCHAR(36)")
         )

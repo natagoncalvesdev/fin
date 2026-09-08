@@ -14,8 +14,6 @@ from app.routers import (
     cofrinhos,
     conquistas,
     financeiro,
-    integracoes,
-    relatorios,
     saude,
     users,
     veiculos,
@@ -41,8 +39,6 @@ app.include_router(financeiro.router)
 app.include_router(categorias.router)
 app.include_router(cartoes.router)
 app.include_router(veiculos.router)
-app.include_router(relatorios.router)
-app.include_router(integracoes.router)
 app.include_router(saude.router)
 app.include_router(cofrinhos.router)
 app.include_router(conquistas.router)

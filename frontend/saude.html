@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saúde - Peso e Medidas</title>
+  <link rel="icon" href="img/icone.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="sidebar.css?v=7">
+  <link rel="stylesheet" href="css/theme.css?v=6">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=7">
+  <script src="js/fin-run-once.js"></script>
+  <script src="js/fin-config.js?v=1"></script>
+  <script src="js/fin-sdk.js?v=5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <script src="sidebar.js?v=7"></script>
+  <style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-main);
+      display: flex;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text-primary);
+    }
+
+    .content {
+      flex: 1;
+      padding: 40px;
+      margin-left: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      max-width: 1180px;
+    }
+
+    .content > h1 { margin: 0; }
+
+    /* Abas Peso / Medidas */
+    .saude-tabs {
+      display: flex;
+      gap: 8px;
+      background: var(--slate-100);
+      padding: 6px;
+      border-radius: 12px;
+      width: fit-content;
+    }
+
+    .saude-tab {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 14px;
+      padding: 10px 22px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-family: var(--font-family);
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .saude-tab.active {
+      background: var(--bg-section);
+      color: var(--accent);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab-panel { display: flex; flex-direction: column; gap: 24px; }
+
+    /* Toggle de período do gráfico */
+    .periodo-toggle { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .periodo-opt {
+      flex: 1;
+      min-width: 90px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border-color);
+      background: var(--bg-section);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: var(--font-family);
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .periodo-opt.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .chart-container {
+      margin-top: 8px;
+      height: 360px;
+      position: relative;
+    }
+
+    /* Metas */
+    .meta-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+
+    .meta-card {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .meta-card.atingida { border-color: rgba(21, 128, 61, 0.4); background: rgba(21, 128, 61, 0.05); }
+    .meta-card.arquivada { opacity: 0.6; }
+
+    .meta-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .meta-alvo { font-size: 16px; font-weight: 700; }
+    .meta-status { font-size: 12px; font-weight: 700; }
+    .meta-status.atingida { color: var(--positive); }
+    .meta-status.ativa { color: var(--accent); }
+    .meta-status.arquivada { color: var(--text-secondary); }
+    .meta-sub { font-size: 12.5px; color: var(--text-secondary); }
+
+    .meta-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: var(--slate-200);
+      overflow: hidden;
+    }
+    .meta-bar > span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+    .meta-card.atingida .meta-bar > span { background: var(--positive); }
+
+    .meta-acoes { display: flex; gap: 4px; flex-wrap: wrap; }
+
+    .campo { display: flex; flex-direction: column; gap: 6px; }
+    .campo > label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+    }
+    .campo > input {
+      padding: 11px 13px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border-color);
+      background: var(--bg-section);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: var(--font-family);
+    }
+    .campo > input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    /* Formulário de medidas com silhueta */
+    .medidas-layout {
+      display: flex;
+      gap: 28px;
+      align-items: flex-start;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .medidas-col {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-width: 150px;
+      flex: 1;
+      max-width: 220px;
+    }
+
+    .silhueta-wrap {
+      width: 220px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .silhueta { width: 100%; height: auto; display: block; }
+    .silhueta .corpo { fill: var(--slate-100); stroke: var(--slate-400); stroke-width: 2; }
+    .silhueta .leader { stroke: var(--slate-400); stroke-width: 1; stroke-dasharray: 3 3; }
+    .silhueta .rotulo { fill: var(--text-secondary); font: 600 9px var(--font-family); }
+    .silhueta .valor { fill: var(--text-primary); font: 700 12px var(--font-family); }
+
+    .medidas-centrais {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 14px;
+      margin-top: 4px;
+    }
+
+    /* Comparação */
+    .compare-hint { display: none; }
+
+    .compare-track {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 4px;
+    }
+
+    .compare-card {
+      flex: 1 1 300px;
+      max-width: 380px;
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 18px;
+      background: var(--bg-section);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .compare-card h4 { margin: 0; font-size: 15px; }
+    .compare-card .silhueta-wrap { width: 100%; max-width: 200px; margin: 0 auto; }
+
+    .compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .compare-table td { padding: 6px 4px; border-bottom: 1px solid var(--border-color); }
+    .compare-table td:first-child { color: var(--text-secondary); }
+    .compare-table td:nth-child(2) { text-align: right; font-weight: 700; }
+    .compare-table td:last-child { text-align: right; width: 62px; font-weight: 600; }
+    .delta-down { color: var(--positive); }
+    .delta-up { color: var(--negative); }
+
+    .medidas-check {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .content { max-width: 100%; padding: 20px 16px 40px; margin-left: 0; }
+      .chart-container { height: 280px; }
+      .saude-tabs { width: 100%; }
+      .saude-tab { flex: 1; padding: 10px 8px; }
+
+      .medidas-layout { flex-direction: column; align-items: stretch; gap: 16px; }
+      .medidas-col { max-width: none; }
+      .silhueta-wrap { width: 180px; align-self: center; }
+
+      /* Comparação: cards NÃO empilham — rolam na horizontal, para o usuário
+         deitar o celular e dar pinch-zoom. */
+      .compare-track {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 10px;
+      }
+      .compare-card { flex: 0 0 300px; max-width: none; }
+      .compare-hint {
+        display: block;
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+      #comparacaoResultado.section-card { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="content">
+    <h1>Saúde</h1>
+
+    <div class="saude-tabs">
+      <button type="button" class="saude-tab" data-tab="peso">Peso</button>
+      <button type="button" class="saude-tab" data-tab="medidas">Medidas</button>
+    </div>
+
+    <!-- ================= ABA PESO ================= -->
+    <section id="tabPeso" class="tab-panel">
+      <div class="section-card">
+        <h3 class="section-card-title">Evolução do peso</h3>
+
+        <div class="stat-row" id="pesoStats">
+          <div class="stat-tile">
+            <span class="stat-tile-icon"><svg viewBox="0 0 24 24"><path d="M12 3a4 4 0 0 1 4 4H8a4 4 0 0 1 4-4Z"/><path d="M5 7h14l1.6 11.2A2 2 0 0 1 18.6 21H5.4a2 2 0 0 1-2-2.8L5 7Z"/></svg></span>
+            <span class="stat-tile-body"><span class="stat-tile-label">Peso atual</span><span class="stat-tile-value" id="statPesoAtual">—</span></span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-tile-icon"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M21 7v6h-6"/></svg></span>
+            <span class="stat-tile-body"><span class="stat-tile-label">Variação total</span><span class="stat-tile-value" id="statPesoTotal">—</span></span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-tile-icon"><svg viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg></span>
+            <span class="stat-tile-body"><span class="stat-tile-label">No período</span><span class="stat-tile-value" id="statPesoPeriodo">—</span></span>
+          </div>
+          <div class="stat-tile" id="statMetaTile" hidden>
+            <span class="stat-tile-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></span>
+            <span class="stat-tile-body"><span class="stat-tile-label">Para a meta</span><span class="stat-tile-value" id="statMeta">—</span></span>
+          </div>
+        </div>
+
+        <div class="periodo-toggle" style="margin-top:16px;">
+          <button type="button" class="periodo-opt" data-dias="7">Semanal</button>
+          <button type="button" class="periodo-opt" data-dias="30">Mensal</button>
+          <button type="button" class="periodo-opt" data-dias="365">Anual</button>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="graficoPeso"></canvas>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3 class="section-card-title">Registrar peso</h3>
+        <div class="form-row">
+          <input id="pesoValor" type="number" step="0.1" min="0" placeholder="Peso (kg)">
+          <input id="pesoData" type="date">
+          <button class="btn-confirm" onclick="finRunOnce(event, () => registrarPeso())">Registrar</button>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3 class="section-card-title">Metas de peso</h3>
+        <div class="form-row">
+          <input id="metaValor" type="number" step="0.1" min="0" placeholder="Peso alvo (kg)">
+          <input id="metaData" type="date" title="Prazo (opcional)">
+          <button class="btn-cancel" onclick="finRunOnce(event, () => adicionarMeta())">Adicionar meta</button>
+        </div>
+        <p class="info-text" id="metaHint" style="margin:8px 0 0;"></p>
+        <div id="listaMetas" class="meta-list"></div>
+      </div>
+
+      <div class="section-card">
+        <h4>Histórico do período</h4>
+        <div id="listaPeso" class="statement-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= ABA MEDIDAS ================= -->
+    <section id="tabMedidas" class="tab-panel" hidden>
+      <div class="section-card">
+        <h3 class="section-card-title">Registrar medidas (cm)</h3>
+
+        <div class="medidas-layout">
+          <div class="medidas-col">
+            <div class="campo"><label for="mBracoDir">Braço D</label><input id="mBracoDir" type="number" step="0.1" min="0" title="Meio do braço, relaxado"></div>
+            <div class="campo"><label for="mCoxaDir">Coxa D</label><input id="mCoxaDir" type="number" step="0.1" min="0" title="Parte mais larga da coxa"></div>
+            <div class="campo"><label for="mPanturrilhaDir">Panturrilha D</label><input id="mPanturrilhaDir" type="number" step="0.1" min="0" title="Parte mais larga da panturrilha"></div>
+          </div>
+
+          <div class="silhueta-wrap" id="silhuetaForm"></div>
+
+          <div class="medidas-col">
+            <div class="campo"><label for="mBracoEsq">Braço E</label><input id="mBracoEsq" type="number" step="0.1" min="0" title="Meio do braço, relaxado"></div>
+            <div class="campo"><label for="mCoxaEsq">Coxa E</label><input id="mCoxaEsq" type="number" step="0.1" min="0" title="Parte mais larga da coxa"></div>
+            <div class="campo"><label for="mPanturrilhaEsq">Panturrilha E</label><input id="mPanturrilhaEsq" type="number" step="0.1" min="0" title="Parte mais larga da panturrilha"></div>
+          </div>
+        </div>
+
+        <div class="medidas-centrais">
+          <div class="campo"><label for="mPescoco">Pescoço</label><input id="mPescoco" type="number" step="0.1" min="0" title="Circunferência do pescoço"></div>
+          <div class="campo"><label for="mPeito">Peito / Tórax</label><input id="mPeito" type="number" step="0.1" min="0" title="Na altura mais larga do peito"></div>
+          <div class="campo"><label for="mCintura">Cintura</label><input id="mCintura" type="number" step="0.1" min="0" title="Região mais estreita do tronco (ou na altura do umbigo)"></div>
+          <div class="campo"><label for="mAbdomen">Abdômen</label><input id="mAbdomen" type="number" step="0.1" min="0" title="Na altura do umbigo"></div>
+          <div class="campo"><label for="mQuadril">Quadril</label><input id="mQuadril" type="number" step="0.1" min="0" title="Parte mais larga do bumbum"></div>
+          <div class="campo"><label for="medidasData">Data</label><input id="medidasData" type="date"></div>
+        </div>
+
+        <div class="modal-actions" style="margin-top:18px;">
+          <button class="btn-confirm" onclick="finRunOnce(event, () => salvarMedidas())">Salvar registro</button>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+          <h4 style="margin:0;">Registros salvos</h4>
+          <button class="btn-add" id="btnComparar" onclick="compararSelecionadas()" disabled>Comparar (0)</button>
+        </div>
+        <p class="info-text" style="margin:8px 0 0;">Marque dois ou mais registros para comparar lado a lado.</p>
+        <div id="listaMedidas" class="statement-list" style="margin-top:14px;"></div>
+      </div>
+
+      <div id="comparacaoResultado" class="section-card" hidden>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <h3 class="section-card-title" style="margin:0;">Comparação</h3>
+          <button class="btn-inline" onclick="fecharComparacao()">Fechar</button>
+        </div>
+        <p class="compare-hint">Gire o celular na horizontal e use o gesto de pinça para dar zoom na comparação.</p>
+        <div id="compareTrack" class="compare-track"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal editar peso -->
+  <div id="editPesoModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Editar registro de peso</h3>
+      <div class="campo"><label for="editPesoData">Data</label><input id="editPesoData" type="date"></div>
+      <div class="campo"><label for="editPesoValor">Peso (kg)</label><input id="editPesoValor" type="number" step="0.1" min="0"></div>
+      <div class="modal-actions">
+        <button class="btn-danger" onclick="finRunOnce(event, () => removerPeso())">Excluir</button>
+        <button class="btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoPeso())">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal editar medidas -->
+  <div id="editMedidasModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Editar registro de medidas</h3>
+      <div class="campo"><label for="editMedidasData">Data</label><input id="editMedidasData" type="date"></div>
+      <div class="medidas-centrais" id="editMedidasCampos"></div>
+      <div class="modal-actions">
+        <button class="btn-danger" onclick="finRunOnce(event, () => removerMedidas())">Excluir</button>
+        <button class="btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoMedidas())">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const auth = firebase.auth();
+    const api = (path, opts) => window.finApi.request(path, opts);
+
+    const MEDIDAS_CAMPOS = [
+      { key: 'pescoco', label: 'Pescoço' },
+      { key: 'peito', label: 'Peito / Tórax' },
+      { key: 'cintura', label: 'Cintura' },
+      { key: 'abdomen', label: 'Abdômen' },
+      { key: 'quadril', label: 'Quadril' },
+      { key: 'bracoDir', label: 'Braço D' },
+      { key: 'bracoEsq', label: 'Braço E' },
+      { key: 'coxaDir', label: 'Coxa D' },
+      { key: 'coxaEsq', label: 'Coxa E' },
+      { key: 'panturrilhaDir', label: 'Panturrilha D' },
+      { key: 'panturrilhaEsq', label: 'Panturrilha E' },
+    ];
+
+    const nf1 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const kg = (v) => `${nf1.format(Number(v) || 0)} kg`;
+    const cm = (v) => (v == null || v === '' ? '—' : `${nf1.format(Number(v))} cm`);
+    const hoje = () => new Date().toISOString().slice(0, 10);
+    const dataBR = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR');
+    const sinalKg = (delta) => `${delta > 0 ? '+' : delta < 0 ? '−' : ''}${nf1.format(Math.abs(delta))} kg`;
+
+    let pesosAll = [];
+    let metas = [];
+    let periodoDias = 30;
+    let graficoPeso = null;
+    let pesoEditId = null;
+
+    const pesoAtual = () => (pesosAll.length ? Number(pesosAll[pesosAll.length - 1].data.peso) : null);
+    const metasAtivas = () => metas.filter((m) => m.data.situacao === 'ativa');
+    // Meta "principal" para o tile e a linha destacada: a ativa mais recente.
+    const metaPrincipal = () => metasAtivas()[0] || null;
+
+    // 0..1 — quanto da distância inicial→alvo já foi percorrido.
+    function progressoMeta(d, atual) {
+      const alvo = Number(d.pesoAlvo);
+      const base = d.pesoInicial != null ? Number(d.pesoInicial) : null;
+      if (d.situacao === 'atingida') return 1;
+      if (atual == null || base == null || base === alvo) return null;
+      const pct = (base - atual) / (base - alvo);
+      return Math.max(0, Math.min(1, pct));
+    }
+
+    let medidasAll = [];
+    const selecionadas = new Set();
+    let medidasEditId = null;
+
+    // -------- Abas --------
+    function ativarAba(nome) {
+      document.querySelectorAll('.saude-tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === nome));
+      document.getElementById('tabPeso').hidden = nome !== 'peso';
+      document.getElementById('tabMedidas').hidden = nome !== 'medidas';
+      try { localStorage.setItem('saudeTab', nome); } catch (e) { /* ignore */ }
+      if (nome === 'peso' && graficoPeso) graficoPeso.resize();
+    }
+
+    document.querySelectorAll('.saude-tab').forEach((btn) => {
+      btn.addEventListener('click', () => ativarAba(btn.dataset.tab));
+    });
+
+    document.querySelectorAll('.periodo-opt').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        periodoDias = Number(btn.dataset.dias);
+        try { localStorage.setItem('saudePeriodo', String(periodoDias)); } catch (e) { /* ignore */ }
+        marcarPeriodoAtivo();
+        renderizarPeso();
+      });
+    });
+
+    function marcarPeriodoAtivo() {
+      document.querySelectorAll('.periodo-opt').forEach((b) => b.classList.toggle('active', Number(b.dataset.dias) === periodoDias));
+    }
+
+    document.querySelectorAll('.modal-overlay').forEach((overlay) => {
+      overlay.addEventListener('click', function (event) { if (event.target === this) this.classList.remove('visible'); });
+    });
+
+    // ================= PESO =================
+
+    async function carregarPeso() {
+      pesosAll = await api('/api/saude/peso');
+      renderizarPeso();
+    }
+
+    async function carregarMetas() {
+      metas = await api('/api/saude/metas');
+      renderizarPeso();
+    }
+
+    function pesosNoPeriodo() {
+      const limite = new Date();
+      limite.setHours(0, 0, 0, 0);
+      limite.setDate(limite.getDate() - periodoDias);
+      return pesosAll.filter((p) => new Date(`${p.data.data}T12:00:00`) >= limite);
+    }
+
+    function renderizarPeso() {
+      marcarPeriodoAtivo();
+      const janela = pesosNoPeriodo();
+
+      // Estatísticas
+      const ultimo = pesosAll.length ? Number(pesosAll[pesosAll.length - 1].data.peso) : null;
+      const primeiro = pesosAll.length ? Number(pesosAll[0].data.peso) : null;
+      document.getElementById('statPesoAtual').textContent = ultimo != null ? kg(ultimo) : '—';
+
+      setDelta('statPesoTotal', ultimo != null && primeiro != null ? ultimo - primeiro : null);
+
+      const jp = janela.length ? Number(janela[0].data.peso) : null;
+      const ju = janela.length ? Number(janela[janela.length - 1].data.peso) : null;
+      setDelta('statPesoPeriodo', jp != null && ju != null ? ju - jp : null);
+
+      const metaTile = document.getElementById('statMetaTile');
+      const principal = metaPrincipal();
+      if (principal && ultimo != null) {
+        metaTile.hidden = false;
+        setDelta('statMeta', ultimo - Number(principal.data.pesoAlvo));
+      } else {
+        metaTile.hidden = true;
+      }
+
+      renderizarGrafico(janela);
+      renderizarListaPeso(janela);
+      renderizarListaMetas();
+    }
+
+    function setDelta(id, delta) {
+      const el = document.getElementById(id);
+      const tile = el.closest('.stat-tile');
+      if (delta == null) {
+        el.textContent = '—';
+        tile.classList.remove('positive', 'negative');
+        return;
+      }
+      el.textContent = sinalKg(delta);
+      // Perder peso (delta negativo) = verde; ganhar = vermelho.
+      tile.classList.toggle('positive', delta < -0.01);
+      tile.classList.toggle('negative', delta > 0.01);
+    }
+
+    function renderizarGrafico(janela) {
+      const ctx = document.getElementById('graficoPeso');
+      if (graficoPeso) { graficoPeso.destroy(); graficoPeso = null; }
+
+      const labels = janela.map((p) => dataBR(p.data.data));
+      const dados = janela.map((p) => Number(p.data.peso));
+
+      const datasets = [{
+        label: 'Peso',
+        data: dados,
+        borderColor: 'rgba(37, 99, 235, 1)',
+        backgroundColor: 'rgba(37, 99, 235, 0.12)',
+        borderWidth: 3,
+        pointRadius: 4,
+        pointBackgroundColor: 'rgba(37, 99, 235, 1)',
+        tension: 0.25,
+        fill: true,
+      }];
+
+      const ativas = metasAtivas();
+      if (labels.length) {
+        ativas.forEach((m) => {
+          const alvo = Number(m.data.pesoAlvo);
+          datasets.push({
+            label: `Meta ${nf1.format(alvo)} kg`,
+            data: labels.map(() => alvo),
+            borderColor: 'rgba(21, 128, 61, 0.9)',
+            borderDash: [6, 6],
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false,
+          });
+        });
+      }
+
+      graficoPeso = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: ativas.length > 0 },
+            tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${kg(c.parsed.y)}` } },
+          },
+          scales: {
+            y: {
+              ticks: { callback: (v) => `${v} kg` },
+              grid: { color: 'rgba(0,0,0,0.06)' },
+            },
+            x: { grid: { display: false } },
+          },
+        },
+      });
+    }
+
+    function renderizarListaPeso(janela) {
+      const lista = document.getElementById('listaPeso');
+      lista.innerHTML = '';
+      if (!janela.length) {
+        lista.innerHTML = '<div class="statement-empty">Nenhum registro neste período.</div>';
+        return;
+      }
+      [...janela].reverse().forEach((p) => {
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'statement-row';
+        row.innerHTML = `
+          <span class="statement-row-icon">⚖️</span>
+          <span class="statement-row-body">
+            <span class="statement-row-title">${kg(p.data.peso)}</span>
+            <span class="statement-row-subtitle">${dataBR(p.data.data)}</span>
+          </span>
+          <span class="statement-row-end"><span class="statement-row-value" style="color:var(--slate-400);font-weight:400;">›</span></span>
+        `;
+        row.addEventListener('click', () => abrirModalPeso(p));
+        lista.appendChild(row);
+      });
+    }
+
+    function metasAtingidasIds() {
+      return new Set(metas.filter((m) => m.data.situacao === 'atingida').map((m) => m.id));
+    }
+
+    // Recarrega peso + metas e avisa se alguma meta foi batida agora.
+    async function recarregarPesoEMetas() {
+      const antes = metasAtingidasIds();
+      await Promise.all([carregarPeso(), carregarMetas()]);
+      const novas = metas.filter((m) => m.data.situacao === 'atingida' && !antes.has(m.id));
+      if (novas.length) {
+        const alvos = novas.map((m) => `${nf1.format(Number(m.data.pesoAlvo))} kg`).join(', ');
+        alert(`🎉 Meta atingida: ${alvos}!`);
+      }
+    }
+
+    async function registrarPeso() {
+      const peso = Number(document.getElementById('pesoValor').value);
+      const data = document.getElementById('pesoData').value || hoje();
+      if (!peso || peso <= 0) return alert('Informe um peso válido.');
+      await api('/api/saude/peso', { method: 'POST', body: JSON.stringify({ peso, data }) });
+      document.getElementById('pesoValor').value = '';
+      await recarregarPesoEMetas();
+    }
+
+    async function adicionarMeta() {
+      const pesoAlvo = Number(document.getElementById('metaValor').value);
+      const dataAlvo = document.getElementById('metaData').value || null;
+      if (!pesoAlvo || pesoAlvo <= 0) return alert('Informe um peso alvo válido.');
+      const body = { pesoAlvo };
+      if (dataAlvo) body.dataAlvo = dataAlvo;
+      await api('/api/saude/metas', { method: 'POST', body: JSON.stringify(body) });
+      document.getElementById('metaValor').value = '';
+      document.getElementById('metaData').value = '';
+      await carregarMetas();
+    }
+
+    async function arquivarMeta(id, arquivar) {
+      await api(`/api/saude/metas/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ situacao: arquivar ? 'arquivada' : 'ativa' }),
+      });
+      await carregarMetas();
+    }
+
+    async function removerMeta(id) {
+      if (!confirm('Excluir esta meta do histórico?')) return;
+      await api(`/api/saude/metas/${id}`, { method: 'DELETE' });
+      await carregarMetas();
+    }
+
+    function renderizarListaMetas() {
+      const lista = document.getElementById('listaMetas');
+      const hint = document.getElementById('metaHint');
+      const atual = pesoAtual();
+      hint.textContent = atual != null
+        ? `Peso atual: ${kg(atual)} — novas metas partem daí.`
+        : 'Registre um peso para acompanhar o progresso das metas.';
+
+      if (!metas.length) {
+        lista.innerHTML = '<div class="statement-empty">Nenhuma meta cadastrada.</div>';
+        return;
+      }
+
+      const ordem = { ativa: 0, atingida: 1, arquivada: 2 };
+      const ordenadas = [...metas].sort((a, b) => (ordem[a.data.situacao] - ordem[b.data.situacao]));
+
+      lista.innerHTML = ordenadas.map((m) => {
+        const d = m.data;
+        const alvo = Number(d.pesoAlvo);
+        const prog = progressoMeta(d, atual);
+        const faltam = atual != null ? Math.abs(atual - alvo) : null;
+
+        let sub;
+        if (d.situacao === 'atingida') {
+          sub = `Atingida em ${d.dataAtingida ? dataBR(d.dataAtingida) : '—'}`;
+        } else if (d.situacao === 'arquivada') {
+          sub = `Arquivada · criada em ${dataBR(d.dataCriacao)}`;
+        } else {
+          const partes = [`Criada em ${dataBR(d.dataCriacao)}`];
+          if (faltam != null) partes.push(`faltam ${nf1.format(faltam)} kg`);
+          if (d.dataAlvo) partes.push(`prazo ${dataBR(d.dataAlvo)}`);
+          sub = partes.join(' · ');
+        }
+
+        const barra = (d.situacao !== 'arquivada' && prog != null)
+          ? `<div class="meta-bar"><span style="width:${Math.round(prog * 100)}%"></span></div>`
+          : '';
+
+        const acoes = d.situacao === 'ativa'
+          ? `<button class="btn-inline" type="button" data-act="arquivar" data-id="${m.id}">Arquivar</button>
+             <button class="btn-inline fin-btn-danger" type="button" data-act="remover" data-id="${m.id}">Excluir</button>`
+          : `<button class="btn-inline" type="button" data-act="reativar" data-id="${m.id}">Reativar</button>
+             <button class="btn-inline fin-btn-danger" type="button" data-act="remover" data-id="${m.id}">Excluir</button>`;
+
+        return `
+          <div class="meta-card ${d.situacao}">
+            <div class="meta-card-top">
+              <span class="meta-alvo">${nf1.format(alvo)} kg</span>
+              <span class="meta-status ${d.situacao}">${d.situacao === 'atingida' ? '✓ atingida' : d.situacao}</span>
+            </div>
+            ${barra}
+            <span class="meta-sub">${sub}</span>
+            <div class="meta-acoes">${acoes}</div>
+          </div>`;
+      }).join('');
+
+      lista.querySelectorAll('button[data-act]').forEach((btn) => {
+        const id = btn.dataset.id;
+        btn.addEventListener('click', () => {
+          if (btn.dataset.act === 'arquivar') finRunOnce(btn, () => arquivarMeta(id, true));
+          else if (btn.dataset.act === 'reativar') finRunOnce(btn, () => arquivarMeta(id, false));
+          else finRunOnce(btn, () => removerMeta(id));
+        });
+      });
+    }
+
+    function abrirModalPeso(p) {
+      pesoEditId = p.id;
+      document.getElementById('editPesoData').value = p.data.data;
+      document.getElementById('editPesoValor').value = p.data.peso;
+      document.getElementById('editPesoModal').classList.add('visible');
+    }
+
+    async function salvarEdicaoPeso() {
+      if (!pesoEditId) return;
+      const peso = Number(document.getElementById('editPesoValor').value);
+      const data = document.getElementById('editPesoData').value;
+      if (!peso || peso <= 0 || !data) return alert('Preencha data e peso.');
+      await api(`/api/saude/peso/${pesoEditId}`, { method: 'PUT', body: JSON.stringify({ peso, data }) });
+      document.getElementById('editPesoModal').classList.remove('visible');
+      pesoEditId = null;
+      await recarregarPesoEMetas();
+    }
+
+    async function removerPeso() {
+      if (!pesoEditId || !confirm('Excluir este registro de peso?')) return;
+      await api(`/api/saude/peso/${pesoEditId}`, { method: 'DELETE' });
+      document.getElementById('editPesoModal').classList.remove('visible');
+      pesoEditId = null;
+      await recarregarPesoEMetas();
+    }
+
+    // ================= MEDIDAS =================
+
+    // Silhueta frontal reutilizável. `vals` é um objeto com as chaves de
+    // MEDIDAS_CAMPOS; valores ausentes viram "—".
+    function silhuetaSVG(vals) {
+      const v = vals || {};
+      const val = (k) => (v[k] == null || v[k] === '' ? '—' : nf1.format(Number(v[k])));
+      const L = (y, x1, txt, key) => `
+        <line class="leader" x1="${x1}" y1="${y}" x2="46" y2="${y}"/>
+        <text class="rotulo" x="4" y="${y - 3}">${txt}</text>
+        <text class="valor" x="4" y="${y + 11}">${val(key)}</text>`;
+      const R = (y, x1, txt, key) => `
+        <line class="leader" x1="${x1}" y1="${y}" x2="188" y2="${y}"/>
+        <text class="rotulo" x="190" y="${y - 3}">${txt}</text>
+        <text class="valor" x="190" y="${y + 11}">${val(key)}</text>`;
+      return `
+        <svg class="silhueta" viewBox="0 0 240 400" role="img" aria-label="Silhueta com medidas">
+          <circle class="corpo" cx="120" cy="38" r="20"/>
+          <path class="corpo" d="M96 62 L144 62 Q150 62 152 74 L160 120 Q152 150 150 182 L152 216 Q152 228 140 228 L100 228 Q88 228 88 216 L90 182 Q88 150 80 120 L88 74 Q90 62 96 62 Z"/>
+          <path class="corpo" d="M88 76 L74 84 L60 152 L57 212 L70 214 L78 154 L92 98 Z"/>
+          <path class="corpo" d="M152 76 L166 84 L180 152 L183 212 L170 214 L162 154 L148 98 Z"/>
+          <path class="corpo" d="M100 228 L96 312 L92 384 L110 384 L116 314 L119 240 Z"/>
+          <path class="corpo" d="M140 228 L144 312 L148 384 L130 384 L124 314 L121 240 Z"/>
+
+          ${L(60, 118, 'PESCOÇO', 'pescoco')}
+          ${R(92, 156, 'PEITO', 'peito')}
+          ${L(120, 64, 'BRAÇO D', 'bracoDir')}
+          ${R(120, 176, 'BRAÇO E', 'bracoEsq')}
+          ${L(152, 84, 'CINTURA', 'cintura')}
+          ${R(184, 150, 'ABDÔMEN', 'abdomen')}
+          ${L(214, 88, 'QUADRIL', 'quadril')}
+          ${L(276, 106, 'COXA D', 'coxaDir')}
+          ${R(276, 134, 'COXA E', 'coxaEsq')}
+          ${L(344, 100, 'PANT. D', 'panturrilhaDir')}
+          ${R(344, 140, 'PANT. E', 'panturrilhaEsq')}
+        </svg>`;
+    }
+
+    function lerFormMedidas() {
+      const obj = { data: document.getElementById('medidasData').value || hoje() };
+      const ids = {
+        pescoco: 'mPescoco', peito: 'mPeito', cintura: 'mCintura', abdomen: 'mAbdomen', quadril: 'mQuadril',
+        bracoDir: 'mBracoDir', bracoEsq: 'mBracoEsq', coxaDir: 'mCoxaDir', coxaEsq: 'mCoxaEsq',
+        panturrilhaDir: 'mPanturrilhaDir', panturrilhaEsq: 'mPanturrilhaEsq',
+      };
+      Object.entries(ids).forEach(([key, id]) => {
+        const raw = document.getElementById(id).value;
+        obj[key] = raw === '' ? null : Number(raw);
+      });
+      return obj;
+    }
+
+    function atualizarSilhuetaForm() {
+      document.getElementById('silhuetaForm').innerHTML = silhuetaSVG(lerFormMedidas());
+    }
+
+    document.querySelectorAll('.medidas-layout input, .medidas-centrais input').forEach((inp) => {
+      inp.addEventListener('input', atualizarSilhuetaForm);
+    });
+
+    async function carregarMedidas() {
+      medidasAll = await api('/api/saude/medidas');
+      // Só mantém na seleção o que ainda existe
+      [...selecionadas].forEach((id) => { if (!medidasAll.some((m) => m.id === id)) selecionadas.delete(id); });
+      renderizarListaMedidas();
+    }
+
+    function resumoMedidas(d) {
+      const partes = [];
+      if (d.cintura != null) partes.push(`Cintura ${nf1.format(d.cintura)}`);
+      if (d.quadril != null) partes.push(`Quadril ${nf1.format(d.quadril)}`);
+      if (d.peito != null) partes.push(`Peito ${nf1.format(d.peito)}`);
+      return partes.join(' · ') || 'Sem valores';
+    }
+
+    function renderizarListaMedidas() {
+      const lista = document.getElementById('listaMedidas');
+      lista.innerHTML = '';
+      if (!medidasAll.length) {
+        lista.innerHTML = '<div class="statement-empty">Nenhum registro de medidas.</div>';
+        atualizarBotaoComparar();
+        return;
+      }
+      medidasAll.forEach((m) => {
+        const row = document.createElement('div');
+        row.className = 'statement-row';
+        row.style.cursor = 'default';
+        row.innerHTML = `
+          <input type="checkbox" class="medidas-check" ${selecionadas.has(m.id) ? 'checked' : ''} aria-label="Selecionar ${dataBR(m.data.data)}">
+          <span class="statement-row-body">
+            <span class="statement-row-title">${dataBR(m.data.data)}</span>
+            <span class="statement-row-subtitle">${resumoMedidas(m.data)}</span>
+          </span>
+          <button class="btn-inline" type="button">Editar</button>
+        `;
+        row.querySelector('.medidas-check').addEventListener('change', (e) => {
+          if (e.target.checked) selecionadas.add(m.id); else selecionadas.delete(m.id);
+          atualizarBotaoComparar();
+        });
+        row.querySelector('.btn-inline').addEventListener('click', () => abrirModalMedidas(m));
+        lista.appendChild(row);
+      });
+      atualizarBotaoComparar();
+    }
+
+    function atualizarBotaoComparar() {
+      const btn = document.getElementById('btnComparar');
+      btn.textContent = `Comparar (${selecionadas.size})`;
+      btn.disabled = selecionadas.size < 2;
+    }
+
+    async function salvarMedidas() {
+      const payload = lerFormMedidas();
+      const preenchidos = MEDIDAS_CAMPOS.some((c) => payload[c.key] != null);
+      if (!preenchidos) return alert('Preencha pelo menos uma medida.');
+      await api('/api/saude/medidas', { method: 'POST', body: JSON.stringify(payload) });
+      document.querySelectorAll('.medidas-layout input, .medidas-centrais input').forEach((i) => { if (i.type === 'number') i.value = ''; });
+      atualizarSilhuetaForm();
+      await carregarMedidas();
+      alert('Registro de medidas salvo.');
+    }
+
+    function abrirModalMedidas(m) {
+      medidasEditId = m.id;
+      document.getElementById('editMedidasData').value = m.data.data;
+      const wrap = document.getElementById('editMedidasCampos');
+      wrap.innerHTML = MEDIDAS_CAMPOS.map((c) => `
+        <div class="campo">
+          <label for="edit_${c.key}">${c.label}</label>
+          <input id="edit_${c.key}" type="number" step="0.1" min="0" value="${m.data[c.key] == null ? '' : m.data[c.key]}">
+        </div>`).join('');
+      document.getElementById('editMedidasModal').classList.add('visible');
+    }
+
+    async function salvarEdicaoMedidas() {
+      if (!medidasEditId) return;
+      const payload = { data: document.getElementById('editMedidasData').value || hoje() };
+      MEDIDAS_CAMPOS.forEach((c) => {
+        const raw = document.getElementById(`edit_${c.key}`).value;
+        payload[c.key] = raw === '' ? null : Number(raw);
+      });
+      await api(`/api/saude/medidas/${medidasEditId}`, { method: 'PUT', body: JSON.stringify(payload) });
+      document.getElementById('editMedidasModal').classList.remove('visible');
+      medidasEditId = null;
+      await carregarMedidas();
+    }
+
+    async function removerMedidas() {
+      if (!medidasEditId || !confirm('Excluir este registro de medidas?')) return;
+      await api(`/api/saude/medidas/${medidasEditId}`, { method: 'DELETE' });
+      document.getElementById('editMedidasModal').classList.remove('visible');
+      selecionadas.delete(medidasEditId);
+      medidasEditId = null;
+      await carregarMedidas();
+    }
+
+    function compararSelecionadas() {
+      if (selecionadas.size < 2) return;
+      const escolhidas = medidasAll
+        .filter((m) => selecionadas.has(m.id))
+        .slice()
+        .sort((a, b) => a.data.data.localeCompare(b.data.data));
+
+      const base = escolhidas[0].data;
+      const track = document.getElementById('compareTrack');
+      track.innerHTML = escolhidas.map((m, idx) => {
+        const d = m.data;
+        const linhas = MEDIDAS_CAMPOS.map((c) => {
+          const atual = d[c.key];
+          let deltaCell = '';
+          if (idx > 0 && atual != null && base[c.key] != null) {
+            const diff = Number(atual) - Number(base[c.key]);
+            const cls = diff < 0 ? 'delta-down' : diff > 0 ? 'delta-up' : '';
+            const txt = `${diff > 0 ? '+' : diff < 0 ? '−' : ''}${nf1.format(Math.abs(diff))}`;
+            deltaCell = `<span class="${cls}">${diff === 0 ? '0' : txt}</span>`;
+          }
+          return `<tr><td>${c.label}</td><td>${cm(atual)}</td><td>${deltaCell}</td></tr>`;
+        }).join('');
+        return `
+          <div class="compare-card">
+            <h4>${dataBR(d.data)}${idx === 0 ? ' · base' : ''}</h4>
+            <div class="silhueta-wrap">${silhuetaSVG(d)}</div>
+            <table class="compare-table"><tbody>${linhas}</tbody></table>
+          </div>`;
+      }).join('');
+
+      const painel = document.getElementById('comparacaoResultado');
+      painel.hidden = false;
+      painel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function fecharComparacao() {
+      document.getElementById('comparacaoResultado').hidden = true;
+    }
+
+    // ================= INIT =================
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+
+      document.getElementById('pesoData').value = hoje();
+      document.getElementById('medidasData').value = hoje();
+
+      let tab = 'peso';
+      try { tab = localStorage.getItem('saudeTab') || 'peso'; } catch (e) { /* ignore */ }
+      try { periodoDias = Number(localStorage.getItem('saudePeriodo')) || 30; } catch (e) { /* ignore */ }
+      ativarAba(tab);
+      marcarPeriodoAtivo();
+      atualizarSilhuetaForm();
+
+      try {
+        await Promise.all([carregarPeso(), carregarMetas(), carregarMedidas()]);
+      } catch (err) {
+        console.error('Erro ao carregar dados de saúde:', err);
+        alert('Não foi possível carregar os dados. Tente recarregar a página.');
+      }
+    });
+  </script>
+  <script src="js/mobile-nav.js?v=11"></script>
+</body>
+</html>

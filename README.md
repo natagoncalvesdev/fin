@@ -101,6 +101,9 @@ Todos os dados ficam no **PostgreSQL**:
 | `veiculos` | Veículos |
 | `abastecimentos` | Histórico de abastecimentos |
 | `manutencoes` | Histórico de manutenções |
+| `registro_peso` | Histórico de peso (kg + data) |
+| `registro_medidas` | Histórico de medidas corporais (cm + data) |
+| `meta_peso` | Metas de peso e histórico (ativa / atingida / arquivada) |
 
 O Firebase **não é mais usado**. O frontend fala com a API Python, que persiste tudo no Postgres.
 
@@ -116,6 +119,9 @@ Documentação Swagger: http://localhost:8000/docs
 | GET | `/api/financeiro/anos/{ano}/resumo` | Ano inteiro numa requisição (relatório / resumo anual) |
 | GET | `/api/veiculos` | Listar veículos |
 | GET | `/api/categorias` | Listar categorias |
+| GET | `/api/saude/peso?dias=7\|30\|365` | Registros de peso na janela |
+| GET | `/api/saude/medidas` | Registros de medidas corporais |
+| GET | `/api/saude/metas` | Metas de peso (com histórico) |
 
 ## Produção (Supabase + Render + Netlify, planos free)
 

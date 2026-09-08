@@ -51,6 +51,9 @@ class Usuario(Base):
     categorias: Mapped[list["Categoria"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
     cartoes: Mapped[list["Cartao"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
     veiculos: Mapped[list["Veiculo"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
+    pesos: Mapped[list["RegistroPeso"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
+    medidas: Mapped[list["RegistroMedidas"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
+    metas_peso: Mapped[list["MetaPeso"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
 
     @property
     def id_externo(self) -> str:
@@ -279,4 +282,89 @@ class ManutencaoVeiculo(Base):
             "data": dt.isoformat() + "Z",
             "mes": MESES[dt.month - 1],
             "ano": str(dt.year),
+        }
+
+
+class RegistroPeso(Base):
+    __tablename__ = "registro_peso"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, default=new_uuid, index=True)
+    id_usuario: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), nullable=False, index=True)
+    data_registro: Mapped[date] = mapped_column(Date, nullable=False)
+    peso: Mapped[float] = mapped_column(Float, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    usuario: Mapped["Usuario"] = relationship(back_populates="pesos")
+
+    def to_dict(self) -> dict:
+        return {"peso": self.peso, "data": self.data_registro.isoformat()}
+
+
+class MetaPeso(Base):
+    """Meta de peso do usuário. Pode haver várias — as antigas ficam no
+    histórico com a situação em que pararam ("atingida" / "arquivada")."""
+
+    __tablename__ = "meta_peso"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, default=new_uuid, index=True)
+    id_usuario: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), nullable=False, index=True)
+    peso_alvo: Mapped[float] = mapped_column(Float, nullable=False)
+    peso_inicial: Mapped[float | None] = mapped_column(Float, nullable=True)
+    data_criacao: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)
+    data_alvo: Mapped[date | None] = mapped_column(Date, nullable=True)
+    situacao: Mapped[str] = mapped_column(String(20), nullable=False, default="ativa")
+    data_atingida: Mapped[date | None] = mapped_column(Date, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    usuario: Mapped["Usuario"] = relationship(back_populates="metas_peso")
+
+    def to_dict(self) -> dict:
+        return {
+            "pesoAlvo": self.peso_alvo,
+            "pesoInicial": self.peso_inicial,
+            "dataCriacao": self.data_criacao.isoformat(),
+            "dataAlvo": self.data_alvo.isoformat() if self.data_alvo else None,
+            "situacao": self.situacao,
+            "dataAtingida": self.data_atingida.isoformat() if self.data_atingida else None,
+        }
+
+
+class RegistroMedidas(Base):
+    __tablename__ = "registro_medidas"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, default=new_uuid, index=True)
+    id_usuario: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), nullable=False, index=True)
+    data_registro: Mapped[date] = mapped_column(Date, nullable=False)
+    pescoco: Mapped[float | None] = mapped_column(Float, nullable=True)
+    peito: Mapped[float | None] = mapped_column(Float, nullable=True)
+    cintura: Mapped[float | None] = mapped_column(Float, nullable=True)
+    abdomen: Mapped[float | None] = mapped_column(Float, nullable=True)
+    quadril: Mapped[float | None] = mapped_column(Float, nullable=True)
+    braco_dir: Mapped[float | None] = mapped_column(Float, nullable=True)
+    braco_esq: Mapped[float | None] = mapped_column(Float, nullable=True)
+    coxa_dir: Mapped[float | None] = mapped_column(Float, nullable=True)
+    coxa_esq: Mapped[float | None] = mapped_column(Float, nullable=True)
+    panturrilha_dir: Mapped[float | None] = mapped_column(Float, nullable=True)
+    panturrilha_esq: Mapped[float | None] = mapped_column(Float, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    usuario: Mapped["Usuario"] = relationship(back_populates="medidas")
+
+    def to_dict(self) -> dict:
+        return {
+            "data": self.data_registro.isoformat(),
+            "pescoco": self.pescoco,
+            "peito": self.peito,
+            "cintura": self.cintura,
+            "abdomen": self.abdomen,
+            "quadril": self.quadril,
+            "bracoDir": self.braco_dir,
+            "bracoEsq": self.braco_esq,
+            "coxaDir": self.coxa_dir,
+            "coxaEsq": self.coxa_esq,
+            "panturrilhaDir": self.panturrilha_dir,
+            "panturrilhaEsq": self.panturrilha_esq,
         }

@@ -42,3 +42,17 @@ def run_migrations(engine: Engine) -> None:
                 "ON fatura_cartao (id_usuario, ano)"
             )
         )
+
+        # Saúde: registros de peso, medidas e metas ficam em tabelas próprias
+        # (registro_peso / registro_medidas / meta_peso), criadas pelo create_all.
+        for nome, tabela, coluna in (
+            ("ix_registro_peso_usuario_data", "registro_peso", "data_registro"),
+            ("ix_registro_medidas_usuario_data", "registro_medidas", "data_registro"),
+            ("ix_meta_peso_usuario_situacao", "meta_peso", "situacao"),
+        ):
+            conn.execute(
+                text(
+                    f"CREATE INDEX IF NOT EXISTS {nome} "
+                    f"ON {tabela} (id_usuario, {coluna})"
+                )
+            )

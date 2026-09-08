@@ -235,6 +235,7 @@
     .compare-table td:first-child { color: var(--text-secondary); }
     .compare-table td:nth-child(2) { text-align: right; font-weight: 700; }
     .compare-table td:last-child { text-align: right; width: 62px; font-weight: 600; }
+    #verMedidasTabela td:last-child { width: auto; font-weight: 700; }
     .delta-down { color: var(--positive); }
     .delta-up { color: var(--negative); }
 
@@ -252,9 +253,11 @@
       .saude-tabs { width: 100%; }
       .saude-tab { flex: 1; padding: 10px 8px; }
 
-      .medidas-layout { flex-direction: column; align-items: stretch; gap: 16px; }
-      .medidas-col { max-width: none; }
-      .silhueta-wrap { width: 180px; align-self: center; }
+      /* Silhueta no topo; todos os inputs juntos logo abaixo, em 2 colunas. */
+      .medidas-layout { flex-direction: column; align-items: stretch; gap: 12px; }
+      .medidas-layout .silhueta-wrap { order: -1; width: 170px; align-self: center; margin: 0 auto 4px; }
+      .medidas-col { max-width: none; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .medidas-centrais { grid-template-columns: 1fr 1fr; }
 
       /* Comparação: cards NÃO empilham — rolam na horizontal, para o usuário
          deitar o celular e dar pinch-zoom. */
@@ -361,17 +364,17 @@
 
         <div class="medidas-layout">
           <div class="medidas-col">
-            <div class="campo"><label for="mBracoDir">Braço D</label><input id="mBracoDir" type="number" step="0.1" min="0" title="Meio do braço, relaxado"></div>
-            <div class="campo"><label for="mCoxaDir">Coxa D</label><input id="mCoxaDir" type="number" step="0.1" min="0" title="Parte mais larga da coxa"></div>
-            <div class="campo"><label for="mPanturrilhaDir">Panturrilha D</label><input id="mPanturrilhaDir" type="number" step="0.1" min="0" title="Parte mais larga da panturrilha"></div>
+            <div class="campo"><label for="mBracoDir">Braço direito</label><input id="mBracoDir" type="number" step="0.1" min="0" title="Meio do braço, relaxado"></div>
+            <div class="campo"><label for="mCoxaDir">Coxa direita</label><input id="mCoxaDir" type="number" step="0.1" min="0" title="Parte mais larga da coxa"></div>
+            <div class="campo"><label for="mPanturrilhaDir">Panturrilha direita</label><input id="mPanturrilhaDir" type="number" step="0.1" min="0" title="Parte mais larga da panturrilha"></div>
           </div>
 
           <div class="silhueta-wrap" id="silhuetaForm"></div>
 
           <div class="medidas-col">
-            <div class="campo"><label for="mBracoEsq">Braço E</label><input id="mBracoEsq" type="number" step="0.1" min="0" title="Meio do braço, relaxado"></div>
-            <div class="campo"><label for="mCoxaEsq">Coxa E</label><input id="mCoxaEsq" type="number" step="0.1" min="0" title="Parte mais larga da coxa"></div>
-            <div class="campo"><label for="mPanturrilhaEsq">Panturrilha E</label><input id="mPanturrilhaEsq" type="number" step="0.1" min="0" title="Parte mais larga da panturrilha"></div>
+            <div class="campo"><label for="mBracoEsq">Braço esquerdo</label><input id="mBracoEsq" type="number" step="0.1" min="0" title="Meio do braço, relaxado"></div>
+            <div class="campo"><label for="mCoxaEsq">Coxa esquerda</label><input id="mCoxaEsq" type="number" step="0.1" min="0" title="Parte mais larga da coxa"></div>
+            <div class="campo"><label for="mPanturrilhaEsq">Panturrilha esquerda</label><input id="mPanturrilhaEsq" type="number" step="0.1" min="0" title="Parte mais larga da panturrilha"></div>
           </div>
         </div>
 
@@ -422,6 +425,19 @@
     </div>
   </div>
 
+  <!-- Modal ver medidas (boneco + tabela) -->
+  <div id="verMedidasModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 460px;">
+      <h3 id="verMedidasTitulo">Medidas</h3>
+      <div class="silhueta-wrap" style="width:100%;max-width:220px;margin:0 auto;" id="verMedidasSilhueta"></div>
+      <table class="compare-table"><tbody id="verMedidasTabela"></tbody></table>
+      <div class="modal-actions">
+        <button class="btn-danger" onclick="finRunOnce(event, () => removerMedidasDoView())">Excluir</button>
+        <button class="btn-confirm" onclick="abrirEdicaoDoView()">Editar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal editar medidas -->
   <div id="editMedidasModal" class="modal-overlay">
     <div class="modal-content">
@@ -445,12 +461,12 @@
       { key: 'cintura', label: 'Cintura' },
       { key: 'abdomen', label: 'Abdômen' },
       { key: 'quadril', label: 'Quadril' },
-      { key: 'bracoDir', label: 'Braço D' },
-      { key: 'bracoEsq', label: 'Braço E' },
-      { key: 'coxaDir', label: 'Coxa D' },
-      { key: 'coxaEsq', label: 'Coxa E' },
-      { key: 'panturrilhaDir', label: 'Panturrilha D' },
-      { key: 'panturrilhaEsq', label: 'Panturrilha E' },
+      { key: 'bracoDir', label: 'Braço direito' },
+      { key: 'bracoEsq', label: 'Braço esquerdo' },
+      { key: 'coxaDir', label: 'Coxa direita' },
+      { key: 'coxaEsq', label: 'Coxa esquerda' },
+      { key: 'panturrilhaDir', label: 'Panturrilha direita' },
+      { key: 'panturrilhaEsq', label: 'Panturrilha esquerda' },
     ];
 
     const nf1 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -896,9 +912,9 @@
         <text class="rotulo" x="4" y="${y - 3}">${txt}</text>
         <text class="valor" x="4" y="${y + 11}">${val(key)}</text>`;
       const R = (y, x1, txt, key) => `
-        <line class="leader" x1="${x1}" y1="${y}" x2="188" y2="${y}"/>
-        <text class="rotulo" x="190" y="${y - 3}">${txt}</text>
-        <text class="valor" x="190" y="${y + 11}">${val(key)}</text>`;
+        <line class="leader" x1="${x1}" y1="${y}" x2="186" y2="${y}"/>
+        <text class="rotulo" x="188" y="${y - 3}">${txt}</text>
+        <text class="valor" x="188" y="${y + 11}">${val(key)}</text>`;
       return `
         <svg class="silhueta" viewBox="0 0 240 400" role="img" aria-label="Silhueta com medidas">
           <circle class="corpo" cx="120" cy="38" r="20"/>
@@ -910,15 +926,15 @@
 
           ${L(60, 118, 'PESCOÇO', 'pescoco')}
           ${R(92, 156, 'PEITO', 'peito')}
-          ${L(120, 64, 'BRAÇO D', 'bracoDir')}
-          ${R(120, 176, 'BRAÇO E', 'bracoEsq')}
+          ${L(120, 64, 'BRAÇO DIR', 'bracoDir')}
+          ${R(120, 176, 'BRAÇO ESQ', 'bracoEsq')}
           ${L(152, 84, 'CINTURA', 'cintura')}
           ${R(184, 150, 'ABDÔMEN', 'abdomen')}
           ${L(214, 88, 'QUADRIL', 'quadril')}
-          ${L(276, 106, 'COXA D', 'coxaDir')}
-          ${R(276, 134, 'COXA E', 'coxaEsq')}
-          ${L(344, 100, 'PANT. D', 'panturrilhaDir')}
-          ${R(344, 140, 'PANT. E', 'panturrilhaEsq')}
+          ${L(276, 106, 'COXA DIR', 'coxaDir')}
+          ${R(276, 134, 'COXA ESQ', 'coxaEsq')}
+          ${L(344, 100, 'PANT DIR', 'panturrilhaDir')}
+          ${R(344, 140, 'PANT ESQ', 'panturrilhaEsq')}
         </svg>`;
     }
 
@@ -970,20 +986,19 @@
       medidasAll.forEach((m) => {
         const row = document.createElement('div');
         row.className = 'statement-row';
-        row.style.cursor = 'default';
         row.innerHTML = `
           <input type="checkbox" class="medidas-check" ${selecionadas.has(m.id) ? 'checked' : ''} aria-label="Selecionar ${dataBR(m.data.data)}">
-          <span class="statement-row-body">
+          <button type="button" class="statement-row-body" style="border:none;background:none;font:inherit;text-align:left;cursor:pointer;padding:0;">
             <span class="statement-row-title">${dataBR(m.data.data)}</span>
             <span class="statement-row-subtitle">${resumoMedidas(m.data)}</span>
-          </span>
-          <button class="btn-inline" type="button">Editar</button>
+          </button>
+          <span class="statement-row-end"><span class="statement-row-value" style="color:var(--slate-400);font-weight:400;">›</span></span>
         `;
         row.querySelector('.medidas-check').addEventListener('change', (e) => {
           if (e.target.checked) selecionadas.add(m.id); else selecionadas.delete(m.id);
           atualizarBotaoComparar();
         });
-        row.querySelector('.btn-inline').addEventListener('click', () => abrirModalMedidas(m));
+        row.querySelector('.statement-row-body').addEventListener('click', () => abrirViewMedidas(m));
         lista.appendChild(row);
       });
       atualizarBotaoComparar();
@@ -1004,6 +1019,27 @@
       atualizarSilhuetaForm();
       await carregarMedidas();
       alert('Registro de medidas salvo.');
+    }
+
+    let medidaVista = null;
+
+    function abrirViewMedidas(m) {
+      medidaVista = m;
+      document.getElementById('verMedidasTitulo').textContent = `Medidas de ${dataBR(m.data.data)}`;
+      document.getElementById('verMedidasSilhueta').innerHTML = silhuetaSVG(m.data);
+      document.getElementById('verMedidasTabela').innerHTML = MEDIDAS_CAMPOS
+        .map((c) => `<tr><td>${c.label}</td><td>${cm(m.data[c.key])}</td></tr>`).join('');
+      document.getElementById('verMedidasModal').classList.add('visible');
+    }
+
+    function abrirEdicaoDoView() {
+      document.getElementById('verMedidasModal').classList.remove('visible');
+      if (medidaVista) abrirModalMedidas(medidaVista);
+    }
+
+    async function removerMedidasDoView() {
+      if (medidaVista) await removerMedidas(medidaVista.id);
+      document.getElementById('verMedidasModal').classList.remove('visible');
     }
 
     function abrirModalMedidas(m) {
@@ -1031,11 +1067,12 @@
       await carregarMedidas();
     }
 
-    async function removerMedidas() {
-      if (!medidasEditId || !confirm('Excluir este registro de medidas?')) return;
-      await api(`/api/saude/medidas/${medidasEditId}`, { method: 'DELETE' });
+    async function removerMedidas(id) {
+      const alvo = id || medidasEditId;
+      if (!alvo || !confirm('Excluir este registro de medidas?')) return;
+      await api(`/api/saude/medidas/${alvo}`, { method: 'DELETE' });
       document.getElementById('editMedidasModal').classList.remove('visible');
-      selecionadas.delete(medidasEditId);
+      selecionadas.delete(alvo);
       medidasEditId = null;
       await carregarMedidas();
     }
@@ -1047,24 +1084,28 @@
         .slice()
         .sort((a, b) => a.data.data.localeCompare(b.data.data));
 
-      const base = escolhidas[0].data;
       const track = document.getElementById('compareTrack');
       track.innerHTML = escolhidas.map((m, idx) => {
         const d = m.data;
+        // A diferença é sempre em relação ao registro ANTERIOR da comparação.
+        const anterior = idx > 0 ? escolhidas[idx - 1].data : null;
         const linhas = MEDIDAS_CAMPOS.map((c) => {
           const atual = d[c.key];
           let deltaCell = '';
-          if (idx > 0 && atual != null && base[c.key] != null) {
-            const diff = Number(atual) - Number(base[c.key]);
+          if (anterior && atual != null && anterior[c.key] != null) {
+            const diff = Number(atual) - Number(anterior[c.key]);
             const cls = diff < 0 ? 'delta-down' : diff > 0 ? 'delta-up' : '';
             const txt = `${diff > 0 ? '+' : diff < 0 ? '−' : ''}${nf1.format(Math.abs(diff))}`;
             deltaCell = `<span class="${cls}">${diff === 0 ? '0' : txt}</span>`;
           }
           return `<tr><td>${c.label}</td><td>${cm(atual)}</td><td>${deltaCell}</td></tr>`;
         }).join('');
+        const legenda = anterior
+          ? `<span style="font-weight:400;color:var(--text-secondary);font-size:12px;"> · vs ${dataBR(anterior.data)}</span>`
+          : ' · base';
         return `
           <div class="compare-card">
-            <h4>${dataBR(d.data)}${idx === 0 ? ' · base' : ''}</h4>
+            <h4>${dataBR(d.data)}${legenda}</h4>
             <div class="silhueta-wrap">${silhuetaSVG(d)}</div>
             <table class="compare-table"><tbody>${linhas}</tbody></table>
           </div>`;

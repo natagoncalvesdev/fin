@@ -104,7 +104,9 @@ Todos os dados ficam no **PostgreSQL**:
 | `registro_peso` | Histórico de peso (kg + data) |
 | `registro_medidas` | Histórico de medidas corporais (cm + data) |
 | `meta_peso` | Metas de peso e histórico (ativa / atingida / arquivada) |
-| `conquista` | Medalhas ganhas ao atingir metas |
+| `cofrinho` | Metas de economia ("guardar dinheiro") |
+| `aporte_cofrinho` | Depósitos num cofrinho (cada um também vira um débito) |
+| `conquista` | Medalhas (marcos de peso, metas, cofrinhos) |
 
 O Firebase **não é mais usado**. O frontend fala com a API Python, que persiste tudo no Postgres.
 
@@ -123,7 +125,8 @@ Documentação Swagger: http://localhost:8000/docs
 | GET | `/api/saude/peso?dias=7\|30\|365` | Registros de peso na janela |
 | GET | `/api/saude/medidas` | Registros de medidas corporais |
 | GET | `/api/saude/metas` | Metas de peso (com histórico) |
-| GET | `/api/saude/conquistas` | Medalhas ganhas |
+| GET | `/api/cofrinhos` | Metas de economia (saldo, plano mensal, aportes) |
+| GET | `/api/conquistas` | Medalhas (peso + cofrinhos) |
 
 ## Produção (Supabase + Render + Netlify, planos free)
 

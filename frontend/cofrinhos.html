@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cofrinhos</title>
+  <link rel="icon" href="img/icone.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="sidebar.css?v=9">
+  <link rel="stylesheet" href="css/theme.css?v=6">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=7">
+  <script src="js/fin-run-once.js"></script>
+  <script src="js/fin-config.js?v=1"></script>
+  <script src="js/fin-sdk.js?v=5"></script>
+  <script src="sidebar.js?v=9"></script>
+  <style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-main);
+      display: flex;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text-primary);
+    }
+
+    .content {
+      flex: 1;
+      padding: 40px;
+      margin-left: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      max-width: 1180px;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .cofre-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .cofre-card {
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 18px;
+      background: var(--bg-section);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+    .cofre-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .cofre-card.concluido { border-color: rgba(21,128,61,0.45); background: rgba(21,128,61,0.05); }
+    .cofre-card.arquivado { opacity: 0.6; }
+
+    .cofre-card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .cofre-nome { font-size: 16px; font-weight: 700; }
+    .cofre-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .cofre-badge.ativo { color: var(--accent); }
+    .cofre-badge.concluido { color: var(--positive); }
+    .cofre-badge.arquivado { color: var(--text-secondary); }
+
+    .cofre-valores { font-size: 14px; }
+    .cofre-valores strong { font-size: 18px; }
+    .cofre-sub { font-size: 12.5px; color: var(--text-secondary); }
+
+    .cofre-bar { height: 9px; border-radius: 999px; background: var(--slate-200); overflow: hidden; }
+    .cofre-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--accent); transition: width 0.3s ease; }
+    .cofre-card.concluido .cofre-bar > span,
+    .cofre-bar.concluido > span { background: var(--positive); }
+
+    .campo { display: flex; flex-direction: column; gap: 6px; }
+    .campo > label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); }
+    .campo > input, .campo > select {
+      padding: 11px 13px; border-radius: 10px; border: 1.5px solid var(--border-color);
+      background: var(--bg-section); color: var(--text-primary); font-size: 14px; font-family: var(--font-family);
+    }
+    .campo > input:focus, .campo > select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+    .modo-toggle { display: flex; gap: 8px; }
+    .modo-opt {
+      flex: 1; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border-color);
+      background: var(--bg-section); color: var(--text-secondary); font-weight: 600; font-size: 12.5px;
+      cursor: pointer; font-family: var(--font-family);
+    }
+    .modo-opt.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+    .plano-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+    .plano-table th, .plano-table td { padding: 8px 6px; border-bottom: 1px solid var(--border-color); text-align: right; }
+    .plano-table th:first-child, .plano-table td:first-child { text-align: left; color: var(--text-secondary); }
+    .plano-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); }
+
+    .big-progress { display: flex; flex-direction: column; gap: 8px; }
+    .big-progress .nums { display: flex; justify-content: space-between; align-items: baseline; }
+    .big-progress .saldo { font-size: 26px; font-weight: 800; }
+    .big-progress .alvo { color: var(--text-secondary); font-size: 14px; }
+
+    @media (max-width: 768px) {
+      .content { max-width: 100%; padding: 20px 16px 40px; margin-left: 0; }
+      .cofre-grid { grid-template-columns: 1fr; }
+      .plano-wrap { overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="content">
+    <!-- LISTA -->
+    <section id="listView">
+      <div class="header-row">
+        <div class="page-header">
+          <h1>Cofrinhos</h1>
+          <p>Metas de economia: junte dinheiro mês a mês até chegar no valor.</p>
+        </div>
+        <button class="btn-add" onclick="abrirModalNovo()">Novo cofrinho</button>
+      </div>
+
+      <div class="section-card" style="margin-top:16px;">
+        <div class="stat-row">
+          <div class="stat-tile positive">
+            <span class="stat-tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 8a5 5 0 0 0-5-3H9a5 5 0 0 0 0 10h1v3h4v-3h1a4 4 0 0 0 4-4Z"/><path d="M19 10h2M6 9h.01"/></svg></span>
+            <span class="stat-tile-body"><span class="stat-tile-label">Total guardado</span><span class="stat-tile-value" id="statTotal">R$ 0,00</span></span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M21 7v6h-6"/></svg></span>
+            <span class="stat-tile-body"><span class="stat-tile-label">Ativos</span><span class="stat-tile-value" id="statAtivos">0</span></span>
+          </div>
+          <div class="stat-tile positive">
+            <span class="stat-tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+            <span class="stat-tile-body"><span class="stat-tile-label">Concluídos</span><span class="stat-tile-value" id="statConcluidos">0</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div id="listaCofrinhos" class="cofre-grid">
+        <p class="info-text">Carregando…</p>
+      </div>
+    </section>
+
+    <!-- DETALHE -->
+    <section id="detailView" hidden>
+      <div class="header-row">
+        <h1 id="detNome" style="margin:0;">Cofrinho</h1>
+        <button class="btn-cancel" onclick="voltarLista()">Voltar</button>
+      </div>
+
+      <div class="section-card" style="margin-top:16px;">
+        <div class="big-progress">
+          <div class="nums">
+            <span class="saldo" id="detSaldo">R$ 0,00</span>
+            <span class="alvo" id="detAlvo">de R$ 0,00</span>
+          </div>
+          <div class="cofre-bar"><span id="detBar" style="width:0%"></span></div>
+          <span class="cofre-sub" id="detSub"></span>
+        </div>
+        <div class="modal-actions" style="margin-top:14px;">
+          <button class="btn-inline" onclick="abrirModalEditarCofrinho()">Editar</button>
+          <button class="btn-inline" id="detBtnArquivar" onclick="alternarArquivo()">Arquivar</button>
+          <button class="btn-inline fin-btn-danger" onclick="finRunOnce(event, () => excluirCofrinho())">Excluir</button>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3 class="section-card-title">Registrar aporte</h3>
+        <div class="form-row">
+          <input id="aporteValor" type="number" step="0.01" min="0" placeholder="Valor guardado (R$)">
+          <input id="aporteData" type="date">
+          <button class="btn-confirm" onclick="finRunOnce(event, () => registrarAporte())">Guardar</button>
+        </div>
+        <p class="info-text" style="margin:8px 0 0;">Cada aporte também entra como saída do mês no financeiro.</p>
+      </div>
+
+      <div class="section-card" id="detPlanoCard">
+        <h3 class="section-card-title">Plano mês a mês</h3>
+        <div class="plano-wrap">
+          <table class="plano-table">
+            <thead><tr><th>Mês</th><th>Guardar</th><th>Acumulado previsto</th></tr></thead>
+            <tbody id="detPlano"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h4>Aportes</h4>
+        <div id="detAportes" class="statement-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: novo cofrinho -->
+  <div id="modalNovo" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Novo cofrinho</h3>
+      <div class="campo"><label for="novoNome">Nome</label><input id="novoNome" placeholder="Ex: Viagem, Reserva de emergência"></div>
+
+      <div class="modo-toggle">
+        <button type="button" class="modo-opt active" data-modo="valor">Tenho um valor alvo</button>
+        <button type="button" class="modo-opt" data-modo="aporte">Guardar um valor fixo/mês</button>
+      </div>
+
+      <div class="campo" id="campoValorAlvo"><label for="novoValorAlvo">Valor alvo (R$)</label><input id="novoValorAlvo" type="number" step="0.01" min="0" placeholder="10000"></div>
+      <div class="campo" id="campoAporte" hidden><label for="novoAporte">Aporte mensal (R$)</label><input id="novoAporte" type="number" step="0.01" min="0" placeholder="500"></div>
+
+      <div id="campoAte">
+        <div class="form-row">
+          <div class="campo" style="flex:1;"><label for="novoMes">Até o mês</label><select id="novoMes"></select></div>
+          <div class="campo" style="flex:1;"><label for="novoAno">Ano</label><select id="novoAno"></select></div>
+        </div>
+      </div>
+      <div class="campo" id="campoDurante" hidden><label for="novoDurante">Durante quantos meses</label><input id="novoDurante" type="number" min="1" max="120" value="6"></div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="fecharModal('modalNovo')">Cancelar</button>
+        <button class="btn-confirm" onclick="finRunOnce(event, () => salvarNovo())">Criar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: editar cofrinho -->
+  <div id="modalEditar" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Editar cofrinho</h3>
+      <div class="campo"><label for="edNome">Nome</label><input id="edNome"></div>
+      <div class="campo" id="edCampoValor"><label for="edValorAlvo">Valor alvo (R$)</label><input id="edValorAlvo" type="number" step="0.01" min="0"></div>
+      <div class="campo" id="edCampoAporte"><label for="edAporte">Aporte mensal (R$)</label><input id="edAporte" type="number" step="0.01" min="0"></div>
+      <div class="form-row">
+        <div class="campo" style="flex:1;"><label for="edMes">Até o mês</label><select id="edMes"></select></div>
+        <div class="campo" style="flex:1;"><label for="edAno">Ano</label><select id="edAno"></select></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="fecharModal('modalEditar')">Cancelar</button>
+        <button class="btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoCofrinho())">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: editar aporte -->
+  <div id="modalAporte" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Editar aporte</h3>
+      <div class="campo"><label for="edApData">Data</label><input id="edApData" type="date"></div>
+      <div class="campo"><label for="edApValor">Valor (R$)</label><input id="edApValor" type="number" step="0.01" min="0"></div>
+      <div class="modal-actions">
+        <button class="btn-danger" onclick="finRunOnce(event, () => excluirAporte())">Excluir</button>
+        <button class="btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoAporte())">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const auth = firebase.auth();
+    const api = (path, opts) => window.finApi.request(path, opts);
+    const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+    const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+    const money = (v) => brl.format(Number(v) || 0);
+    const hoje = () => new Date().toISOString().slice(0, 10);
+    const dataBR = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR');
+
+    let cofres = [];
+    let detId = null;         // uuid do cofrinho aberto no detalhe
+    let novoModo = 'valor';
+    let aporteEditId = null;
+
+    // ---------- selects de mês/ano ----------
+    function popularMesAno(selMes, selAno) {
+      selMes.innerHTML = MESES.map((m) => `<option value="${m}">${m}</option>`).join('');
+      const anoAtual = new Date().getFullYear();
+      selAno.innerHTML = '';
+      for (let a = anoAtual; a <= anoAtual + 6; a++) selAno.innerHTML += `<option value="${a}">${a}</option>`;
+    }
+
+    // ---------- carregar / render ----------
+    async function carregar() {
+      cofres = await api('/api/cofrinhos');
+      if (detId && !cofres.some((c) => c.id === detId)) { detId = null; }
+      if (detId) renderDetalhe(); else renderLista();
+    }
+
+    function renderLista() {
+      document.getElementById('listView').hidden = false;
+      document.getElementById('detailView').hidden = true;
+
+      const total = cofres.reduce((s, c) => s + Number(c.saldo || 0), 0);
+      document.getElementById('statTotal').textContent = money(total);
+      document.getElementById('statAtivos').textContent = cofres.filter((c) => c.situacao === 'ativo').length;
+      document.getElementById('statConcluidos').textContent = cofres.filter((c) => c.situacao === 'concluido').length;
+
+      const lista = document.getElementById('listaCofrinhos');
+      if (!cofres.length) {
+        lista.innerHTML = '<div class="statement-empty">Nenhum cofrinho ainda. Clique em “Novo cofrinho”.</div>';
+        return;
+      }
+      lista.innerHTML = cofres.map((c) => {
+        const pct = c.progresso != null ? Math.round(c.progresso * 100) : 0;
+        return `
+          <div class="cofre-card ${c.situacao}" onclick="abrirDetalhe('${c.id}')">
+            <div class="cofre-card-top">
+              <span class="cofre-nome">${c.nome}</span>
+              <span class="cofre-badge ${c.situacao}">${c.situacao}</span>
+            </div>
+            <div class="cofre-valores"><strong>${money(c.saldo)}</strong> <span class="cofre-sub">de ${money(c.alvo)}</span></div>
+            <div class="cofre-bar"><span style="width:${pct}%"></span></div>
+            <span class="cofre-sub">${linhaResumo(c)}</span>
+          </div>`;
+      }).join('');
+    }
+
+    function linhaResumo(c) {
+      if (c.situacao === 'concluido') return `🏅 Concluído${c.dataConcluido ? ' em ' + dataBR(c.dataConcluido) : ''}`;
+      const prazo = c.mesAlvo ? `${c.mesAlvo}/${c.anoAlvo}` : '';
+      if (c.modo === 'valor_prazo') {
+        if (!c.mesesRestantes) return `Faltam ${money(c.restante)} — prazo (${prazo}) vencido`;
+        return `Guarde ${money(c.aporteSugerido)}/mês até ${prazo} · faltam ${money(c.restante)}`;
+      }
+      return `${money(c.aporteMensal)}/mês até ${prazo} · projeção ${money(c.projecaoFinal)}`;
+    }
+
+    function renderDetalhe() {
+      const c = cofres.find((x) => x.id === detId);
+      if (!c) { voltarLista(); return; }
+      document.getElementById('listView').hidden = true;
+      document.getElementById('detailView').hidden = false;
+
+      document.getElementById('detNome').textContent = c.nome;
+      document.getElementById('detSaldo').textContent = money(c.saldo);
+      document.getElementById('detAlvo').textContent = `de ${money(c.alvo)}`;
+      document.getElementById('detBar').style.width = `${c.progresso != null ? Math.round(c.progresso * 100) : 0}%`;
+      document.getElementById('detBar').parentElement.classList.toggle('concluido', c.situacao === 'concluido');
+      document.getElementById('detSub').textContent = linhaResumo(c);
+      document.getElementById('detBtnArquivar').textContent = c.situacao === 'arquivado' ? 'Reativar' : 'Arquivar';
+
+      // plano
+      const plano = document.getElementById('detPlano');
+      document.getElementById('detPlanoCard').hidden = !c.plano || !c.plano.length;
+      plano.innerHTML = (c.plano || []).map((p) => `
+        <tr><td>${p.mes.slice(0,3)}/${p.ano}</td><td>${money(p.valor)}</td><td>${money(p.acumulado)}</td></tr>
+      `).join('');
+
+      // aportes
+      const box = document.getElementById('detAportes');
+      if (!c.aportes || !c.aportes.length) {
+        box.innerHTML = '<div class="statement-empty">Nenhum aporte ainda.</div>';
+      } else {
+        box.innerHTML = c.aportes.slice().reverse().map((a) => `
+          <button type="button" class="statement-row" onclick="abrirModalAporte('${a.id}')">
+            <span class="statement-row-icon">💰</span>
+            <span class="statement-row-body">
+              <span class="statement-row-title">${money(a.data.valor)}</span>
+              <span class="statement-row-subtitle">${dataBR(a.data.data)}</span>
+            </span>
+            <span class="statement-row-end"><span class="statement-row-value" style="color:var(--slate-400);font-weight:400;">›</span></span>
+          </button>`).join('');
+      }
+    }
+
+    function abrirDetalhe(id) { detId = id; document.getElementById('aporteData').value = hoje(); renderDetalhe(); }
+    function voltarLista() { detId = null; renderLista(); }
+
+    // ---------- novo cofrinho ----------
+    function abrirModalNovo() {
+      document.getElementById('novoNome').value = '';
+      document.getElementById('novoValorAlvo').value = '';
+      document.getElementById('novoAporte').value = '';
+      document.getElementById('novoDurante').value = 6;
+      setModoNovo('valor');
+      popularMesAno(document.getElementById('novoMes'), document.getElementById('novoAno'));
+      document.getElementById('modalNovo').classList.add('visible');
+    }
+
+    function setModoNovo(modo) {
+      novoModo = modo;
+      document.querySelectorAll('#modalNovo .modo-opt').forEach((b) => b.classList.toggle('active', b.dataset.modo === modo));
+      document.getElementById('campoValorAlvo').hidden = modo !== 'valor';
+      document.getElementById('campoAporte').hidden = modo !== 'aporte';
+      document.getElementById('campoAte').hidden = modo !== 'valor';
+      document.getElementById('campoDurante').hidden = modo !== 'aporte';
+    }
+
+    document.querySelectorAll('#modalNovo .modo-opt').forEach((b) => b.addEventListener('click', () => setModoNovo(b.dataset.modo)));
+
+    function mesAnoDaqui(n) {
+      const d = new Date();
+      d.setMonth(d.getMonth() + n);
+      return { mes: MESES[d.getMonth()], ano: d.getFullYear() };
+    }
+
+    async function salvarNovo() {
+      const nome = document.getElementById('novoNome').value.trim();
+      if (!nome) return alert('Dê um nome ao cofrinho.');
+      const body = { nome };
+      if (novoModo === 'valor') {
+        const v = Number(document.getElementById('novoValorAlvo').value);
+        if (!v || v <= 0) return alert('Informe o valor alvo.');
+        body.valorAlvo = v;
+        body.mesAlvo = document.getElementById('novoMes').value;
+        body.anoAlvo = Number(document.getElementById('novoAno').value);
+      } else {
+        const v = Number(document.getElementById('novoAporte').value);
+        if (!v || v <= 0) return alert('Informe o aporte mensal.');
+        const n = Math.max(1, Number(document.getElementById('novoDurante').value) || 1);
+        const alvo = mesAnoDaqui(n - 1);
+        body.aporteMensal = v;
+        body.mesAlvo = alvo.mes;
+        body.anoAlvo = alvo.ano;
+      }
+      await api('/api/cofrinhos', { method: 'POST', body: JSON.stringify(body) });
+      fecharModal('modalNovo');
+      await carregar();
+    }
+
+    // ---------- editar cofrinho ----------
+    function abrirModalEditarCofrinho() {
+      const c = cofres.find((x) => x.id === detId);
+      if (!c) return;
+      popularMesAno(document.getElementById('edMes'), document.getElementById('edAno'));
+      document.getElementById('edNome').value = c.nome;
+      document.getElementById('edCampoValor').hidden = c.modo !== 'valor_prazo';
+      document.getElementById('edCampoAporte').hidden = c.modo !== 'aporte_prazo';
+      document.getElementById('edValorAlvo').value = c.valorAlvo ?? '';
+      document.getElementById('edAporte').value = c.aporteMensal ?? '';
+      if (c.mesAlvo) document.getElementById('edMes').value = c.mesAlvo;
+      if (c.anoAlvo) document.getElementById('edAno').value = c.anoAlvo;
+      document.getElementById('modalEditar').classList.add('visible');
+    }
+
+    async function salvarEdicaoCofrinho() {
+      const c = cofres.find((x) => x.id === detId);
+      if (!c) return;
+      const body = {
+        nome: document.getElementById('edNome').value.trim(),
+        mesAlvo: document.getElementById('edMes').value,
+        anoAlvo: Number(document.getElementById('edAno').value),
+      };
+      if (c.modo === 'valor_prazo') body.valorAlvo = Number(document.getElementById('edValorAlvo').value) || null;
+      else body.aporteMensal = Number(document.getElementById('edAporte').value) || null;
+      if (!body.nome) return alert('O nome não pode ficar vazio.');
+      await api(`/api/cofrinhos/${detId}`, { method: 'PUT', body: JSON.stringify(body) });
+      fecharModal('modalEditar');
+      await carregar();
+    }
+
+    async function alternarArquivo() {
+      const c = cofres.find((x) => x.id === detId);
+      if (!c) return;
+      const nova = c.situacao === 'arquivado' ? 'ativo' : 'arquivado';
+      await api(`/api/cofrinhos/${detId}`, { method: 'PUT', body: JSON.stringify({ situacao: nova }) });
+      await carregar();
+    }
+
+    async function excluirCofrinho() {
+      if (!detId || !confirm('Excluir este cofrinho? Os aportes e os débitos ligados a ele também serão removidos.')) return;
+      await api(`/api/cofrinhos/${detId}`, { method: 'DELETE' });
+      detId = null;
+      await carregar();
+    }
+
+    // ---------- aportes ----------
+    async function registrarAporte() {
+      if (!detId) return;
+      const valor = Number(document.getElementById('aporteValor').value);
+      const data = document.getElementById('aporteData').value || hoje();
+      if (!valor || valor <= 0) return alert('Informe o valor do aporte.');
+      const antes = (cofres.find((x) => x.id === detId) || {}).situacao;
+      await api(`/api/cofrinhos/${detId}/aportes`, { method: 'POST', body: JSON.stringify({ valor, data }) });
+      document.getElementById('aporteValor').value = '';
+      await carregar();
+      const depois = (cofres.find((x) => x.id === detId) || {}).situacao;
+      if (antes !== 'concluido' && depois === 'concluido') {
+        alert('🏅 Cofrinho concluído! Você ganhou uma medalha — veja na página Conquistas.');
+      }
+    }
+
+    function abrirModalAporte(id) {
+      const c = cofres.find((x) => x.id === detId);
+      const a = c && c.aportes.find((x) => x.id === id);
+      if (!a) return;
+      aporteEditId = id;
+      document.getElementById('edApData').value = a.data.data;
+      document.getElementById('edApValor').value = a.data.valor;
+      document.getElementById('modalAporte').classList.add('visible');
+    }
+
+    async function salvarEdicaoAporte() {
+      if (!aporteEditId) return;
+      const valor = Number(document.getElementById('edApValor').value);
+      const data = document.getElementById('edApData').value;
+      if (!valor || valor <= 0 || !data) return alert('Preencha data e valor.');
+      await api(`/api/cofrinhos/${detId}/aportes/${aporteEditId}`, { method: 'PUT', body: JSON.stringify({ valor, data }) });
+      fecharModal('modalAporte');
+      aporteEditId = null;
+      await carregar();
+    }
+
+    async function excluirAporte() {
+      if (!aporteEditId || !confirm('Excluir este aporte? O débito correspondente também será removido.')) return;
+      await api(`/api/cofrinhos/${detId}/aportes/${aporteEditId}`, { method: 'DELETE' });
+      fecharModal('modalAporte');
+      aporteEditId = null;
+      await carregar();
+    }
+
+    // ---------- modais ----------
+    function fecharModal(id) { document.getElementById(id).classList.remove('visible'); }
+    document.querySelectorAll('.modal-overlay').forEach((ov) => {
+      ov.addEventListener('click', function (e) { if (e.target === this) this.classList.remove('visible'); });
+    });
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      document.getElementById('aporteData').value = hoje();
+      try {
+        await carregar();
+      } catch (err) {
+        console.error('Erro ao carregar cofrinhos:', err);
+        document.getElementById('listaCofrinhos').innerHTML = '<div class="statement-empty">Não foi possível carregar.</div>';
+      }
+    });
+  </script>
+  <script src="js/mobile-nav.js?v=11"></script>
+</body>
+</html>

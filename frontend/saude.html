@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Saúde - Peso e Medidas</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="sidebar.css?v=8">
+  <link rel="stylesheet" href="sidebar.css?v=9">
   <link rel="stylesheet" href="css/theme.css?v=6">
   <link rel="stylesheet" href="css/mobile-shell.css?v=7">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=5"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-  <script src="sidebar.js?v=8"></script>
+  <script src="sidebar.js?v=9"></script>
   <style>
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
@@ -730,20 +730,29 @@
       });
     }
 
-    function metasAtingidasIds() {
-      return new Set(metas.filter((m) => m.data.situacao === 'atingida').map((m) => m.id));
+    // Chaves de medalha já conhecidas — para avisar sobre as novas.
+    let medalhasConhecidas = null;
+
+    async function sincronizarMedalhas(avisar) {
+      let lista;
+      try {
+        lista = await api('/api/conquistas');
+      } catch (e) { return; }
+      const chaves = new Set(lista.map((m) => m.data.chave));
+      if (avisar && medalhasConhecidas) {
+        const novas = lista.filter((m) => !medalhasConhecidas.has(m.data.chave));
+        if (novas.length) {
+          const nomes = novas.map((m) => m.data.titulo).join(', ');
+          alert(`🏅 Nova${novas.length > 1 ? 's' : ''} medalha${novas.length > 1 ? 's' : ''}: ${nomes}!\nVeja na página Conquistas.`);
+        }
+      }
+      medalhasConhecidas = chaves;
     }
 
-    // Recarrega peso + metas e avisa se alguma meta foi batida agora.
+    // Recarrega peso + metas e avisa sobre medalhas desbloqueadas agora.
     async function recarregarPesoEMetas() {
-      const antes = metasAtingidasIds();
       await Promise.all([carregarPeso(), carregarMetas()]);
-      const novas = metas.filter((m) => m.data.situacao === 'atingida' && !antes.has(m.id));
-      if (novas.length) {
-        const alvos = novas.map((m) => `${nf1.format(Number(m.data.pesoAlvo))} kg`).join(', ');
-        const medalha = novas.length > 1 ? `${novas.length} medalhas` : 'uma medalha';
-        alert(`🏅 Meta atingida: ${alvos}!\nVocê ganhou ${medalha} — veja na página Conquistas.`);
-      }
+      await sincronizarMedalhas(true);
     }
 
     async function registrarPeso() {
@@ -765,6 +774,7 @@
       document.getElementById('metaValor').value = '';
       document.getElementById('metaData').value = '';
       await carregarMetas();
+      await sincronizarMedalhas(true);
     }
 
     async function arquivarMeta(id, arquivar) {
@@ -773,6 +783,7 @@
         body: JSON.stringify({ situacao: arquivar ? 'arquivada' : 'ativa' }),
       });
       await carregarMetas();
+      await sincronizarMedalhas(true);
     }
 
     async function removerMeta(id) {
@@ -1090,7 +1101,7 @@
       atualizarSilhuetaForm();
 
       try {
-        await Promise.all([carregarPeso(), carregarMetas(), carregarMedidas()]);
+        await Promise.all([carregarPeso(), carregarMetas(), carregarMedidas(), sincronizarMedalhas(false)]);
       } catch (err) {
         console.error('Erro ao carregar dados de saúde:', err);
         alert('Não foi possível carregar os dados. Tente recarregar a página.');

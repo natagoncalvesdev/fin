@@ -71,6 +71,10 @@
     navegarPara(urlFinanceiro('reservados.html'));
   }
 
+  function irCofrinhos() {
+    navegarPara('cofrinhos.html');
+  }
+
   function irHome() {
     navegarPara('index.html');
   }
@@ -351,6 +355,7 @@
     irHome,
     irRelatorio,
     irVeiculos,
+    irCofrinhos,
     irSaude,
     irConquistas,
     irConfiguracoes

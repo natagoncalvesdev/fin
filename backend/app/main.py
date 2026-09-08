@@ -11,6 +11,8 @@ from app.routers import (
     auth_router,
     cartoes,
     categorias,
+    cofrinhos,
+    conquistas,
     financeiro,
     integracoes,
     relatorios,
@@ -42,6 +44,8 @@ app.include_router(veiculos.router)
 app.include_router(relatorios.router)
 app.include_router(integracoes.router)
 app.include_router(saude.router)
+app.include_router(cofrinhos.router)
+app.include_router(conquistas.router)
 
 
 @app.get("/api/health")

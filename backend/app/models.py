@@ -55,6 +55,7 @@ class Usuario(Base):
     medidas: Mapped[list["RegistroMedidas"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
     metas_peso: Mapped[list["MetaPeso"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
     conquistas: Mapped[list["Conquista"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
+    cofrinhos: Mapped[list["Cofrinho"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
 
     @property
     def id_externo(self) -> str:
@@ -333,20 +334,26 @@ class MetaPeso(Base):
 
 
 class Conquista(Base):
-    """Medalha permanente. Concedida quando o usuário atinge uma meta de peso —
-    não é removida se a meta depois for revertida ou apagada."""
+    """Medalha permanente. Concedida ao registrar o primeiro peso, a cada marco
+    de peso perdido, ao bater uma meta de peso e ao concluir um cofrinho. Não é
+    removida se a meta/cofrinho depois for revertido ou apagado.
+
+    `chave` é o identificador único por usuário que evita medalha duplicada
+    (ex.: "peso_perda:5", "meta_peso:<uuid>", "meta_guardar:<uuid>").
+    """
 
     __tablename__ = "conquista"
+    __table_args__ = (UniqueConstraint("id_usuario", "chave", name="uq_conquista_usuario_chave"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, default=new_uuid, index=True)
     id_usuario: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), nullable=False, index=True)
-    tipo: Mapped[str] = mapped_column(String(30), nullable=False, default="meta_peso")
+    tipo: Mapped[str] = mapped_column(String(30), nullable=False)
+    chave: Mapped[str] = mapped_column(String(120), nullable=False)
     titulo: Mapped[str] = mapped_column(String(120), nullable=False)
     descricao: Mapped[str] = mapped_column(String(255), nullable=False)
-    nivel: Mapped[str] = mapped_column(String(20), nullable=False, default="bronze")
-    peso_alvo: Mapped[float | None] = mapped_column(Float, nullable=True)
-    meta_uuid: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    icone: Mapped[str] = mapped_column(String(30), nullable=False, default="trofeu")
+    valor: Mapped[float | None] = mapped_column(Float, nullable=True)
     data_conquista: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
@@ -355,11 +362,11 @@ class Conquista(Base):
     def to_dict(self) -> dict:
         return {
             "tipo": self.tipo,
+            "chave": self.chave,
             "titulo": self.titulo,
             "descricao": self.descricao,
-            "nivel": self.nivel,
-            "pesoAlvo": self.peso_alvo,
-            "metaUuid": self.meta_uuid,
+            "icone": self.icone,
+            "valor": self.valor,
             "dataConquista": self.data_conquista.isoformat(),
         }
 
@@ -401,3 +408,51 @@ class RegistroMedidas(Base):
             "panturrilhaDir": self.panturrilha_dir,
             "panturrilhaEsq": self.panturrilha_esq,
         }
+
+
+class Cofrinho(Base):
+    """Meta de economia ("guardar dinheiro"). Dois modos:
+      - valor_alvo definido: quero juntar R$ X até mês/ano -> sugere aporte/mês;
+      - aporte_mensal definido: vou guardar R$ Y/mês até mês/ano -> projeta o total.
+    Cada aporte também vira um Débito no financeiro daquele mês (reduz o saldo).
+    """
+
+    __tablename__ = "cofrinho"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, default=new_uuid, index=True)
+    id_usuario: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), nullable=False, index=True)
+    nome: Mapped[str] = mapped_column(String(120), nullable=False)
+    valor_alvo: Mapped[float | None] = mapped_column(Float, nullable=True)
+    aporte_mensal: Mapped[float | None] = mapped_column(Float, nullable=True)
+    mes_alvo: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    ano_alvo: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    data_inicio: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)
+    situacao: Mapped[str] = mapped_column(String(20), nullable=False, default="ativo")
+    data_concluido: Mapped[date | None] = mapped_column(Date, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    usuario: Mapped["Usuario"] = relationship(back_populates="cofrinhos")
+    aportes: Mapped[list["AporteCofrinho"]] = relationship(
+        back_populates="cofrinho", cascade="all, delete-orphan"
+    )
+
+
+class AporteCofrinho(Base):
+    __tablename__ = "aporte_cofrinho"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, default=new_uuid, index=True)
+    id_cofrinho: Mapped[int] = mapped_column(Integer, ForeignKey("cofrinho.id", ondelete="CASCADE"), nullable=False, index=True)
+    id_usuario: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), nullable=False, index=True)
+    data_aporte: Mapped[date] = mapped_column(Date, nullable=False)
+    valor: Mapped[float] = mapped_column(Float, nullable=False)
+    # Débito-espelho no financeiro (o aporte "conta como saída do mês"). SET NULL
+    # se o usuário apagar o débito direto na tela de Contas.
+    id_debito: Mapped[int | None] = mapped_column(Integer, ForeignKey("debito.id", ondelete="SET NULL"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    cofrinho: Mapped["Cofrinho"] = relationship(back_populates="aportes")
+
+    def to_dict(self) -> dict:
+        return {"valor": self.valor, "data": self.data_aporte.isoformat()}

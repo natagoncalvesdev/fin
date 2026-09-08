@@ -5,11 +5,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app import saude_service
 from app.auth import get_current_user
 from app.database import get_db
-from app.models import Conquista, MetaPeso, RegistroMedidas, RegistroPeso, Usuario
+from app.models import MetaPeso, RegistroMedidas, RegistroPeso, Usuario
 
 router = APIRouter(prefix="/api/saude", tags=["saude"])
+
+_peso_atual = saude_service.peso_atual
+_sincronizar_saude = saude_service.sincronizar
 
 
 # ---------------------------------------------------------------------------
@@ -36,107 +40,6 @@ def _get_peso_or_404(db: Session, peso_uuid: str, usuario: Usuario) -> RegistroP
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Registro de peso não encontrado.")
     return item
-
-
-def _peso_atual(db: Session, usuario: Usuario) -> float | None:
-    ultimo = (
-        db.query(RegistroPeso)
-        .filter(RegistroPeso.id_usuario == usuario.id)
-        .order_by(RegistroPeso.data_registro.desc(), RegistroPeso.id.desc())
-        .first()
-    )
-    return ultimo.peso if ultimo else None
-
-
-def _peso_atinge_meta(peso: float, meta: MetaPeso) -> bool:
-    base = meta.peso_inicial
-    if base is None:
-        return abs(peso - meta.peso_alvo) <= 0.05
-    if meta.peso_alvo <= base:
-        return peso <= meta.peso_alvo
-    return peso >= meta.peso_alvo
-
-
-def _nivel_medalha(delta_kg: float | None) -> str:
-    """Nível da medalha pela distância percorrida (peso inicial -> alvo)."""
-    if delta_kg is None:
-        return "bronze"
-    if delta_kg >= 10:
-        return "ouro"
-    if delta_kg >= 5:
-        return "prata"
-    return "bronze"
-
-
-def _conceder_conquista(db: Session, usuario: Usuario, meta: MetaPeso) -> bool:
-    """Cria a medalha da meta atingida (uma por meta, idempotente pelo uuid da
-    meta). Retorna True se criou."""
-    ja_tem = (
-        db.query(Conquista)
-        .filter(Conquista.id_usuario == usuario.id, Conquista.meta_uuid == meta.uuid)
-        .first()
-    )
-    if ja_tem:
-        return False
-
-    delta = abs(meta.peso_inicial - meta.peso_alvo) if meta.peso_inicial is not None else None
-    alvo_txt = f"{meta.peso_alvo:.1f}".replace(".", ",")
-    quando = meta.data_atingida or date.today()
-    db.add(
-        Conquista(
-            id_usuario=usuario.id,
-            tipo="meta_peso",
-            titulo=f"Meta de {alvo_txt} kg",
-            descricao=f"Você atingiu {alvo_txt} kg em {quando.strftime('%d/%m/%Y')}.",
-            nivel=_nivel_medalha(delta),
-            peso_alvo=meta.peso_alvo,
-            meta_uuid=meta.uuid,
-            data_conquista=quando,
-        )
-    )
-    return True
-
-
-def _sincronizar_metas(db: Session, usuario: Usuario) -> bool:
-    """Recalcula do zero a situação de cada meta não arquivada a partir de todo
-    o histórico de peso. Idempotente: só promove "ativa" -> "atingida" (com a
-    data do primeiro registro, posterior à criação da meta, que bate o alvo) ou
-    volta para "ativa" se nenhum registro bate mais. "arquivada" nunca muda
-    automaticamente. Cada meta atingida rende uma medalha permanente (Conquista).
-    Retorna True se algo mudou."""
-    metas = (
-        db.query(MetaPeso)
-        .filter(MetaPeso.id_usuario == usuario.id, MetaPeso.situacao != "arquivada")
-        .all()
-    )
-    if not metas:
-        return False
-
-    pesos = (
-        db.query(RegistroPeso)
-        .filter(RegistroPeso.id_usuario == usuario.id)
-        .order_by(RegistroPeso.data_registro.asc(), RegistroPeso.id.asc())
-        .all()
-    )
-
-    mudou = False
-    for meta in metas:
-        atingida_em = next(
-            (
-                p.data_registro
-                for p in pesos
-                if p.data_registro >= meta.data_criacao and _peso_atinge_meta(p.peso, meta)
-            ),
-            None,
-        )
-        nova = "atingida" if atingida_em else "ativa"
-        if meta.situacao != nova or meta.data_atingida != atingida_em:
-            meta.situacao = nova
-            meta.data_atingida = atingida_em
-            mudou = True
-        if nova == "atingida" and _conceder_conquista(db, usuario, meta):
-            mudou = True
-    return mudou
 
 
 @router.get("/peso")
@@ -166,7 +69,7 @@ def create_peso(
     )
     db.add(item)
     db.flush()
-    _sincronizar_metas(db, current_user)
+    _sincronizar_saude(db, current_user)
     db.commit()
     db.refresh(item)
     return {"id": item.uuid, "data": item.to_dict()}
@@ -185,7 +88,7 @@ def update_peso(
     if body.data is not None:
         item.data_registro = body.data
     db.flush()
-    _sincronizar_metas(db, current_user)
+    _sincronizar_saude(db, current_user)
     db.commit()
     db.refresh(item)
     return {"id": item.uuid, "data": item.to_dict()}
@@ -200,7 +103,7 @@ def delete_peso(
     item = _get_peso_or_404(db, peso_id, current_user)
     db.delete(item)
     db.flush()
-    _sincronizar_metas(db, current_user)
+    _sincronizar_saude(db, current_user)
     db.commit()
 
 
@@ -366,7 +269,7 @@ def list_metas(
     current_user: Annotated[Usuario, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    if _sincronizar_metas(db, current_user):
+    if _sincronizar_saude(db, current_user):
         db.commit()
     return _listar_metas(db, current_user)
 
@@ -387,7 +290,7 @@ def create_meta(
     )
     db.add(meta)
     db.flush()
-    _sincronizar_metas(db, current_user)
+    _sincronizar_saude(db, current_user)
     db.commit()
     db.refresh(meta)
     return {"id": meta.uuid, "data": meta.to_dict()}
@@ -415,7 +318,7 @@ def update_meta(
         if body.situacao == "arquivada":
             meta.data_atingida = None
     db.flush()
-    _sincronizar_metas(db, current_user)
+    _sincronizar_saude(db, current_user)
     db.commit()
     db.refresh(meta)
     return {"id": meta.uuid, "data": meta.to_dict()}
@@ -430,26 +333,3 @@ def delete_meta(
     meta = _get_meta_or_404(db, meta_id, current_user)
     db.delete(meta)
     db.commit()
-
-
-# ---------------------------------------------------------------------------
-# Conquistas (medalhas)
-# ---------------------------------------------------------------------------
-
-
-@router.get("/conquistas")
-def list_conquistas(
-    current_user: Annotated[Usuario, Depends(get_current_user)],
-    db: Annotated[Session, Depends(get_db)],
-):
-    # Garante que metas já batidas (ex.: antes desta feature existir) rendam a
-    # medalha ao abrir a página.
-    if _sincronizar_metas(db, current_user):
-        db.commit()
-    itens = (
-        db.query(Conquista)
-        .filter(Conquista.id_usuario == current_user.id)
-        .order_by(Conquista.data_conquista.desc(), Conquista.id.desc())
-        .all()
-    )
-    return [{"id": c.uuid, "data": c.to_dict()} for c in itens]

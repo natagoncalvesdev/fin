@@ -8,6 +8,7 @@ const SIDEBAR_ICONS = {
   cartoes: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
   reservas: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
   veiculos: '<path d="M7 17h.01M17 17h.01M5 11l1.5-4h11L19 11M5 11h14v6H5z"/>',
+  saude: '<path d="M3 12h4l2-5 4 12 2-5h6"/>',
   relatorios: '<path d="M4 19V5M4 19h16M8 17V11M12 17V7M16 17v-4"/>',
   config: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 13.09H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
 };
@@ -21,6 +22,7 @@ function carregarSidebar() {
     { href: 'cartoes.html', label: 'Cartões', icon: 'cartoes', ativo: paginaAtual === 'cartoes.html' },
     { href: 'reservados.html', label: 'Reservas', icon: 'reservas', ativo: paginaAtual === 'reservados.html' },
     { href: 'veiculos.html', label: 'Veículos', icon: 'veiculos', ativo: paginaAtual === 'veiculos.html' },
+    { href: 'saude.html', label: 'Saúde', icon: 'saude', ativo: paginaAtual === 'saude.html' },
     { href: 'relatorio.html', label: 'Relatórios', icon: 'relatorios', ativo: paginaAtual === 'relatorio.html' },
     { href: 'configuracoes.html', label: 'Configurações', icon: 'config', ativo: paginaAtual === 'configuracoes.html' || paginaAtual === 'config.html' },
   ];

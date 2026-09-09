@@ -1,4 +1,21 @@
-# Netlify — cache dos estáticos versionados (o cache-bust é feito pelo ?v=N no HTML).
+# Netlify — cabeçalhos de segurança + cache dos estáticos.
+
+# Segurança em todas as páginas.
+# - CSP: script-src ainda tem 'unsafe-inline' porque as páginas usam <script>
+#   embutido e onclick=; o ganho aqui é connect-src/img-src, que impedem um
+#   XSS de mandar o token para um servidor externo, e frame-ancestors, que
+#   bloqueia clickjacking. O escape na renderização (js/fin-sdk.js) é a
+#   proteção principal contra o XSS em si.
+# - connect-src PRECISA bater com window.FIN_API_BASE em js/fin-config.js.
+#   Se a URL da API no Render mudar, atualize aqui também senão o app para.
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://fin-1-ua2c.onrender.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+
+# Cache dos estáticos versionados (o cache-bust é feito pelo ?v=N no HTML).
 # Evita rebaixar JS/CSS a cada navegação entre páginas.
 
 /js/*

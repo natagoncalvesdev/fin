@@ -2,13 +2,14 @@ from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from app import cofrinhos_service, usuarios_service
 from app.auth import get_current_user
 from app.database import get_db
 from app.models import MESES, Cofrinho, CofrinhoParticipante, Conta, Usuario
+from app.validators import nome_sem_html
 
 router = APIRouter(prefix="/api/cofrinhos", tags=["cofrinhos"])
 
@@ -20,6 +21,11 @@ class CofrinhoCreate(BaseModel):
     mesAlvo: str
     anoAlvo: int = Field(ge=2000, le=2100)
 
+    @field_validator("nome")
+    @classmethod
+    def _valida_nome(cls, v: str) -> str:
+        return nome_sem_html(v)
+
 
 class CofrinhoUpdate(BaseModel):
     nome: str | None = Field(default=None, min_length=1, max_length=120)
@@ -28,6 +34,11 @@ class CofrinhoUpdate(BaseModel):
     mesAlvo: str | None = None
     anoAlvo: int | None = Field(default=None, ge=2000, le=2100)
     situacao: str | None = None
+
+    @field_validator("nome")
+    @classmethod
+    def _valida_nome(cls, v: str | None) -> str | None:
+        return nome_sem_html(v)
 
 
 class ParticipanteInvite(BaseModel):

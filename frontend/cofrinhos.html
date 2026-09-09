@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="css/mobile-shell.css?v=8">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
-  <script src="js/fin-sdk.js?v=5"></script>
+  <script src="js/fin-sdk.js?v=6"></script>
   <script src="sidebar.js?v=9"></script>
   <style>
     * { box-sizing: border-box; }
@@ -282,7 +282,7 @@
   <div id="modalAddPessoa" class="modal-overlay">
     <div class="modal-content">
       <h3>Adicionar pessoa à caixinha</h3>
-      <div class="campo"><label for="buscaPessoa">Buscar por nome ou e-mail</label><input id="buscaPessoa" autocomplete="off" placeholder="Digite ao menos 2 letras"></div>
+      <div class="campo"><label for="buscaPessoa">Buscar por nome ou e-mail</label><input id="buscaPessoa" autocomplete="off" placeholder="Digite ao menos 3 letras"></div>
       <div id="buscaResultado" class="user-result"></div>
       <p class="info-text" style="margin:0;">A pessoa recebe um convite e escolhe quanto vai guardar por mês.</p>
       <div class="modal-actions">
@@ -321,6 +321,7 @@
   <script>
     const auth = firebase.auth();
     const api = (path, opts) => window.finApi.request(path, opts);
+    const esc = window.finEscapeHtml;
     const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
     const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
     const money = (v) => brl.format(Number(v) || 0);
@@ -415,7 +416,7 @@
         return `
           <div class="cofre-card ${c.situacao}" onclick="abrirDetalhe('${c.id}')">
             <div class="cofre-card-top">
-              <span class="cofre-nome">${c.nome}</span>
+              <span class="cofre-nome">${esc(c.nome)}</span>
               <span class="cofre-badge ${c.situacao}">${c.situacao}</span>
             </div>
             <div class="cofre-valores"><strong>${money(c.saldo)}</strong> <span class="cofre-sub">de ${money(c.alvo)}</span></div>
@@ -456,7 +457,7 @@
           const aporte = p.aporteMensal != null ? `${money(p.aporteMensal)}/mês` : '—';
           return `
             <div class="part-row">
-              <span class="part-nome">${p.nome}${p.souEu ? ' (você)' : ''}<small>guardou ${money(p.guardado)}</small></span>
+              <span class="part-nome">${esc(p.nome)}${p.souEu ? ' (você)' : ''}<small>guardou ${money(p.guardado)}</small></span>
               ${tag}
               <span class="part-valor">${aporte}</span>
               ${rem}
@@ -667,7 +668,7 @@
       usuarioSelecionado = null;
       document.getElementById('btnConvidar').disabled = true;
       clearTimeout(buscaTimer);
-      if (q.length < 2) { document.getElementById('buscaResultado').innerHTML = ''; return; }
+      if (q.length < 3) { document.getElementById('buscaResultado').innerHTML = ''; return; }
       buscaTimer = setTimeout(() => buscarUsuarios(q), 300);
     });
 
@@ -678,9 +679,9 @@
       const box = document.getElementById('buscaResultado');
       if (!res.length) { box.innerHTML = '<p class="info-text">Ninguém encontrado.</p>'; return; }
       box.innerHTML = res.map((u) => `
-        <button type="button" data-id="${u.id}" data-nome="${u.nome.replace(/"/g, '&quot;')}">
-          <span class="u-nome">${u.nome}</span>
-          <span class="u-email">${u.email}</span>
+        <button type="button" data-id="${esc(u.id)}" data-nome="${esc(u.nome)}">
+          <span class="u-nome">${esc(u.nome)}</span>
+          <span class="u-email">${esc(u.emailDica)}</span>
         </button>`).join('');
       box.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
         box.querySelectorAll('button').forEach((x) => x.classList.remove('sel'));
@@ -754,6 +755,6 @@
       }
     });
   </script>
-  <script src="js/mobile-nav.js?v=12"></script>
+  <script src="js/mobile-nav.js?v=13"></script>
 </body>
 </html>

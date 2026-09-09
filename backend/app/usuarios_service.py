@@ -10,11 +10,23 @@ from sqlalchemy.orm import Session
 from app.models import Usuario
 
 
+def mascarar_email(email: str) -> str:
+    """Dica visual para diferenciar homônimos na busca sem expor o e-mail
+    inteiro: mostra as 2 primeiras letras da parte local e o domínio.
+    'ana.silva@gmail.com' -> 'an***@gmail.com'."""
+    try:
+        local, dominio = email.rsplit("@", 1)
+    except ValueError:
+        return "***"
+    visivel = local[:1] if len(local) <= 2 else local[:2]
+    return f"{visivel}***@{dominio}"
+
+
 def buscar(db: Session, termo: str, excluir_id: int | None = None, limite: int = 8) -> list[Usuario]:
-    """Casa email exato (case-insensitive) OU nome contendo `termo` (mín. 2
+    """Casa email exato (case-insensitive) OU nome contendo `termo` (mín. 3
     caracteres). Exclui `excluir_id` (o próprio usuário)."""
     termo = (termo or "").strip()
-    if len(termo) < 2:
+    if len(termo) < 3:
         return []
     alvo = termo.lower()
     query = db.query(Usuario).filter(

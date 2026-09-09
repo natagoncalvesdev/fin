@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -33,6 +33,26 @@ app.add_middleware(
     allow_headers=["*"],
     max_age=3600,
 )
+
+# Cabeçalhos de segurança em toda resposta da API. O frontend (servido pela
+# Netlify) tem os seus próprios em frontend/_headers — este bloco cobre as
+# respostas JSON e o /docs. A API só devolve JSON, então uma CSP estrita não
+# quebra nada (exceto o Swagger, que precisa carregar assets).
+_DOCS_PATHS = ("/docs", "/redoc", "/openapi.json")
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    if not request.url.path.startswith(_DOCS_PATHS):
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
+        )
+    return response
 
 app.include_router(auth_router.router)
 app.include_router(users.router)

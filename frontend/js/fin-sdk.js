@@ -977,11 +977,29 @@
   global.firebase.firestore.FieldValue = FieldValue;
   global.firebase.firestore.Timestamp = FinTimestamp;
 
+  // --- Escape de HTML ---
+  // Usar SEMPRE ao interpolar texto vindo da API dentro de `innerHTML`
+  // (nomes de usuário, grupos, cofrinhos, categorias, descrições…). Sem isto,
+  // um nome como `<img src=x onerror=...>` executa script no navegador de quem
+  // vê a lista — inclusive de outros usuários em grupos/cofrinhos.
+  function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value).replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    })[ch]);
+  }
+  global.finEscapeHtml = escapeHtml;
+
   // --- Acesso direto à API REST (usado pelas páginas novas, que não passam
   // mais pelo formato de documento "mês inteiro" do shim acima) ---
   global.finApi = {
     request: apiRequest,
     getToken,
+    escapeHtml,
   };
 
   initAuth();

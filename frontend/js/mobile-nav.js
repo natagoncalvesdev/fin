@@ -270,7 +270,7 @@
         <div class="dash-legend-item">
           <span class="dash-legend-left">
             <span class="dash-legend-dot" style="background:${cores[i]}"></span>
-            <span class="dash-legend-nome">${nome}</span>
+            <span class="dash-legend-nome">${window.finEscapeHtml ? window.finEscapeHtml(nome) : nome}</span>
           </span>
           <span class="dash-legend-values">
             <strong class="dash-legend-valor">${formatarMoeda(values[i])}</strong>

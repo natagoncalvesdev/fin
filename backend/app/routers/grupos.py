@@ -2,13 +2,14 @@ from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from app import grupos_service, usuarios_service
 from app.auth import get_current_user
 from app.database import get_db
 from app.models import Grupo, GrupoMembro, Usuario
+from app.validators import nome_sem_html
 
 router = APIRouter(prefix="/api/grupos", tags=["grupos"])
 
@@ -18,6 +19,11 @@ TIPOS_VALIDOS = {"saude"}
 class GrupoCreate(BaseModel):
     nome: str = Field(min_length=1, max_length=120)
     tipo: str = "saude"
+
+    @field_validator("nome")
+    @classmethod
+    def _valida_nome(cls, v: str) -> str:
+        return nome_sem_html(v)
 
 
 class MembroInvite(BaseModel):

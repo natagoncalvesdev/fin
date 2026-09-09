@@ -1,12 +1,14 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr, Field
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from sqlalchemy.orm import Session
 
 from app.auth import create_access_token, get_current_user, hash_password, verify_password
 from app.database import get_db
 from app.models import Usuario
+from app.rate_limit import client_ip, login_limiter, register_limiter
+from app.validators import nome_sem_html
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -15,6 +17,11 @@ class RegisterRequest(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     email: EmailStr
     password: str = Field(min_length=6, max_length=128)
+
+    @field_validator("name")
+    @classmethod
+    def _valida_nome(cls, v: str) -> str:
+        return nome_sem_html(v)
 
 
 class LoginRequest(BaseModel):
@@ -46,6 +53,11 @@ class UpdateProfileRequest(BaseModel):
     current_password: str | None = Field(None, min_length=6, max_length=128)
     new_password: str | None = Field(None, min_length=6, max_length=128)
 
+    @field_validator("name")
+    @classmethod
+    def _valida_nome(cls, v: str | None) -> str | None:
+        return nome_sem_html(v)
+
 
 def user_to_response(user: Usuario) -> UserResponse:
     return UserResponse(
@@ -60,7 +72,9 @@ def user_to_response(user: Usuario) -> UserResponse:
 
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
-def register(body: RegisterRequest, db: Annotated[Session, Depends(get_db)]):
+def register(body: RegisterRequest, request: Request, db: Annotated[Session, Depends(get_db)]):
+    register_limiter.hit(client_ip(request))
+
     existing = db.query(Usuario).filter(Usuario.email == body.email.lower()).first()
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Este email já está em uso.")
@@ -79,9 +93,13 @@ def register(body: RegisterRequest, db: Annotated[Session, Depends(get_db)]):
 
 
 @router.post("/login", response_model=AuthResponse)
-def login(body: LoginRequest, db: Annotated[Session, Depends(get_db)]):
+def login(body: LoginRequest, request: Request, db: Annotated[Session, Depends(get_db)]):
+    ip = client_ip(request)
+    login_limiter.check(ip)
+
     user = db.query(Usuario).filter(Usuario.email == body.email.lower()).first()
     if not user or not verify_password(body.password, user.senha):
+        login_limiter.hit(ip)  # só tentativas falhas contam para o limite
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Email ou senha inválidos.")
 
     token = create_access_token(user.uuid)

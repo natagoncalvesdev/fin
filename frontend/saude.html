@@ -509,7 +509,7 @@
       <div class="section-card">
         <h3 class="section-card-title">Registrar peso</h3>
         <div class="form-row">
-          <input id="pesoValor" type="number" step="0.1" min="0" placeholder="Peso (kg)">
+          <input id="pesoValor" type="number" step="0.01" min="0" placeholder="Peso (kg)">
           <input id="pesoData" type="date">
           <button class="btn-confirm" onclick="finRunOnce(event, () => registrarPeso())">Registrar</button>
         </div>
@@ -518,7 +518,7 @@
       <div class="section-card">
         <h3 class="section-card-title">Metas de peso</h3>
         <div class="form-row">
-          <input id="metaValor" type="number" step="0.1" min="0" placeholder="Peso alvo (kg)">
+          <input id="metaValor" type="number" step="0.01" min="0" placeholder="Peso alvo (kg)">
           <input id="metaData" type="date" title="Prazo (opcional)">
           <button class="btn-cancel" onclick="finRunOnce(event, () => adicionarMeta())">Adicionar meta</button>
         </div>
@@ -660,7 +660,7 @@
     <div class="modal-content">
       <h3>Editar registro de peso</h3>
       <div class="campo"><label for="editPesoData">Data</label><input id="editPesoData" type="date"></div>
-      <div class="campo"><label for="editPesoValor">Peso (kg)</label><input id="editPesoValor" type="number" step="0.1" min="0"></div>
+      <div class="campo"><label for="editPesoValor">Peso (kg)</label><input id="editPesoValor" type="number" step="0.01" min="0"></div>
       <div class="modal-actions">
         <button class="btn-danger" onclick="finRunOnce(event, () => removerPeso())">Excluir</button>
         <button class="btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoPeso())">Salvar</button>
@@ -739,11 +739,12 @@
     ];
 
     const nf1 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const kg = (v) => `${nf1.format(Number(v) || 0)} kg`;
+    const nf2 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const kg = (v) => `${nf2.format(Number(v) || 0)} kg`;
     const cm = (v) => (v == null || v === '' ? '—' : `${nf1.format(Number(v))} cm`);
     const hoje = () => new Date().toISOString().slice(0, 10);
     const dataBR = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR');
-    const sinalKg = (delta) => `${delta > 0 ? '+' : delta < 0 ? '−' : ''}${nf1.format(Math.abs(delta))} kg`;
+    const sinalKg = (delta) => `${delta > 0 ? '+' : delta < 0 ? '−' : ''}${nf2.format(Math.abs(delta))} kg`;
 
     let pesosAll = [];
     let metas = [];
@@ -903,7 +904,7 @@
         const ate = janela[janela.length - 1].data.data;
         const verbo = deltaJanela < 0 ? 'Perdeu' : deltaJanela > 0 ? 'Ganhou' : 'Variação de';
         resumo.hidden = false;
-        resumo.textContent = `${dataBR(de)} → ${dataBR(ate)}: ${verbo} ${nf1.format(Math.abs(deltaJanela))} kg em ${janela.length} registro(s).`;
+        resumo.textContent = `${dataBR(de)} → ${dataBR(ate)}: ${verbo} ${nf2.format(Math.abs(deltaJanela))} kg em ${janela.length} registro(s).`;
       } else if (custom) {
         resumo.hidden = false;
         resumo.textContent = 'Nenhum peso registrado nesse intervalo.';
@@ -971,7 +972,7 @@
       if (labels.length && principal) {
         const alvo = Number(principal.data.pesoAlvo);
         datasets.push({
-          label: `Meta ${nf1.format(alvo)} kg`,
+          label: `Meta ${nf2.format(alvo)} kg`,
           data: labels.map(() => alvo),
           borderColor: 'rgba(21, 128, 61, 0.9)',
           borderDash: [6, 6],
@@ -1117,7 +1118,7 @@
           sub = `Arquivada · criada em ${dataBR(d.dataCriacao)}`;
         } else {
           const partes = [`Criada em ${dataBR(d.dataCriacao)}`];
-          if (faltam != null) partes.push(`faltam ${nf1.format(faltam)} kg`);
+          if (faltam != null) partes.push(`faltam ${nf2.format(faltam)} kg`);
           if (d.dataAlvo) partes.push(`prazo ${dataBR(d.dataAlvo)}`);
           sub = partes.join(' · ');
         }
@@ -1135,7 +1136,7 @@
         return `
           <div class="meta-card ${d.situacao}">
             <div class="meta-card-top">
-              <span class="meta-alvo">${nf1.format(alvo)} kg</span>
+              <span class="meta-alvo">${nf2.format(alvo)} kg</span>
               <span class="meta-status ${d.situacao}">${d.situacao === 'atingida' ? '✓ atingida' : d.situacao}</span>
             </div>
             ${barra}

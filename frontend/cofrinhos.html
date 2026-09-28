@@ -281,6 +281,10 @@
     }
     .proj-tile span { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); }
     .proj-tile strong { display: block; margin-top: 6px; font-size: 15px; color: var(--ink-950); }
+    .proj-tile .proj-plano {
+      display: block; margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--text-secondary);
+    }
+    .proj-tile.destaque { border-color: rgba(124, 58, 237, 0.35); background: rgba(124, 58, 237, 0.06); }
 
     .modal-edit-cofrinho {
       max-width: 920px !important;
@@ -570,12 +574,12 @@
     let chartEdicaoMeta = null;
 
     const HORIZONTES_PROJECAO = [
-      { meses: 1, label: '1 mês' },
-      { meses: 12, label: '1 ano' },
-      { meses: 24, label: '2 anos' },
-      { meses: 36, label: '3 anos' },
-      { meses: 48, label: '4 anos' },
-      { meses: 60, label: '5 anos' },
+      { meses: 1, label: '1°' },
+      { meses: 12, label: '2°' },
+      { meses: 24, label: '3°' },
+      { meses: 36, label: '4°' },
+      { meses: 48, label: '5°' },
+      { meses: 60, label: '6°' },
     ];
 
     function taxaValida(taxa) {
@@ -596,6 +600,62 @@
         meses: h.meses,
         valor: valorComJurosCompostos(saldo, taxaPct, h.meses),
       }));
+    }
+
+    function patrimonioEntreMeses(parcelas, taxaPct, idxInicio, idxFim, somentePagas) {
+      const r = Number(taxaPct) / 100;
+      let b = 0;
+      const map = new Map();
+      (parcelas || []).forEach((p) => {
+        if (somentePagas && p.status !== 'pago') return;
+        const k = indiceMes(p.mes, p.ano);
+        map.set(k, (map.get(k) || 0) + (Number(p.valor) || 0));
+      });
+      for (let idx = idxInicio; idx <= idxFim; idx += 1) {
+        if (r > 0) b *= (1 + r);
+        b += map.get(idx) || 0;
+      }
+      return b;
+    }
+
+    function limitesPlanoParcelas(parcelas) {
+      if (!parcelas || !parcelas.length) return null;
+      const sorted = [...parcelas].sort(
+        (a, b) => indiceMes(a.mes, a.ano) - indiceMes(b.mes, b.ano),
+      );
+      return {
+        ini: indiceMes(sorted[0].mes, sorted[0].ano),
+        fim: indiceMes(sorted[sorted.length - 1].mes, sorted[sorted.length - 1].ano),
+      };
+    }
+
+    /** Patrimônio se todas as parcelas entrassem no prazo, com juros mês a mês até o horizonte. */
+    function simularPlanoRendimentoAteHorizonte(parcelas, taxaPct, mesesDesdeHoje) {
+      const limites = limitesPlanoParcelas(parcelas);
+      if (!limites) return valorComJurosCompostos(0, taxaPct, mesesDesdeHoje);
+      const hoje = new Date();
+      const hojeIdx = indiceMes(MESES[hoje.getMonth()], hoje.getFullYear());
+      const alvo = Math.min(limites.fim, hojeIdx + mesesDesdeHoje);
+      if (alvo < limites.ini) return 0;
+      return patrimonioEntreMeses(parcelas, taxaPct, limites.ini, alvo, false);
+    }
+
+    function simularPlanoRendimentoFinal(parcelas, taxaPct) {
+      const limites = limitesPlanoParcelas(parcelas);
+      if (!limites) return 0;
+      return patrimonioEntreMeses(parcelas, taxaPct, limites.ini, limites.fim, false);
+    }
+
+    function montarProjecaoRendimento(saldo, parcelas, taxaPct) {
+      if (!taxaValida(taxaPct)) return null;
+      const linhas = HORIZONTES_PROJECAO.map((h) => ({
+        label: h.label,
+        meses: h.meses,
+        valorAtual: valorComJurosCompostos(saldo, taxaPct, h.meses),
+        valorPlano: simularPlanoRendimentoAteHorizonte(parcelas, taxaPct, h.meses),
+      }));
+      const planoFinal = simularPlanoRendimentoFinal(parcelas, taxaPct);
+      return { linhas, planoFinal };
     }
 
     function destruirChart(ch) {
@@ -737,40 +797,83 @@
       if (metaCard) metaCard.style.gridColumn = '';
       cardProj.hidden = false;
       const taxa = c.taxaRendimentoMensal;
-      document.getElementById('detProjecaoSub').textContent =
-        `Simulação: ${money(saldo)} guardados hoje a ${taxa}% ao mês (juros compostos, sem novos aportes).`;
-      const linhas = montarProjecao(saldo, taxa);
-      document.getElementById('detProjecaoGrid').innerHTML = linhas.map((l) => `
-        <div class="proj-tile"><span>${l.label}</span><strong>${money(l.valor)}</strong></div>
+      const proj = montarProjecaoRendimento(saldo, c.parcelas, taxa);
+      const temParcelas = c.parcelas && c.parcelas.length;
+      document.getElementById('detProjecaoSub').textContent = temParcelas
+        ? `Roxo: rendimento sobre ${money(saldo)} guardados hoje. Cinza: plano com todas as parcelas pagas + ${taxa}% ao mês.`
+        : `Rendimento sobre ${money(saldo)} guardados hoje a ${taxa}% ao mês (sem novas parcelas no plano).`;
+      let gridHtml = proj.linhas.map((l) => `
+        <div class="proj-tile">
+          <span>${l.label}</span>
+          <strong>${money(l.valorAtual)}</strong>
+          ${temParcelas ? `<span class="proj-plano">Plano: ${money(l.valorPlano)}</span>` : ''}
+        </div>
       `).join('');
+      if (temParcelas && proj.planoFinal > 0) {
+        gridHtml += `
+          <div class="proj-tile destaque">
+            <span>Fim do plano</span>
+            <strong>${money(proj.planoFinal)}</strong>
+            <span class="proj-plano">Todas as parcelas + rendimento</span>
+          </div>`;
+      }
+      document.getElementById('detProjecaoGrid').innerHTML = gridHtml;
 
       chartCofreProjecao = destruirChart(chartCofreProjecao);
       const ctxP = document.getElementById('chartCofreProjecao');
       if (ctxP && typeof Chart !== 'undefined') {
+        const datasets = [];
+        if (temParcelas) {
+          datasets.push({
+            label: 'Plano (todas pagas + rend.)',
+            data: proj.linhas.map((l) => l.valorPlano),
+            borderColor: 'rgba(148, 163, 184, 0.55)',
+            backgroundColor: 'rgba(148, 163, 184, 0.12)',
+            fill: true,
+            tension: 0.35,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            borderWidth: 2,
+            order: 2,
+          });
+        }
+        datasets.push({
+          label: 'Guardado hoje + rend.',
+          data: proj.linhas.map((l) => l.valorAtual),
+          borderColor: '#7C3AED',
+          backgroundColor: 'rgba(124, 58, 237, 0.18)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          borderWidth: 3,
+          order: 1,
+        });
         chartCofreProjecao = new Chart(ctxP.getContext('2d'), {
           type: 'line',
           data: {
-            labels: linhas.map((l) => l.label),
-            datasets: [{
-              label: 'Patrimônio projetado',
-              data: linhas.map((l) => l.valor),
-              borderColor: '#7C3AED',
-              backgroundColor: 'rgba(124, 58, 237, 0.12)',
-              fill: true,
-              tension: 0.35,
-              pointRadius: 5,
-              pointBackgroundColor: '#7C3AED',
-            }],
+            labels: proj.linhas.map((l) => l.label),
+            datasets,
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
             plugins: {
-              legend: { display: false },
-              tooltip: { callbacks: { label: (ctx) => ` ${money(ctx.parsed.y)}` } },
+              legend: {
+                display: true,
+                position: 'bottom',
+                labels: { boxWidth: 14, font: { size: 11 }, padding: 12 },
+              },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => ` ${ctx.dataset.label}: ${money(ctx.parsed.y)}`,
+                },
+              },
             },
             scales: {
               y: {
+                beginAtZero: true,
                 ticks: { callback: (v) => money(v), font: { size: 11 } },
                 grid: { color: 'rgba(148,163,184,0.1)' },
               },
@@ -820,12 +923,26 @@
       }
       semTaxa.hidden = true;
       prevBox.hidden = false;
-      document.getElementById('edProjecaoPreviewSub').textContent =
-        `Com ${taxa}% ao mês sobre ${money(saldo)} guardados:`;
-      const linhas = montarProjecao(saldo, taxa);
-      document.getElementById('edProjecaoPreviewGrid').innerHTML = linhas.map((l) => `
-        <div class="proj-tile"><span>${l.label}</span><strong>${money(l.valor)}</strong></div>
+      const proj = montarProjecaoRendimento(saldo, c.parcelas, taxa);
+      const temParcelas = c.parcelas && c.parcelas.length;
+      document.getElementById('edProjecaoPreviewSub').textContent = temParcelas
+        ? `Prévia: guardado + rend. vs plano completo a ${taxa}% ao mês.`
+        : `Com ${taxa}% ao mês sobre ${money(saldo)} guardados:`;
+      let prevHtml = proj.linhas.map((l) => `
+        <div class="proj-tile">
+          <span>${l.label}</span>
+          <strong>${money(l.valorAtual)}</strong>
+          ${temParcelas ? `<span class="proj-plano">Plano: ${money(l.valorPlano)}</span>` : ''}
+        </div>
       `).join('');
+      if (temParcelas && proj.planoFinal > 0) {
+        prevHtml += `
+          <div class="proj-tile destaque">
+            <span>Fim do plano</span>
+            <strong>${money(proj.planoFinal)}</strong>
+          </div>`;
+      }
+      document.getElementById('edProjecaoPreviewGrid').innerHTML = prevHtml;
     }
 
     function popularMesAno(selMes, selAno) {

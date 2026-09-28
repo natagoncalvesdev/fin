@@ -84,6 +84,7 @@ class Conta(Base):
     id_categoria: Mapped[int | None] = mapped_column(Integer, ForeignKey("categoria.id", ondelete="SET NULL"), nullable=True)
     data_conta: Mapped[date] = mapped_column(Date, nullable=False)
     nome: Mapped[str] = mapped_column(String(255), nullable=False)
+    descricao: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     valor: Mapped[float] = mapped_column(Float, nullable=False)
     data_vencimento: Mapped[date | None] = mapped_column(Date, nullable=True)
     situacao: Mapped[str] = mapped_column(String(20), default="pendente")
@@ -105,6 +106,7 @@ class Entrada(Base):
     id_usuario: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), nullable=False, index=True)
     data_entrada: Mapped[date] = mapped_column(Date, nullable=False)
     nome: Mapped[str] = mapped_column(String(255), nullable=False)
+    descricao: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     valor: Mapped[float] = mapped_column(Float, nullable=False)
 
 
@@ -150,6 +152,7 @@ class CompraCartao(Base):
     data_competencia: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     id_categoria: Mapped[int | None] = mapped_column(Integer, ForeignKey("categoria.id", ondelete="SET NULL"), nullable=True)
     compra: Mapped[str] = mapped_column(String(255), nullable=False)
+    descricao: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     valor: Mapped[float] = mapped_column(Float, nullable=False)
     parcela_atual: Mapped[int] = mapped_column(Integer, default=1)
     parcela_total: Mapped[int] = mapped_column(Integer, default=1)
@@ -169,6 +172,7 @@ class Debito(Base):
     data_debito: Mapped[date] = mapped_column(Date, nullable=False)
     id_categoria: Mapped[int | None] = mapped_column(Integer, ForeignKey("categoria.id", ondelete="SET NULL"), nullable=True)
     compra: Mapped[str] = mapped_column(String(255), nullable=False)
+    descricao: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     valor: Mapped[float] = mapped_column(Float, nullable=False)
 
     categoria: Mapped["Categoria | None"] = relationship()
@@ -183,6 +187,7 @@ class Reservado(Base):
     data_reservado: Mapped[date] = mapped_column(Date, nullable=False)
     id_categoria: Mapped[int | None] = mapped_column(Integer, ForeignKey("categoria.id", ondelete="SET NULL"), nullable=True)
     compra: Mapped[str] = mapped_column(String(255), nullable=False)
+    descricao: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     valor: Mapped[float] = mapped_column(Float, nullable=False)
 
     categoria: Mapped["Categoria | None"] = relationship()

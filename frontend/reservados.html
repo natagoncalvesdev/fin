@@ -65,8 +65,12 @@
       <h3>Adicionar valor reservado</h3>
       <div class="form-row" style="flex-direction: column; gap: 14px;">
         <div>
-          <label class="fin-field-label" for="reservadoNomeModal">Descrição</label>
-          <input id="reservadoNomeModal" placeholder="Descrição" />
+          <label class="fin-field-label" for="reservadoNomeModal">Título</label>
+          <input id="reservadoNomeModal" placeholder="Título" />
+        </div>
+        <div>
+          <label class="fin-field-label" for="reservadoDescricaoModal">Descrição</label>
+          <textarea id="reservadoDescricaoModal" rows="3" placeholder="Detalhes opcionais"></textarea>
         </div>
         <div>
           <label class="fin-field-label" for="reservadoValorModal">Valor</label>
@@ -101,7 +105,7 @@
       itens.forEach((item) => {
         const row = F.renderStatementRow({
           titulo: item.nome,
-          subtitulo: item.categoria || '',
+          subtitulo: F.subtituloFinanceiro(item),
           valor: item.valor,
           onClick: () => F.abrirModalItem({
             tipo: 'reservado',
@@ -117,6 +121,7 @@
     const reservadoModal = document.getElementById('reservadoModal');
     document.getElementById('btnAddReservado').addEventListener('click', () => {
       document.getElementById('reservadoNomeModal').value = '';
+      document.getElementById('reservadoDescricaoModal').value = '';
       document.getElementById('reservadoValorModal').value = '';
       F.popularSelectsCategoria(['reservadoCategoriaModal']);
       document.getElementById('reservadoCategoriaModal').value = '';
@@ -127,16 +132,17 @@
 
     async function salvarNovoReservado() {
       const nome = document.getElementById('reservadoNomeModal').value.trim();
+      const descricao = document.getElementById('reservadoDescricaoModal').value.trim();
       const valor = Number(document.getElementById('reservadoValorModal').value);
       const categoria = document.getElementById('reservadoCategoriaModal').value.trim();
       if (!nome || !valor || valor <= 0) {
-        window.finToast?.('Preencha descrição e valor.', { type: 'error' });
+        window.finToast?.('Preencha título e valor.', { type: 'error' });
         return;
       }
       try {
         await F.api('/api/financeiro/reservados', {
           method: 'POST',
-          body: JSON.stringify({ ano: Number(periodo.ano), mes: periodo.mes, nome, valor, categoria }),
+          body: JSON.stringify({ ano: Number(periodo.ano), mes: periodo.mes, nome, valor, categoria, descricao }),
         });
         reservadoModal.classList.remove('visible');
         window.finToast?.('Reservado adicionado.', { type: 'success' });

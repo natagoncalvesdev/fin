@@ -202,36 +202,56 @@ def init_ano_meses(db: Session, usuario: Usuario, ano: int) -> None:
         get_or_create_mes(db, usuario, ano, mes)
 
 
+def _descricao_api(valor: str | None) -> str:
+    return (valor or "").strip()
+
+
 def conta_to_dict(item: Conta) -> dict:
-    return {
+    data = {
         "id": item.uuid,
         "nome": item.nome,
         "valor": item.valor,
         "status": item.situacao,
         "categoria": _categoria_nome(item.categoria),
     }
+    desc = _descricao_api(item.descricao)
+    if desc:
+        data["descricao"] = desc
+    return data
 
 
 def entrada_to_dict(item: Entrada) -> dict:
-    return {"id": item.uuid, "nome": item.nome, "valor": item.valor}
+    data = {"id": item.uuid, "nome": item.nome, "valor": item.valor}
+    desc = _descricao_api(item.descricao)
+    if desc:
+        data["descricao"] = desc
+    return data
 
 
 def debito_to_dict(item: Debito) -> dict:
-    return {
+    data = {
         "id": item.uuid,
         "nome": item.compra,
         "valor": item.valor,
         "categoria": _categoria_nome(item.categoria),
     }
+    desc = _descricao_api(item.descricao)
+    if desc:
+        data["descricao"] = desc
+    return data
 
 
 def reservado_to_dict(item: Reservado) -> dict:
-    return {
+    data = {
         "id": item.uuid,
         "nome": item.compra,
         "valor": item.valor,
         "categoria": _categoria_nome(item.categoria),
     }
+    desc = _descricao_api(item.descricao)
+    if desc:
+        data["descricao"] = desc
+    return data
 
 
 def compra_to_dict(item: CompraCartao) -> dict:
@@ -244,6 +264,9 @@ def compra_to_dict(item: CompraCartao) -> dict:
         "categoria": _categoria_nome(item.categoria),
         "serieUuid": item.serie_uuid,
     }
+    desc = _descricao_api(item.descricao)
+    if desc:
+        data["descricao"] = desc
     if item.recorrente:
         data["recorrente"] = True
     return data
@@ -453,14 +476,17 @@ def criar_conta(
     status: str = "pendente",
     categoria: str = "",
     id_cofrinho: int | None = None,
+    descricao: str = "",
 ) -> Conta:
     get_or_create_mes(db, usuario, ano, mes)
     inicio, _ = periodo_mes(ano, mes)
+    desc = _descricao_api(descricao) or None
     item = Conta(
         id_usuario=usuario.id,
         id_categoria=_resolver_categoria(db, usuario.id, categoria),
         data_conta=inicio,
         nome=nome,
+        descricao=desc,
         valor=valor,
         situacao=status or "pendente",
         id_cofrinho=id_cofrinho,
@@ -487,6 +513,7 @@ def atualizar_conta(
     valor: float | None = None,
     status: str | None = None,
     categoria: str | None = None,
+    descricao: str | None = None,
 ) -> Conta:
     item = _get_conta(db, usuario, item_uuid)
     if not item:
@@ -499,6 +526,8 @@ def atualizar_conta(
         item.situacao = status
     if categoria is not None:
         item.id_categoria = _resolver_categoria(db, usuario.id, categoria)
+    if descricao is not None:
+        item.descricao = _descricao_api(descricao) or None
     db.flush()
     return item
 
@@ -512,11 +541,25 @@ def remover_conta(db: Session, usuario: Usuario, item_uuid: str) -> None:
 
 
 def criar_entrada(
-    db: Session, usuario: Usuario, *, ano: int, mes: str, nome: str, valor: float
+    db: Session,
+    usuario: Usuario,
+    *,
+    ano: int,
+    mes: str,
+    nome: str,
+    valor: float,
+    descricao: str = "",
 ) -> Entrada:
     get_or_create_mes(db, usuario, ano, mes)
     inicio, _ = periodo_mes(ano, mes)
-    item = Entrada(id_usuario=usuario.id, data_entrada=inicio, nome=nome, valor=valor)
+    desc = _descricao_api(descricao) or None
+    item = Entrada(
+        id_usuario=usuario.id,
+        data_entrada=inicio,
+        nome=nome,
+        descricao=desc,
+        valor=valor,
+    )
     db.add(item)
     db.flush()
     return item
@@ -537,6 +580,7 @@ def atualizar_entrada(
     *,
     nome: str | None = None,
     valor: float | None = None,
+    descricao: str | None = None,
 ) -> Entrada:
     item = _get_entrada(db, usuario, item_uuid)
     if not item:
@@ -545,6 +589,8 @@ def atualizar_entrada(
         item.nome = nome
     if valor is not None:
         item.valor = valor
+    if descricao is not None:
+        item.descricao = _descricao_api(descricao) or None
     db.flush()
     return item
 
@@ -566,14 +612,17 @@ def criar_debito(
     nome: str,
     valor: float,
     categoria: str = "",
+    descricao: str = "",
 ) -> Debito:
     get_or_create_mes(db, usuario, ano, mes)
     inicio, _ = periodo_mes(ano, mes)
+    desc = _descricao_api(descricao) or None
     item = Debito(
         id_usuario=usuario.id,
         id_categoria=_resolver_categoria(db, usuario.id, categoria),
         data_debito=inicio,
         compra=nome,
+        descricao=desc,
         valor=valor,
     )
     db.add(item)
@@ -597,6 +646,7 @@ def atualizar_debito(
     nome: str | None = None,
     valor: float | None = None,
     categoria: str | None = None,
+    descricao: str | None = None,
 ) -> Debito:
     item = _get_debito(db, usuario, item_uuid)
     if not item:
@@ -607,6 +657,8 @@ def atualizar_debito(
         item.valor = valor
     if categoria is not None:
         item.id_categoria = _resolver_categoria(db, usuario.id, categoria)
+    if descricao is not None:
+        item.descricao = _descricao_api(descricao) or None
     db.flush()
     return item
 
@@ -628,14 +680,17 @@ def criar_reservado(
     nome: str,
     valor: float,
     categoria: str = "",
+    descricao: str = "",
 ) -> Reservado:
     get_or_create_mes(db, usuario, ano, mes)
     inicio, _ = periodo_mes(ano, mes)
+    desc = _descricao_api(descricao) or None
     item = Reservado(
         id_usuario=usuario.id,
         id_categoria=_resolver_categoria(db, usuario.id, categoria),
         data_reservado=inicio,
         compra=nome,
+        descricao=desc,
         valor=valor,
     )
     db.add(item)
@@ -659,6 +714,7 @@ def atualizar_reservado(
     nome: str | None = None,
     valor: float | None = None,
     categoria: str | None = None,
+    descricao: str | None = None,
 ) -> Reservado:
     item = _get_reservado(db, usuario, item_uuid)
     if not item:
@@ -669,6 +725,8 @@ def atualizar_reservado(
         item.valor = valor
     if categoria is not None:
         item.id_categoria = _resolver_categoria(db, usuario.id, categoria)
+    if descricao is not None:
+        item.descricao = _descricao_api(descricao) or None
     db.flush()
     return item
 
@@ -697,6 +755,7 @@ def atualizar_compra_cartao(
     nome: str | None = None,
     valor: float | None = None,
     categoria: str | None = None,
+    descricao: str | None = None,
 ) -> CompraCartao:
     item = _get_compra_cartao(db, usuario, item_uuid)
     if not item:
@@ -707,6 +766,8 @@ def atualizar_compra_cartao(
         item.valor = valor
     if categoria is not None:
         item.id_categoria = _resolver_categoria(db, usuario.id, categoria)
+    if descricao is not None:
+        item.descricao = _descricao_api(descricao) or None
     db.flush()
     return item
 
@@ -776,12 +837,13 @@ def inserir_compra_cartao(
     usuario: Usuario,
     *,
     data_lanc: date,
-    descricao: str,
+    nome: str,
     valor: float,
     categoria: str,
     cartao_id: str,
     total_parcelas: int = 1,
     recorrente: bool = False,
+    descricao: str = "",
 ) -> dict[str, Any]:
     """Cria a(s) linha(s) de uma compra no cartão (parcelada ou recorrente).
 
@@ -795,6 +857,7 @@ def inserir_compra_cartao(
         raise ValueError("Informe final_cartao com os 4 últimos dígitos do cartão.")
 
     id_categoria = _resolver_categoria(db, usuario.id, categoria)
+    desc = _descricao_api(descricao) or None
     mes_index = data_lanc.month - 1
     ano_base = data_lanc.year
     ano_limite = ano_base + ANO_LIMITE_OFFSET
@@ -815,7 +878,8 @@ def inserir_compra_cartao(
                     data_compra_cartao=data_lanc,
                     data_competencia=target_inicio,
                     id_categoria=id_categoria,
-                    compra=descricao,
+                    compra=nome,
+                    descricao=desc,
                     valor=valor,
                     parcela_atual=1,
                     parcela_total=1,
@@ -839,7 +903,8 @@ def inserir_compra_cartao(
                     data_compra_cartao=data_lanc,
                     data_competencia=target_inicio,
                     id_categoria=id_categoria,
-                    compra=descricao,
+                    compra=nome,
+                    descricao=desc,
                     valor=valor,
                     parcela_atual=i + 1,
                     parcela_total=total_parcelas,
@@ -861,7 +926,7 @@ def inserir_compra_cartao(
         "uuid": primeira.uuid,
         "tipo": "cartao",
         "data": data_lanc.isoformat(),
-        "descricao": descricao,
+        "nome": nome,
         "valor": valor,
         "parcelasRegistradas": len(registros),
         "totalParcelas": total_parcelas if not recorrente else "Recorrente",

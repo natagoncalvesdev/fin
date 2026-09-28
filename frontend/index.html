@@ -196,10 +196,13 @@
   <div id="entradasModal" class="modal-overlay">
     <div class="modal-content" style="max-width: 520px;">
       <h3>Entradas do mês</h3>
-      <div class="form-row">
-        <input id="entradaNomeModal" placeholder="Descrição" />
-        <input id="entradaValorModal" type="number" step="0.01" placeholder="Valor em R$" />
-        <button class="btn-add" id="btnAddEntrada" style="flex:0 0 auto;">Adicionar</button>
+      <div class="form-row" style="flex-direction: column; gap: 10px; align-items: stretch;">
+        <input id="entradaNomeModal" placeholder="Título" />
+        <textarea id="entradaDescricaoModal" rows="2" placeholder="Descrição (opcional)"></textarea>
+        <div class="form-row" style="margin:0;">
+          <input id="entradaValorModal" type="number" step="0.01" placeholder="Valor em R$" />
+          <button class="btn-add" id="btnAddEntrada" style="flex:0 0 auto;">Adicionar</button>
+        </div>
       </div>
       <div id="listaEntradas" class="statement-list" style="margin-top:12px;"></div>
       <div class="modal-actions"><button class="btn-cancel" id="btnFecharEntradas">Fechar</button></div>
@@ -439,6 +442,7 @@
       itens.forEach((item) => {
         const row = F.renderStatementRow({
           titulo: item.nome,
+          subtitulo: F.subtituloFinanceiro(item),
           valor: item.valor,
           valorClasse: 'positive',
           onClick: () => F.abrirModalItem({
@@ -454,19 +458,22 @@
 
     async function adicionarEntrada() {
       const nomeInput = document.getElementById('entradaNomeModal');
+      const descricaoInput = document.getElementById('entradaDescricaoModal');
       const valorInput = document.getElementById('entradaValorModal');
       const nome = nomeInput.value.trim();
+      const descricao = descricaoInput.value.trim();
       const valor = Number(valorInput.value);
       if (!nome || !valor || valor <= 0) {
-        window.finToast?.('Preencha descrição e valor.', { type: 'error' });
+        window.finToast?.('Preencha título e valor.', { type: 'error' });
         return;
       }
       try {
         await F.api('/api/financeiro/entradas', {
           method: 'POST',
-          body: JSON.stringify({ ano: Number(periodo.ano), mes: periodo.mes, nome, valor }),
+          body: JSON.stringify({ ano: Number(periodo.ano), mes: periodo.mes, nome, valor, descricao }),
         });
         nomeInput.value = '';
+        descricaoInput.value = '';
         valorInput.value = '';
         await renderizarEntradas();
         observador && observador.forcar();

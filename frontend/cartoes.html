@@ -199,8 +199,12 @@
       <h3>Adicionar compra</h3>
       <div class="form-row" style="flex-direction: column; gap: 14px;">
         <div>
-          <label class="fin-field-label" for="compraCartaoNome">Descrição</label>
+          <label class="fin-field-label" for="compraCartaoNome">Título</label>
           <input id="compraCartaoNome" placeholder="Ex.: Óculos" />
+        </div>
+        <div>
+          <label class="fin-field-label" for="compraCartaoDescricao">Descrição</label>
+          <textarea id="compraCartaoDescricao" rows="3" placeholder="Detalhes opcionais"></textarea>
         </div>
         <div>
           <label class="fin-field-label" for="compraCartaoValor">Valor da parcela</label>
@@ -332,10 +336,15 @@
         return;
       }
       compras.forEach((item) => {
-        const subtitulo = item.recorrente ? 'Recorrente' : item.parcelas;
+        const partesSub = [];
+        const desc = (item.descricao || '').trim();
+        if (desc) partesSub.push(desc.length > 60 ? `${desc.slice(0, 57)}…` : desc);
+        partesSub.push(item.recorrente ? 'Recorrente' : item.parcelas);
+        const cat = (item.categoria || '').trim();
+        if (cat) partesSub.push(cat);
         const row = F.renderStatementRow({
           titulo: item.nome,
-          subtitulo,
+          subtitulo: partesSub.filter(Boolean).join(' · '),
           valor: item.valor,
           onClick: () => F.abrirModalItem({
             tipo: 'compraCartao',
@@ -368,6 +377,7 @@
     document.getElementById('btnAddCompra').addEventListener('click', () => {
       if (!cartaoSelecionado) return;
       document.getElementById('compraCartaoNome').value = '';
+      document.getElementById('compraCartaoDescricao').value = '';
       document.getElementById('compraCartaoValor').value = '';
       document.getElementById('compraCartaoParcelas').value = '1';
       document.getElementById('compraCartaoRecorrente').checked = false;
@@ -380,12 +390,13 @@
 
     async function salvarCompra() {
       const nome = document.getElementById('compraCartaoNome').value.trim();
+      const descricao = document.getElementById('compraCartaoDescricao').value.trim();
       const valor = Number(document.getElementById('compraCartaoValor').value);
       const totalParcelas = Number(document.getElementById('compraCartaoParcelas').value) || 1;
       const recorrente = document.getElementById('compraCartaoRecorrente').checked;
       const categoria = document.getElementById('compraCartaoCategoria').value.trim();
       if (!nome || !valor || valor <= 0) {
-        window.finToast?.('Preencha descrição e valor.', { type: 'error' });
+        window.finToast?.('Preencha título e valor.', { type: 'error' });
         return;
       }
       try {
@@ -393,7 +404,7 @@
           method: 'POST',
           body: JSON.stringify({
             ano: Number(periodo.ano), mes: periodo.mes, nome, valor,
-            cartaoId: refCartao(cartaoSelecionado), categoria, totalParcelas, recorrente,
+            cartaoId: refCartao(cartaoSelecionado), categoria, totalParcelas, recorrente, descricao,
           }),
         });
         compraModal.classList.remove('visible');

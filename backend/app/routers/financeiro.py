@@ -167,6 +167,7 @@ class ContaCreate(BaseModel):
     valor: float = Field(gt=0)
     status: str = "pendente"
     categoria: str = ""
+    descricao: str = Field(default="", max_length=2000)
 
 
 class ContaUpdate(BaseModel):
@@ -174,6 +175,7 @@ class ContaUpdate(BaseModel):
     valor: float | None = Field(default=None, gt=0)
     status: str | None = None
     categoria: str | None = None
+    descricao: str | None = Field(default=None, max_length=2000)
 
 
 @router.post("/contas", response_model=ItemResponse, status_code=status.HTTP_201_CREATED)
@@ -192,6 +194,7 @@ def create_conta(
         valor=body.valor,
         status=body.status,
         categoria=body.categoria,
+        descricao=body.descricao,
     )
     db.commit()
     return ItemResponse(id=item.uuid, data=conta_to_dict(item))
@@ -213,6 +216,7 @@ def update_conta(
             valor=body.valor,
             status=body.status,
             categoria=body.categoria,
+            descricao=body.descricao.strip() if body.descricao is not None else None,
         )
     except ValueError as exc:
         raise _not_found(exc) from exc
@@ -246,11 +250,13 @@ class EntradaCreate(BaseModel):
     mes: str
     nome: str = Field(min_length=1, max_length=255)
     valor: float = Field(gt=0)
+    descricao: str = Field(default="", max_length=2000)
 
 
 class EntradaUpdate(BaseModel):
     nome: str | None = Field(default=None, min_length=1, max_length=255)
     valor: float | None = Field(default=None, gt=0)
+    descricao: str | None = Field(default=None, max_length=2000)
 
 
 @router.post("/entradas", response_model=ItemResponse, status_code=status.HTTP_201_CREATED)
@@ -260,7 +266,15 @@ def create_entrada(
     db: Annotated[Session, Depends(get_db)],
 ):
     _checar_mes(body.mes)
-    item = criar_entrada(db, current_user, ano=body.ano, mes=body.mes, nome=body.nome.strip(), valor=body.valor)
+    item = criar_entrada(
+        db,
+        current_user,
+        ano=body.ano,
+        mes=body.mes,
+        nome=body.nome.strip(),
+        valor=body.valor,
+        descricao=body.descricao,
+    )
     db.commit()
     return ItemResponse(id=item.uuid, data=entrada_to_dict(item))
 
@@ -274,7 +288,12 @@ def update_entrada(
 ):
     try:
         item = atualizar_entrada(
-            db, current_user, item_id, nome=body.nome.strip() if body.nome is not None else None, valor=body.valor
+            db,
+            current_user,
+            item_id,
+            nome=body.nome.strip() if body.nome is not None else None,
+            valor=body.valor,
+            descricao=body.descricao.strip() if body.descricao is not None else None,
         )
     except ValueError as exc:
         raise _not_found(exc) from exc
@@ -301,12 +320,14 @@ class DebitoCreate(BaseModel):
     nome: str = Field(min_length=1, max_length=255)
     valor: float = Field(gt=0)
     categoria: str = ""
+    descricao: str = Field(default="", max_length=2000)
 
 
 class DebitoUpdate(BaseModel):
     nome: str | None = Field(default=None, min_length=1, max_length=255)
     valor: float | None = Field(default=None, gt=0)
     categoria: str | None = None
+    descricao: str | None = Field(default=None, max_length=2000)
 
 
 @router.post("/debitos", response_model=ItemResponse, status_code=status.HTTP_201_CREATED)
@@ -317,7 +338,14 @@ def create_debito(
 ):
     _checar_mes(body.mes)
     item = criar_debito(
-        db, current_user, ano=body.ano, mes=body.mes, nome=body.nome.strip(), valor=body.valor, categoria=body.categoria
+        db,
+        current_user,
+        ano=body.ano,
+        mes=body.mes,
+        nome=body.nome.strip(),
+        valor=body.valor,
+        categoria=body.categoria,
+        descricao=body.descricao,
     )
     db.commit()
     return ItemResponse(id=item.uuid, data=debito_to_dict(item))
@@ -338,6 +366,7 @@ def update_debito(
             nome=body.nome.strip() if body.nome is not None else None,
             valor=body.valor,
             categoria=body.categoria,
+            descricao=body.descricao.strip() if body.descricao is not None else None,
         )
     except ValueError as exc:
         raise _not_found(exc) from exc
@@ -364,12 +393,14 @@ class ReservadoCreate(BaseModel):
     nome: str = Field(min_length=1, max_length=255)
     valor: float = Field(gt=0)
     categoria: str = ""
+    descricao: str = Field(default="", max_length=2000)
 
 
 class ReservadoUpdate(BaseModel):
     nome: str | None = Field(default=None, min_length=1, max_length=255)
     valor: float | None = Field(default=None, gt=0)
     categoria: str | None = None
+    descricao: str | None = Field(default=None, max_length=2000)
 
 
 @router.post("/reservados", response_model=ItemResponse, status_code=status.HTTP_201_CREATED)
@@ -380,7 +411,14 @@ def create_reservado(
 ):
     _checar_mes(body.mes)
     item = criar_reservado(
-        db, current_user, ano=body.ano, mes=body.mes, nome=body.nome.strip(), valor=body.valor, categoria=body.categoria
+        db,
+        current_user,
+        ano=body.ano,
+        mes=body.mes,
+        nome=body.nome.strip(),
+        valor=body.valor,
+        categoria=body.categoria,
+        descricao=body.descricao,
     )
     db.commit()
     return ItemResponse(id=item.uuid, data=reservado_to_dict(item))
@@ -401,6 +439,7 @@ def update_reservado(
             nome=body.nome.strip() if body.nome is not None else None,
             valor=body.valor,
             categoria=body.categoria,
+            descricao=body.descricao.strip() if body.descricao is not None else None,
         )
     except ValueError as exc:
         raise _not_found(exc) from exc
@@ -430,12 +469,14 @@ class CompraCartaoCreate(BaseModel):
     categoria: str = ""
     totalParcelas: int = Field(default=1, ge=1, le=48)
     recorrente: bool = False
+    descricao: str = Field(default="", max_length=2000)
 
 
 class CompraCartaoUpdate(BaseModel):
     nome: str | None = Field(default=None, min_length=1, max_length=255)
     valor: float | None = Field(default=None, gt=0)
     categoria: str | None = None
+    descricao: str | None = Field(default=None, max_length=2000)
 
 
 class CompraCartaoMover(BaseModel):
@@ -461,12 +502,13 @@ def create_compra_cartao(
             db,
             current_user,
             data_lanc=inicio,
-            descricao=body.nome.strip(),
+            nome=body.nome.strip(),
             valor=body.valor,
             categoria=body.categoria,
             cartao_id=body.cartaoId,
             total_parcelas=body.totalParcelas,
             recorrente=body.recorrente,
+            descricao=body.descricao,
         )
     except ValueError as exc:
         raise _bad_request(exc) from exc
@@ -493,6 +535,7 @@ def update_compra_cartao(
             nome=body.nome.strip() if body.nome is not None else None,
             valor=body.valor,
             categoria=body.categoria,
+            descricao=body.descricao.strip() if body.descricao is not None else None,
         )
     except ValueError as exc:
         raise _not_found(exc) from exc

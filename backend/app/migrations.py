@@ -98,3 +98,8 @@ def run_migrations(engine: Engine) -> None:
             conn.execute(
                 text(f"CREATE INDEX IF NOT EXISTS {nome} ON {tabela} ({colunas})")
             )
+
+        for tabela in ("conta", "entrada", "debito", "reservado", "compra_cartao"):
+            conn.execute(
+                text(f"ALTER TABLE {tabela} ADD COLUMN IF NOT EXISTS descricao VARCHAR(2000)")
+            )

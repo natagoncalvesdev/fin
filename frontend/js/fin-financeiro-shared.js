@@ -229,6 +229,16 @@
    * (alterna sozinho, sem precisar abrir o modal) e para propagação pro
    * onClick da linha.
    */
+  /** Subtítulo da linha: descrição (se houver) e categoria, truncado para caber na lista. */
+  function subtituloFinanceiro(item) {
+    const partes = [];
+    const desc = (item && item.descricao || '').trim();
+    if (desc) partes.push(desc.length > 80 ? `${desc.slice(0, 77)}…` : desc);
+    const cat = (item && item.categoria || '').trim();
+    if (cat) partes.push(cat);
+    return partes.join(' · ');
+  }
+
   function renderStatementRow({ icone, titulo, subtitulo, valor, valorClasse, status, onClick, onToggleStatus }) {
     const row = document.createElement('button');
     row.type = 'button';
@@ -283,8 +293,12 @@
           <h3 id="finItemModalTitulo">Item</h3>
           <div class="form-row" style="flex-direction: column; gap: 14px;">
             <div>
-              <label class="fin-field-label" for="finItemNome">Descrição</label>
-              <input id="finItemNome" type="text" placeholder="Descrição" />
+              <label class="fin-field-label" for="finItemNome">Título</label>
+              <input id="finItemNome" type="text" placeholder="Título" />
+            </div>
+            <div>
+              <label class="fin-field-label" for="finItemDescricao">Descrição</label>
+              <textarea id="finItemDescricao" rows="3" placeholder="Detalhes opcionais (observações, local, etc.)"></textarea>
             </div>
             <div>
               <label class="fin-field-label" for="finItemValor">Valor</label>
@@ -329,6 +343,7 @@
       overlay: document.getElementById('finItemModal'),
       titulo: document.getElementById('finItemModalTitulo'),
       nome: document.getElementById('finItemNome'),
+      descricao: document.getElementById('finItemDescricao'),
       valor: document.getElementById('finItemValor'),
       categoriaWrap: document.getElementById('finItemCategoriaWrap'),
       categoria: document.getElementById('finItemCategoria'),
@@ -383,6 +398,7 @@
 
     modalEls.titulo.textContent = opts.item.nome || 'Editar item';
     modalEls.nome.value = opts.item.nome || '';
+    modalEls.descricao.value = opts.item.descricao || '';
     modalEls.valor.value = opts.item.valor != null ? opts.item.valor : '';
 
     modalEls.categoriaWrap.style.display = cfg.temCategoria ? '' : 'none';
@@ -420,12 +436,13 @@
     if (!modalEstado) return;
     const { tipo, cfg, item, onSalvo } = modalEstado;
     const nome = modalEls.nome.value.trim();
+    const descricao = modalEls.descricao.value.trim();
     const valor = Number(modalEls.valor.value);
     if (!nome || !valor || valor <= 0) {
-      toast('Preencha descrição e valor.', { type: 'error' });
+      toast('Preencha título e valor.', { type: 'error' });
       return;
     }
-    const payload = { nome, valor };
+    const payload = { nome, valor, descricao };
     if (cfg.temCategoria) payload.categoria = modalEls.categoria.value.trim();
     if (cfg.temStatus) payload.status = statusSelecionado();
 
@@ -491,7 +508,7 @@
       toast('Selecione pelo menos um mês.', { type: 'error' });
       return;
     }
-    const payloadBase = { nome: item.nome, valor: item.valor };
+    const payloadBase = { nome: item.nome, valor: item.valor, descricao: item.descricao || '' };
     if (cfg.temCategoria) payloadBase.categoria = item.categoria || '';
     if (modalEstado.tipo === 'conta') payloadBase.status = 'pendente';
 
@@ -556,6 +573,7 @@
     carregarCategorias,
     popularSelectsCategoria,
     renderStatementRow,
+    subtituloFinanceiro,
     abrirModalItem,
     fecharModalItem,
     alternarStatusConta,

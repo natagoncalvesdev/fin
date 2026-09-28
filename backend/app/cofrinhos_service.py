@@ -431,6 +431,7 @@ def payload(db: Session, cofrinho: Cofrinho, eu: Usuario) -> dict:
         "aporteMensal": dono.aporte_mensal,
         "mesAlvo": cofrinho.mes_alvo,
         "anoAlvo": cofrinho.ano_alvo,
+        "dataInicio": cofrinho.data_inicio.isoformat(),
         "situacao": cofrinho.situacao,
         "dataConcluido": cofrinho.data_concluido.isoformat() if cofrinho.data_concluido else None,
         "saldo": pago_total,

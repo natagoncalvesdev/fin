@@ -637,6 +637,69 @@
       }));
     }
 
+    function indiceMes(mesNome, ano) {
+      const i = MESES.indexOf(mesNome);
+      if (i < 0) return Number(ano) * 12;
+      return Number(ano) * 12 + i;
+    }
+
+    /** Espelha `_meses_plano` do backend: do mês inicial ao mês-alvo. */
+    function listarMesesPlano(dataInicioIso, mesAlvo, anoAlvo) {
+      if (!mesAlvo || !anoAlvo) return [];
+      const alvoIdx = MESES.indexOf(mesAlvo);
+      if (alvoIdx < 0) return [];
+      const ini = dataInicioIso ? new Date(`${dataInicioIso}T12:00:00`) : new Date();
+      let total = (Number(anoAlvo) - ini.getFullYear()) * 12 + (alvoIdx - ini.getMonth()) + 1;
+      total = Math.max(1, total);
+      const out = [];
+      let ano = ini.getFullYear();
+      let mes = ini.getMonth();
+      for (let n = 0; n < total; n += 1) {
+        out.push({ mes: MESES[mes], ano });
+        mes += 1;
+        if (mes >= 12) {
+          mes = 0;
+          ano += 1;
+        }
+      }
+      return out;
+    }
+
+    function lerFormEdicao() {
+      return {
+        valorAlvo: document.getElementById('edValorAlvo').value.trim(),
+        aporte: document.getElementById('edAporte').value.trim(),
+        mesAlvo: document.getElementById('edMes').value,
+        anoAlvo: document.getElementById('edAno').value,
+      };
+    }
+
+    /** Parcelas reais ou simuladas a partir dos campos do modal (meta, prazo, aporte). */
+    function parcelasParaProjecao(c, form) {
+      if (c.parcelas && c.parcelas.length) return c.parcelas;
+      const meses = listarMesesPlano(c.dataInicio, form.mesAlvo || c.mesAlvo, form.anoAlvo || c.anoAlvo);
+      if (!meses.length) return [];
+      const valorAlvo = Number(form.valorAlvo !== '' ? form.valorAlvo : c.valorAlvo);
+      const aporteInformado = form.aporte !== '' ? Number(form.aporte) : null;
+      const aporteCofre = c.compartilhado ? c.meuAporte : c.aporteMensal;
+      const modoAporte = c.modo === 'aporte_prazo' || c.compartilhado;
+      let valorParcela = 0;
+      if (modoAporte) {
+        const ap = aporteInformado != null && !Number.isNaN(aporteInformado) ? aporteInformado : Number(aporteCofre);
+        valorParcela = ap > 0 ? ap : 0;
+      } else if (valorAlvo > 0) {
+        valorParcela = valorAlvo / meses.length;
+      }
+      if (!(valorParcela > 0)) return [];
+      return meses.map((m, i) => ({
+        id: `virt-${i}`,
+        mes: m.mes,
+        ano: m.ano,
+        valor: Math.round(valorParcela * 100) / 100,
+        status: 'pendente',
+      }));
+    }
+
     function patrimonioEntreMeses(parcelas, taxaPct, idxInicio, idxFim, somentePagas) {
       const r = Number(taxaPct) / 100;
       let b = 0;
@@ -700,10 +763,6 @@
     function destruirChart(ch) {
       if (ch) ch.destroy();
       return null;
-    }
-
-    function indiceMes(mesNome, ano) {
-      return ano * 12 + MESES.indexOf(mesNome);
     }
 
     /** Acumulado mês a mês: plano (todas as parcelas) vs pago (só status pago). */
@@ -962,29 +1021,36 @@
       }
       semTaxa.hidden = true;
       prevBox.hidden = false;
-      const proj = montarProjecaoRendimento(saldo, c.parcelas, taxa);
-      const temParcelas = c.parcelas && c.parcelas.length;
+      const form = lerFormEdicao();
+      const parcelasProj = parcelasParaProjecao(c, form);
+      const proj = montarProjecaoRendimento(saldo, parcelasProj, taxa);
+      const temPlano = parcelasProj.length > 0;
       const destaque = document.getElementById('edProjecaoFinalDestaque');
-      if (temParcelas && proj.planoFinal > 0) {
-        const nominal = somaNominalParcelas(c.parcelas);
+      if (temPlano && proj.planoFinal > 0) {
+        const nominal = somaNominalParcelas(parcelasProj);
         const rendimento = Math.max(0, proj.planoFinal - nominal);
         destaque.hidden = false;
         document.getElementById('edProjecaoFinalValor').textContent = money(proj.planoFinal);
         document.getElementById('edProjecaoFinalSub').textContent =
-          `Soma das parcelas: ${money(nominal)} · Rendimento estimado (${taxa}% a.m.): ${money(rendimento)} · Simulação com juros compostos mês a mês.`;
+          `Soma das parcelas: ${money(nominal)} · Rendimento estimado (${taxa}% a.m.): ${money(rendimento)} · Todas as parcelas pagas, com juros compostos mês a mês até o fim do cofrinho.`;
       } else {
         destaque.hidden = true;
       }
-      document.getElementById('edProjecaoPreviewSub').textContent = temParcelas
-        ? `Horizontes (1° a 6°): guardado hoje + rend. vs plano completo a ${taxa}% ao mês.`
-        : `Com ${taxa}% ao mês sobre ${money(saldo)} guardados:`;
-      document.getElementById('edProjecaoPreviewGrid').innerHTML = proj.linhas.map((l) => `
+      document.getElementById('edProjecaoPreviewSub').textContent = temPlano
+        ? `Simulação: cada parcela do plano entra no mês previsto e rende ${taxa}% ao mês (juros compostos).`
+        : `Informe meta, prazo ou aporte para simular o plano. Com saldo hoje: ${money(saldo)}.`;
+      document.getElementById('edProjecaoPreviewGrid').innerHTML = proj.linhas.map((l) => {
+        const principal = temPlano ? l.valorPlano : l.valorAtual;
+        const extra = temPlano && saldo > 0
+          ? `<span class="proj-plano">Só guardado hoje: ${money(l.valorAtual)}</span>`
+          : '';
+        return `
         <div class="proj-tile">
           <span>${l.label}</span>
-          <strong>${money(l.valorAtual)}</strong>
-          ${temParcelas ? `<span class="proj-plano">Plano: ${money(l.valorPlano)}</span>` : ''}
-        </div>
-      `).join('');
+          <strong>${money(principal)}</strong>
+          ${extra}
+        </div>`;
+      }).join('');
     }
 
     function popularMesAno(selMes, selAno) {
@@ -1249,9 +1315,21 @@
       setTimeout(() => atualizarPreviewEdicao(c), 0);
     }
 
-    document.getElementById('edTaxa').addEventListener('input', () => {
-      const c = cofres.find((x) => x.id === detId);
-      if (c) atualizarPreviewEdicao(c);
+    ['edTaxa', 'edValorAlvo', 'edAporte', 'edMes', 'edAno'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', () => {
+        const c = cofres.find((x) => x.id === detId);
+        if (c && document.getElementById('modalEditar').classList.contains('visible')) {
+          atualizarPreviewEdicao(c);
+        }
+      });
+      el.addEventListener('change', () => {
+        const c = cofres.find((x) => x.id === detId);
+        if (c && document.getElementById('modalEditar').classList.contains('visible')) {
+          atualizarPreviewEdicao(c);
+        }
+      });
     });
 
     async function excluirParcelaCofrinho(parcelaId) {

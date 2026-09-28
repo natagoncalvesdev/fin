@@ -294,6 +294,31 @@ def apos_mudanca_conta(db: Session, cofrinho: Cofrinho) -> bool:
     return sincronizar(db, cofrinho) or mudou
 
 
+def remover_parcela(
+    db: Session, cofrinho: Cofrinho, conta_uuid: str, usuario: Usuario
+) -> None:
+    """Remove uma parcela (conta) do cofrinho. Pendente: apaga a linha; paga:
+    desvincula e mantém no financeiro."""
+    conta = (
+        db.query(Conta)
+        .filter(
+            Conta.uuid == conta_uuid,
+            Conta.id_cofrinho == cofrinho.id,
+        )
+        .first()
+    )
+    if not conta:
+        raise ValueError("Parcela não encontrada.")
+    if cofrinho.id_usuario != usuario.id and conta.id_usuario != usuario.id:
+        raise ValueError("Sem permissão para excluir esta parcela.")
+    if conta.situacao == "pago":
+        conta.id_cofrinho = None
+    else:
+        db.delete(conta)
+    db.flush()
+    apos_mudanca_conta(db, cofrinho)
+
+
 def sincronizar_todos(db: Session, usuario: Usuario) -> bool:
     """Sincroniza os cofrinhos do usuário (como dono) e aqueles em que ele é
     participante ativo."""

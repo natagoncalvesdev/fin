@@ -311,6 +311,24 @@ def update_cofrinho(
     return cofrinhos_service.payload(db, cofrinho, current_user)
 
 
+@router.delete("/{cofrinho_id}/parcelas/{parcela_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_parcela(
+    cofrinho_id: str,
+    parcela_id: str,
+    current_user: Annotated[Usuario, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    cofrinho = _get_visivel_or_404(db, cofrinho_id, current_user)
+    try:
+        cofrinhos_service.remover_parcela(db, cofrinho, parcela_id, current_user)
+    except ValueError as exc:
+        msg = str(exc)
+        if "não encontrada" in msg.lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg) from exc
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=msg) from exc
+    db.commit()
+
+
 @router.delete("/{cofrinho_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_cofrinho(
     cofrinho_id: str,

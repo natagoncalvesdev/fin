@@ -21,7 +21,17 @@
 
     .header-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 
-    .cofre-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 14px; }
+    /* Conteúdo fica dentro de #listView / #detailView — o gap do .content não
+       alcança os cards; espelha o espaçamento das outras páginas (24px). */
+    #listView,
+    #detailView {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 100%;
+    }
+
+    .cofre-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 
     .cofre-card {
       border: 1px solid var(--border-color); border-radius: 16px; padding: 18px; background: var(--bg-section);
@@ -83,6 +93,13 @@
     .parcela-tag.pendente { background: rgba(180,83,9,0.12); color: var(--warning); }
     .parcela-tag.vencida { background: rgba(185,28,28,0.12); color: var(--negative); }
 
+    .ed-parcela-row {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 12px;
+      background: var(--bg-section);
+    }
+    .ed-parcela-row .parcela-mes { width: auto; min-width: 72px; }
+
     .toggle-status { display: flex; gap: 8px; }
     .toggle-status button {
       flex: 1; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border-color);
@@ -96,7 +113,7 @@
     .convite-banner {
       border: 1px solid var(--accent); border-radius: 14px; padding: 14px 16px;
       background: var(--accent-soft); display: flex; align-items: center; gap: 12px;
-      justify-content: space-between; flex-wrap: wrap; margin-top: 16px;
+      justify-content: space-between; flex-wrap: wrap;
     }
     .convite-banner .cb-txt { font-size: 13.5px; font-weight: 600; }
 
@@ -126,9 +143,16 @@
 
     @media (max-width: 768px), (max-height: 500px) {
       .content { max-width: 100%; padding: 20px 16px 40px; margin-left: 0; }
+      #listView,
+      #detailView { gap: 20px; }
       .cofre-grid { grid-template-columns: 1fr; }
       .part-nome { flex-basis: 100%; }
       .part-row .btn-inline { margin-left: auto; }
+    }
+
+    body.mobile-shell .content #listView,
+    body.mobile-shell .content #detailView {
+      gap: 20px;
     }
   </style>
 </head>
@@ -137,7 +161,7 @@
   <main class="content">
     <!-- LISTA -->
     <section id="listView">
-      <div class="header-row">
+      <div class="page-header-row">
         <div class="page-header">
           <h1>Cofrinhos</h1>
           <p>Metas de economia: cada mês vira uma parcela nas suas contas. Pagou = guardou.</p>
@@ -147,7 +171,7 @@
 
       <div id="conviteBanner" class="convite-banner" hidden></div>
 
-      <div class="section-card" style="margin-top:16px;">
+      <div class="section-card">
         <div class="stat-row">
           <div class="stat-tile positive">
             <span class="stat-tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 8a5 5 0 0 0-5-3H9a5 5 0 0 0 0 10h1v3h4v-3h1a4 4 0 0 0 4-4Z"/><path d="M19 10h2M6 9h.01"/></svg></span>
@@ -169,12 +193,14 @@
 
     <!-- DETALHE -->
     <section id="detailView" hidden>
-      <div class="header-row">
-        <h1 id="detNome" style="margin:0;">Cofrinho</h1>
+      <div class="page-header-row">
+        <div class="page-header">
+          <h1 id="detNome">Cofrinho</h1>
+        </div>
         <button class="btn-cancel" onclick="voltarLista()">Voltar</button>
       </div>
 
-      <div class="section-card" style="margin-top:16px;">
+      <div class="section-card">
         <div class="big-progress">
           <div class="nums">
             <span class="saldo" id="detSaldo">R$ 0,00</span>
@@ -183,7 +209,7 @@
           <div class="cofre-bar"><span id="detBar" style="width:0%"></span></div>
           <span class="cofre-sub" id="detSub"></span>
         </div>
-        <div class="modal-actions" style="margin-top:14px;">
+        <div class="modal-actions" style="margin-top:20px;">
           <button class="btn-inline" onclick="abrirModalEditarCofrinho()">Editar</button>
           <button class="btn-inline" id="detBtnArquivar" onclick="alternarArquivo()">Arquivar</button>
           <button class="btn-inline fin-btn-danger" onclick="finRunOnce(event, () => excluirCofrinho())">Excluir</button>
@@ -205,7 +231,6 @@
 
       <div class="section-card">
         <h3 class="section-card-title">Minhas parcelas</h3>
-        <p class="info-text" style="margin:0 0 12px;">Toque numa parcela para marcar como paga ou ajustar o valor. Também aparecem na tela de Contas.</p>
         <div id="detParcelas" class="statement-list"></div>
       </div>
     </section>
@@ -252,6 +277,10 @@
         <div class="campo" style="flex:1;"><label for="edAno">Ano</label><select id="edAno"></select></div>
       </div>
       <p class="info-text" style="margin:0;">As parcelas ainda não pagas serão recalculadas.</p>
+      <div id="edParcelasWrap" style="margin-top:16px;">
+        <label class="fin-field-label" for="edParcelasLista">Parcelas</label>
+        <div id="edParcelasLista" class="statement-list" style="margin-top:8px;"></div>
+      </div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="fecharModal('modalEditar')">Cancelar</button>
         <button class="btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoCofrinho())">Salvar</button>
@@ -427,16 +456,12 @@
     }
 
     function linhaResumo(c) {
-      if (c.situacao === 'concluido') return `🏅 Concluído${c.dataConcluido ? ' em ' + c.dataConcluido.split('-').reverse().join('/') : ''}`;
-      const prazo = c.mesAlvo ? `${c.mesAlvo.slice(0,3)}/${c.anoAlvo}` : '';
-      const parc = c.aporteSugerido != null ? `${money(c.aporteSugerido)}/mês` : '';
-      const pagas = `${c.parcelasPagas}/${c.parcelasTotais} parcelas`;
-      if (c.compartilhado) {
-        const qtd = (c.participantes || []).filter((p) => p.situacao === 'ativo').length;
-        return `Compartilhada · ${qtd} participantes · ${parc} seu · faltam ${money(c.restante)}`;
+      if (c.situacao === 'concluido') {
+        return `🏅 Concluído${c.dataConcluido ? ' em ' + c.dataConcluido.split('-').reverse().join('/') : ''}`;
       }
-      if (c.modo === 'aporte_prazo') return `${parc} até ${prazo} · ${pagas} · projeção ${money(c.projecaoFinal)}`;
-      return `${parc} até ${prazo} · ${pagas} · faltam ${money(c.restante)}`;
+      const total = c.parcelasTotais ?? 0;
+      const pagas = c.parcelasPagas ?? 0;
+      return `${pagas}/${total} pagas`;
     }
 
     function renderParticipantes(c) {
@@ -563,11 +588,32 @@
     }
 
     // ---------- editar cofrinho ----------
+    function renderParcelasEdicao(c) {
+      const box = document.getElementById('edParcelasLista');
+      if (!c.parcelas || !c.parcelas.length) {
+        box.innerHTML = '<p class="info-text" style="margin:0;">Nenhuma parcela sua neste cofrinho.</p>';
+        return;
+      }
+      box.innerHTML = c.parcelas.map((p) => {
+        const tag = p.status === 'pago' ? 'pago' : (p.vencida ? 'vencida' : 'pendente');
+        const rotulo = p.status === 'pago' ? 'Pago' : (p.vencida ? 'Vencida' : 'Pendente');
+        return `
+          <div class="ed-parcela-row">
+            <span class="parcela-mes">${esc(p.mes.slice(0, 3))}/${p.ano}</span>
+            <span class="parcela-valor">${money(p.valor)}</span>
+            <span class="parcela-tag ${tag}">${rotulo}</span>
+            <button type="button" class="btn-inline fin-btn-danger" style="margin-left:auto;"
+              onclick="finRunOnce(event, () => excluirParcelaCofrinho('${p.id}'))">Excluir</button>
+          </div>`;
+      }).join('');
+    }
+
     function abrirModalEditarCofrinho() {
       const c = cofres.find((x) => x.id === detId);
       if (!c) return;
       popularMesAno(document.getElementById('edMes'), document.getElementById('edAno'));
       document.getElementById('edNome').value = c.nome;
+      renderParcelasEdicao(c);
       // Compartilhada: o dono edita a meta única (valor) e o próprio aporte.
       document.getElementById('edCampoValor').hidden = !(c.modo === 'valor_prazo' || c.compartilhado);
       document.getElementById('edCampoAporte').hidden = !(c.modo === 'aporte_prazo' || c.compartilhado);
@@ -577,6 +623,20 @@
       if (c.mesAlvo) document.getElementById('edMes').value = c.mesAlvo;
       if (c.anoAlvo) document.getElementById('edAno').value = c.anoAlvo;
       document.getElementById('modalEditar').classList.add('visible');
+    }
+
+    async function excluirParcelaCofrinho(parcelaId) {
+      const c = cofres.find((x) => x.id === detId);
+      const p = c && c.parcelas && c.parcelas.find((x) => x.id === parcelaId);
+      if (!p || !detId) return;
+      const msg = p.status === 'pago'
+        ? 'Esta parcela já foi paga. Ela continuará nas Contas, mas deixa de contar neste cofrinho. Continuar?'
+        : 'Excluir esta parcela? Ela também some da tela de Contas.';
+      if (!confirm(msg)) return;
+      const modalAberto = document.getElementById('modalEditar').classList.contains('visible');
+      await api(`/api/cofrinhos/${detId}/parcelas/${parcelaId}`, { method: 'DELETE' });
+      await carregar();
+      if (modalAberto && detId) abrirModalEditarCofrinho();
     }
 
     async function salvarEdicaoCofrinho() {

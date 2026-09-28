@@ -427,7 +427,8 @@ class Cofrinho(Base):
       - aporte_mensal definido: vou guardar R$ Y/mês até mês/ano.
 
     Ao criar, o cofrinho gera uma parcela por mês como uma linha em `conta`
-    ("Cofrinho: <nome>"). Marcar a conta como paga = guardar aquele valor. O
+    (título "Cofrinho", descrição = nome da meta). Marcar a conta como paga =
+    guardar aquele valor. O
     montante do cofrinho é a soma das parcelas pagas.
 
     Cofrinho compartilhado: outras pessoas entram como `CofrinhoParticipante` e

@@ -1,7 +1,7 @@
 """Cofrinhos (metas de economia), individuais ou compartilhados.
 
 Ao criar um cofrinho, geramos uma **parcela por mês** como uma linha em `conta`
-("Cofrinho: <nome>") para cada participante. O usuário paga essas contas
+(título "Cofrinho", descrição = nome da meta) para cada participante. O usuário paga essas contas
 normalmente na tela de Contas (ou pelo próprio cofrinho); marcar como paga =
 guardar aquele valor. O montante do cofrinho é a soma das parcelas pagas de
 **todos** os participantes.
@@ -26,6 +26,16 @@ from app import conquistas_service
 from app.models import MESES, Cofrinho, CofrinhoParticipante, Conta, Usuario
 
 CATEGORIA_COFRINHO = "Cofrinho"
+TITULO_CONTA_COFRINHO = "Cofrinho"
+
+
+def atualizar_rotulos_contas_cofrinho(db: Session, cofrinho: Cofrinho) -> None:
+    """Sincroniza título/descrição das parcelas ligadas a este cofrinho."""
+    desc = (cofrinho.nome or "").strip()
+    for conta in db.query(Conta).filter(Conta.id_cofrinho == cofrinho.id):
+        conta.nome = TITULO_CONTA_COFRINHO
+        conta.descricao = desc or None
+    db.flush()
 
 
 def _mes_idx(nome: str | None) -> int | None:
@@ -179,7 +189,8 @@ def gerar_parcelas_participante(
             usuario,
             ano=ano,
             mes=mes,
-            nome=f"Cofrinho: {cofrinho.nome}",
+            nome=TITULO_CONTA_COFRINHO,
+            descricao=(cofrinho.nome or "").strip(),
             valor=round(valor, 2),
             status="pendente",
             categoria=CATEGORIA_COFRINHO,

@@ -260,8 +260,7 @@ def update_cofrinho(
 
     if body.nome is not None and body.nome.strip() != cofrinho.nome:
         cofrinho.nome = body.nome.strip()
-        for conta in db.query(Conta).filter(Conta.id_cofrinho == cofrinho.id):
-            conta.nome = f"Cofrinho: {cofrinho.nome}"
+        cofrinhos_service.atualizar_rotulos_contas_cofrinho(db, cofrinho)
     if body.mesAlvo is not None:
         _checar_mes(body.mesAlvo)
         cofrinho.mes_alvo = body.mesAlvo

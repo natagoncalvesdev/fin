@@ -103,3 +103,21 @@ def run_migrations(engine: Engine) -> None:
             conn.execute(
                 text(f"ALTER TABLE {tabela} ADD COLUMN IF NOT EXISTS descricao VARCHAR(2000)")
             )
+
+        # Parcelas de cofrinho antigas: nome "Cofrinho: <meta>" -> título + descrição.
+        conn.execute(
+            text(
+                """
+                UPDATE conta
+                SET
+                  descricao = CASE
+                    WHEN descricao IS NULL OR TRIM(descricao) = ''
+                      THEN TRIM(SUBSTRING(nome FROM 11))
+                    ELSE descricao
+                  END,
+                  nome = 'Cofrinho'
+                WHERE id_cofrinho IS NOT NULL
+                  AND nome LIKE 'Cofrinho:%'
+                """
+            )
+        )

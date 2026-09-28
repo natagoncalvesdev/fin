@@ -495,7 +495,7 @@
           <div class="campo">
             <label for="edTaxa">Rendimento esperado (% ao mês)</label>
             <input id="edTaxa" type="number" step="0.01" min="0" max="100" placeholder="Ex.: 0,8 — deixe vazio se não aplicável" />
-            <p class="info-text" style="margin:6px 0 0;">Opcional. Com a taxa definida, a projeção usa juros compostos sobre o valor já guardado.</p>
+            <p class="info-text" style="margin:6px 0 0;">Opcional. Na prévia, simula todas as parcelas do plano (pagas ou não) com juros compostos mês a mês.</p>
           </div>
           <p class="info-text" style="margin:0;">Alterações no plano recalculam as parcelas ainda não pagas.</p>
         </div>
@@ -674,9 +674,8 @@
       };
     }
 
-    /** Parcelas reais ou simuladas a partir dos campos do modal (meta, prazo, aporte). */
-    function parcelasParaProjecao(c, form) {
-      if (c.parcelas && c.parcelas.length) return c.parcelas;
+    /** Parcelas simuladas a partir dos campos do modal (independente de pagamento). */
+    function parcelasVirtuaisFromForm(c, form) {
       const meses = listarMesesPlano(c.dataInicio, form.mesAlvo || c.mesAlvo, form.anoAlvo || c.anoAlvo);
       if (!meses.length) return [];
       const valorAlvo = Number(form.valorAlvo !== '' ? form.valorAlvo : c.valorAlvo);
@@ -698,6 +697,13 @@
         valor: Math.round(valorParcela * 100) / 100,
         status: 'pendente',
       }));
+    }
+
+    /** Plano completo para a prévia do modal: formulário primeiro; senão parcelas da API (pagas + pendentes). */
+    function parcelasPlanoEdicao(c, form) {
+      const virt = parcelasVirtuaisFromForm(c, form);
+      if (virt.length) return virt;
+      return (c.parcelas && c.parcelas.length) ? c.parcelas : [];
     }
 
     function patrimonioEntreMeses(parcelas, taxaPct, idxInicio, idxFim, somentePagas) {
@@ -742,6 +748,24 @@
       const limites = limitesPlanoParcelas(parcelas);
       if (!limites) return 0;
       return patrimonioEntreMeses(parcelas, taxaPct, limites.ini, limites.fim, false);
+    }
+
+    /** N meses contados desde o 1º mês do plano (todas as parcelas entram, pagas ou não). */
+    function simularPlanoRendimentoMesesDesdeInicio(parcelas, taxaPct, mesesNoPlano) {
+      const limites = limitesPlanoParcelas(parcelas);
+      if (!limites || mesesNoPlano <= 0) return 0;
+      const alvo = Math.min(limites.fim, limites.ini + mesesNoPlano - 1);
+      return patrimonioEntreMeses(parcelas, taxaPct, limites.ini, alvo, false);
+    }
+
+    function montarProjecaoEdicao(parcelas, taxaPct) {
+      if (!taxaValida(taxaPct)) return null;
+      const linhas = HORIZONTES_PROJECAO.map((h) => ({
+        label: h.label,
+        meses: h.meses,
+        valor: simularPlanoRendimentoMesesDesdeInicio(parcelas, taxaPct, h.meses),
+      }));
+      return { linhas, planoFinal: simularPlanoRendimentoFinal(parcelas, taxaPct) };
     }
 
     function somaNominalParcelas(parcelas) {
@@ -1022,35 +1046,29 @@
       semTaxa.hidden = true;
       prevBox.hidden = false;
       const form = lerFormEdicao();
-      const parcelasProj = parcelasParaProjecao(c, form);
-      const proj = montarProjecaoRendimento(saldo, parcelasProj, taxa);
-      const temPlano = parcelasProj.length > 0;
+      const parcelasProj = parcelasPlanoEdicao(c, form);
+      const proj = montarProjecaoEdicao(parcelasProj, taxa);
+      const temPlano = parcelasProj.length > 0 && proj && proj.planoFinal > 0;
       const destaque = document.getElementById('edProjecaoFinalDestaque');
-      if (temPlano && proj.planoFinal > 0) {
+      if (temPlano) {
         const nominal = somaNominalParcelas(parcelasProj);
         const rendimento = Math.max(0, proj.planoFinal - nominal);
         destaque.hidden = false;
         document.getElementById('edProjecaoFinalValor').textContent = money(proj.planoFinal);
         document.getElementById('edProjecaoFinalSub').textContent =
-          `Soma das parcelas: ${money(nominal)} · Rendimento estimado (${taxa}% a.m.): ${money(rendimento)} · Todas as parcelas pagas, com juros compostos mês a mês até o fim do cofrinho.`;
+          `Soma das parcelas: ${money(nominal)} · Rendimento estimado (${taxa}% a.m.): ${money(rendimento)} · Plano completo (parcelas pagas e pendentes), juros compostos até o mês-alvo.`;
       } else {
         destaque.hidden = true;
       }
       document.getElementById('edProjecaoPreviewSub').textContent = temPlano
-        ? `Simulação: cada parcela do plano entra no mês previsto e rende ${taxa}% ao mês (juros compostos).`
-        : `Informe meta, prazo ou aporte para simular o plano. Com saldo hoje: ${money(saldo)}.`;
-      document.getElementById('edProjecaoPreviewGrid').innerHTML = proj.linhas.map((l) => {
-        const principal = temPlano ? l.valorPlano : l.valorAtual;
-        const extra = temPlano && saldo > 0
-          ? `<span class="proj-plano">Só guardado hoje: ${money(l.valorAtual)}</span>`
-          : '';
-        return `
+        ? `Projeção com ${taxa}% ao mês: cada parcela do plano entra no mês previsto, sem distinguir se já foi paga.`
+        : 'Informe meta e prazo (ou aporte mensal) para simular o plano com rendimento.';
+      document.getElementById('edProjecaoPreviewGrid').innerHTML = (proj && proj.linhas ? proj.linhas : []).map((l) => `
         <div class="proj-tile">
           <span>${l.label}</span>
-          <strong>${money(principal)}</strong>
-          ${extra}
-        </div>`;
-      }).join('');
+          <strong>${money(l.valor)}</strong>
+        </div>
+      `).join('');
     }
 
     function popularMesAno(selMes, selAno) {

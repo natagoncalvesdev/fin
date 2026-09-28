@@ -12,6 +12,7 @@
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
   <script src="sidebar.js?v=9"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <style>
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
@@ -154,6 +155,160 @@
     body.mobile-shell .content #detailView {
       gap: 20px;
     }
+
+    /* —— Detalhe / painel do cofrinho —— */
+    .cofre-hero {
+      position: relative;
+      border-radius: 20px;
+      padding: 28px 24px;
+      color: #fff;
+      background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 45%, #0ea5e9 100%);
+      box-shadow: 0 18px 40px rgba(37, 99, 235, 0.28);
+      overflow: hidden;
+    }
+    .cofre-hero::after {
+      content: '';
+      position: absolute;
+      inset: -40% -20% auto auto;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      pointer-events: none;
+    }
+    .cofre-hero.concluido {
+      background: linear-gradient(135deg, #166534 0%, #15803d 50%, #22c55e 100%);
+      box-shadow: 0 18px 40px rgba(21, 128, 61, 0.25);
+    }
+    .cofre-hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+    .cofre-hero-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .cofre-hero-body {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 24px;
+      align-items: center;
+      margin-top: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .cofre-ring-wrap {
+      width: 112px;
+      height: 112px;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .cofre-ring-wrap canvas { width: 112px !important; height: 112px !important; }
+    .cofre-ring-pct {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      pointer-events: none;
+    }
+    .cofre-hero-values .saldo { font-size: 32px; font-weight: 800; line-height: 1.1; }
+    .cofre-hero-values .alvo { opacity: 0.88; font-size: 14px; margin-top: 4px; display: block; }
+    .cofre-hero-meta { font-size: 13px; opacity: 0.9; margin-top: 10px; }
+    .cofre-hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+      position: relative;
+      z-index: 1;
+    }
+    .cofre-hero-actions .btn-inline,
+    .cofre-hero-actions .btn-cancel {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: transparent;
+      color: var(--ink-950);
+    }
+    .cofre-hero-actions .fin-btn-danger {
+      background: rgba(254, 226, 226, 0.95);
+      color: var(--negative);
+    }
+
+    .cofre-dash-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+    @media (max-width: 900px) {
+      .cofre-dash-grid { grid-template-columns: 1fr; }
+      .cofre-hero-body { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+    }
+    .cofre-chart-box {
+      position: relative;
+      height: 220px;
+      margin-top: 8px;
+    }
+    .cofre-chart-box.tall { height: 260px; }
+
+    .proj-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+    @media (max-width: 640px) {
+      .proj-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .proj-tile {
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-main);
+    }
+    .proj-tile span { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); }
+    .proj-tile strong { display: block; margin-top: 6px; font-size: 15px; color: var(--ink-950); }
+
+    .modal-edit-cofrinho {
+      max-width: 920px !important;
+      width: calc(100% - 32px);
+    }
+    .edit-cofrinho-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 768px) {
+      .edit-cofrinho-grid { grid-template-columns: 1fr; }
+    }
+    .edit-preview-card {
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 16px;
+      background: var(--bg-main);
+    }
+    .edit-preview-card h4 {
+      margin: 0 0 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
   </style>
 </head>
 <body>
@@ -200,19 +355,44 @@
         <button class="btn-cancel" onclick="voltarLista()">Voltar</button>
       </div>
 
-      <div class="section-card">
-        <div class="big-progress">
-          <div class="nums">
+      <div class="cofre-hero" id="detHero">
+        <div class="cofre-hero-top">
+          <span class="cofre-hero-badge" id="detBadge">Ativo</span>
+        </div>
+        <div class="cofre-hero-body">
+          <div class="cofre-ring-wrap">
+            <canvas id="chartCofreAnel" aria-hidden="true"></canvas>
+            <span class="cofre-ring-pct" id="detRingPct">0%</span>
+          </div>
+          <div class="cofre-hero-values">
             <span class="saldo" id="detSaldo">R$ 0,00</span>
             <span class="alvo" id="detAlvo">de R$ 0,00</span>
+            <div class="cofre-hero-meta" id="detSub">0/0 pagas</div>
           </div>
-          <div class="cofre-bar"><span id="detBar" style="width:0%"></span></div>
-          <span class="cofre-sub" id="detSub"></span>
         </div>
-        <div class="modal-actions" style="margin-top:20px;">
-          <button class="btn-inline" onclick="abrirModalEditarCofrinho()">Editar</button>
-          <button class="btn-inline" id="detBtnArquivar" onclick="alternarArquivo()">Arquivar</button>
-          <button class="btn-inline fin-btn-danger" onclick="finRunOnce(event, () => excluirCofrinho())">Excluir</button>
+        <div class="cofre-hero-actions" id="detAcoesDono">
+          <button type="button" class="btn-inline" onclick="abrirModalEditarCofrinho()">Editar cofrinho</button>
+          <button type="button" class="btn-inline" id="detBtnArquivar" onclick="alternarArquivo()">Arquivar</button>
+          <button type="button" class="btn-inline fin-btn-danger" onclick="finRunOnce(event, () => excluirCofrinho())">Excluir</button>
+        </div>
+      </div>
+
+      <div class="cofre-dash-grid">
+        <div class="section-card">
+          <h3 class="section-card-title" style="margin-bottom:8px;">Evolução das suas parcelas</h3>
+          <p class="info-text" style="margin:0 0 4px;">Ao fundo, o total acumulado se todas as parcelas fossem pagas; por cima, o que você já guardou de fato.</p>
+          <div class="cofre-chart-box tall">
+            <canvas id="chartCofreMeta"></canvas>
+          </div>
+          <p id="chartCofreMetaVazio" class="info-text" style="margin:8px 0 0; display:none;">Cadastre parcelas para ver a evolução.</p>
+        </div>
+        <div class="section-card" id="detProjecaoCard" hidden>
+          <h3 class="section-card-title" style="margin-bottom:8px;">Projeção com rendimento</h3>
+          <p class="info-text" id="detProjecaoSub" style="margin:0 0 4px;"></p>
+          <div class="cofre-chart-box tall">
+            <canvas id="chartCofreProjecao"></canvas>
+          </div>
+          <div id="detProjecaoGrid" class="proj-grid"></div>
         </div>
       </div>
 
@@ -267,17 +447,37 @@
 
   <!-- Modal: editar cofrinho -->
   <div id="modalEditar" class="modal-overlay">
-    <div class="modal-content">
+    <div class="modal-content modal-edit-cofrinho">
       <h3>Editar cofrinho</h3>
-      <div class="campo"><label for="edNome">Nome</label><input id="edNome"></div>
-      <div class="campo" id="edCampoValor"><label for="edValorAlvo">Valor alvo (R$)</label><input id="edValorAlvo" type="number" step="0.01" min="0"></div>
-      <div class="campo" id="edCampoAporte"><label for="edAporte">Guardar por mês (R$)</label><input id="edAporte" type="number" step="0.01" min="0"></div>
-      <div class="form-row">
-        <div class="campo" style="flex:1;"><label for="edMes">Até o mês</label><select id="edMes"></select></div>
-        <div class="campo" style="flex:1;"><label for="edAno">Ano</label><select id="edAno"></select></div>
+      <div class="edit-cofrinho-grid">
+        <div class="edit-cofrinho-form">
+          <div class="campo"><label for="edNome">Nome</label><input id="edNome"></div>
+          <div class="campo" id="edCampoValor"><label for="edValorAlvo">Valor alvo (R$)</label><input id="edValorAlvo" type="number" step="0.01" min="0"></div>
+          <div class="campo" id="edCampoAporte"><label for="edAporte">Guardar por mês (R$)</label><input id="edAporte" type="number" step="0.01" min="0"></div>
+          <div class="form-row">
+            <div class="campo" style="flex:1;"><label for="edMes">Até o mês</label><select id="edMes"></select></div>
+            <div class="campo" style="flex:1;"><label for="edAno">Ano</label><select id="edAno"></select></div>
+          </div>
+          <div class="campo">
+            <label for="edTaxa">Rendimento esperado (% ao mês)</label>
+            <input id="edTaxa" type="number" step="0.01" min="0" max="100" placeholder="Ex.: 0,8 — deixe vazio se não aplicável" />
+            <p class="info-text" style="margin:6px 0 0;">Opcional. Com a taxa definida, a projeção usa juros compostos sobre o valor já guardado.</p>
+          </div>
+          <p class="info-text" style="margin:0;">Alterações no plano recalculam as parcelas ainda não pagas.</p>
+        </div>
+        <div class="edit-preview-card">
+          <h4>Prévia</h4>
+          <div class="cofre-chart-box" style="height:180px;">
+            <canvas id="chartEdicaoMeta"></canvas>
+          </div>
+          <div id="edProjecaoPreview" hidden style="margin-top:14px;">
+            <p class="info-text" style="margin:0 0 8px;" id="edProjecaoPreviewSub"></p>
+            <div id="edProjecaoPreviewGrid" class="proj-grid"></div>
+          </div>
+          <p id="edSemTaxaMsg" class="info-text" style="margin:14px 0 0;">Defina uma taxa % ao mês para ver a projeção de rendimento.</p>
+        </div>
       </div>
-      <p class="info-text" style="margin:0;">As parcelas ainda não pagas serão recalculadas.</p>
-      <div id="edParcelasWrap" style="margin-top:16px;">
+      <div id="edParcelasWrap" style="margin-top:20px;">
         <label class="fin-field-label" for="edParcelasLista">Parcelas</label>
         <div id="edParcelasLista" class="statement-list" style="margin-top:8px;"></div>
       </div>
@@ -364,6 +564,269 @@
     let conviteAtivo = null;
     let buscaTimer = null;
     let usuarioSelecionado = null;
+    let chartCofreAnel = null;
+    let chartCofreMeta = null;
+    let chartCofreProjecao = null;
+    let chartEdicaoMeta = null;
+
+    const HORIZONTES_PROJECAO = [
+      { meses: 1, label: '1 mês' },
+      { meses: 12, label: '1 ano' },
+      { meses: 24, label: '2 anos' },
+      { meses: 36, label: '3 anos' },
+      { meses: 48, label: '4 anos' },
+      { meses: 60, label: '5 anos' },
+    ];
+
+    function taxaValida(taxa) {
+      return taxa != null && Number(taxa) > 0;
+    }
+
+    function valorComJurosCompostos(capital, taxaPct, meses) {
+      const pv = Number(capital) || 0;
+      const r = Number(taxaPct) / 100;
+      if (!Number.isFinite(r) || r <= 0 || meses <= 0) return pv;
+      return pv * Math.pow(1 + r, meses);
+    }
+
+    function montarProjecao(saldo, taxaPct) {
+      if (!taxaValida(taxaPct)) return null;
+      return HORIZONTES_PROJECAO.map((h) => ({
+        label: h.label,
+        meses: h.meses,
+        valor: valorComJurosCompostos(saldo, taxaPct, h.meses),
+      }));
+    }
+
+    function destruirChart(ch) {
+      if (ch) ch.destroy();
+      return null;
+    }
+
+    function indiceMes(mesNome, ano) {
+      return ano * 12 + MESES.indexOf(mesNome);
+    }
+
+    /** Acumulado mês a mês: plano (todas as parcelas) vs pago (só status pago). */
+    function seriesEvolucaoParcelas(parcelas) {
+      if (!parcelas || !parcelas.length) return null;
+      const sorted = [...parcelas].sort(
+        (a, b) => indiceMes(a.mes, a.ano) - indiceMes(b.mes, b.ano),
+      );
+      let acumPlano = 0;
+      let acumPago = 0;
+      const labels = [];
+      const plano = [];
+      const pago = [];
+      sorted.forEach((p) => {
+        const v = Number(p.valor) || 0;
+        acumPlano += v;
+        if (p.status === 'pago') acumPago += v;
+        labels.push(`${String(p.mes).slice(0, 3)}/${p.ano}`);
+        plano.push(acumPlano);
+        pago.push(acumPago);
+      });
+      return { labels, plano, pago };
+    }
+
+    function atualizarGraficosDetalhe(c) {
+      const pct = c.progresso != null ? Math.round(c.progresso * 100) : 0;
+      document.getElementById('detRingPct').textContent = `${pct}%`;
+
+      chartCofreAnel = destruirChart(chartCofreAnel);
+      const ctxAnel = document.getElementById('chartCofreAnel');
+      if (ctxAnel && typeof Chart !== 'undefined') {
+        const fatia = pct > 0 ? pct : 0;
+        chartCofreAnel = new Chart(ctxAnel.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            datasets: [{
+              data: fatia > 0 ? [fatia, 100 - fatia] : [1],
+              backgroundColor: fatia > 0 ? ['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.22)'] : ['rgba(255,255,255,0.25)'],
+              borderWidth: 0,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '78%',
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          },
+        });
+      }
+
+      const saldo = Number(c.saldo) || 0;
+      const evolucao = seriesEvolucaoParcelas(c.parcelas);
+      const vazioEl = document.getElementById('chartCofreMetaVazio');
+      chartCofreMeta = destruirChart(chartCofreMeta);
+      const ctxMeta = document.getElementById('chartCofreMeta');
+      if (ctxMeta) ctxMeta.style.display = evolucao ? '' : 'none';
+      if (vazioEl) vazioEl.style.display = evolucao ? 'none' : '';
+
+      if (ctxMeta && evolucao && typeof Chart !== 'undefined') {
+        chartCofreMeta = new Chart(ctxMeta.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: evolucao.labels,
+            datasets: [
+              {
+                label: 'Plano (todas pagas)',
+                data: evolucao.plano,
+                borderColor: 'rgba(148, 163, 184, 0.55)',
+                backgroundColor: 'rgba(148, 163, 184, 0.14)',
+                fill: true,
+                tension: 0.35,
+                pointRadius: 3,
+                pointHoverRadius: 5,
+                borderWidth: 2,
+                order: 2,
+              },
+              {
+                label: 'Guardado (pago)',
+                data: evolucao.pago,
+                borderColor: '#2563EB',
+                backgroundColor: 'rgba(37, 99, 235, 0.22)',
+                fill: true,
+                tension: 0.35,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                borderWidth: 3,
+                order: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: {
+                display: true,
+                position: 'bottom',
+                labels: { boxWidth: 14, font: { size: 11 }, padding: 14 },
+              },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => ` ${ctx.dataset.label}: ${money(ctx.parsed.y)}`,
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { callback: (v) => money(v), font: { size: 11 } },
+                grid: { color: 'rgba(148,163,184,0.12)' },
+              },
+              x: {
+                grid: { display: false },
+                ticks: { font: { size: 11 }, maxRotation: 45, minRotation: 0 },
+              },
+            },
+          },
+        });
+      }
+
+      const cardProj = document.getElementById('detProjecaoCard');
+      const metaCard = cardProj && cardProj.parentElement && cardProj.parentElement.firstElementChild;
+      if (!taxaValida(c.taxaRendimentoMensal)) {
+        cardProj.hidden = true;
+        if (metaCard) metaCard.style.gridColumn = '1 / -1';
+        chartCofreProjecao = destruirChart(chartCofreProjecao);
+        return;
+      }
+      if (metaCard) metaCard.style.gridColumn = '';
+      cardProj.hidden = false;
+      const taxa = c.taxaRendimentoMensal;
+      document.getElementById('detProjecaoSub').textContent =
+        `Simulação: ${money(saldo)} guardados hoje a ${taxa}% ao mês (juros compostos, sem novos aportes).`;
+      const linhas = montarProjecao(saldo, taxa);
+      document.getElementById('detProjecaoGrid').innerHTML = linhas.map((l) => `
+        <div class="proj-tile"><span>${l.label}</span><strong>${money(l.valor)}</strong></div>
+      `).join('');
+
+      chartCofreProjecao = destruirChart(chartCofreProjecao);
+      const ctxP = document.getElementById('chartCofreProjecao');
+      if (ctxP && typeof Chart !== 'undefined') {
+        chartCofreProjecao = new Chart(ctxP.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: linhas.map((l) => l.label),
+            datasets: [{
+              label: 'Patrimônio projetado',
+              data: linhas.map((l) => l.valor),
+              borderColor: '#7C3AED',
+              backgroundColor: 'rgba(124, 58, 237, 0.12)',
+              fill: true,
+              tension: 0.35,
+              pointRadius: 5,
+              pointBackgroundColor: '#7C3AED',
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: (ctx) => ` ${money(ctx.parsed.y)}` } },
+            },
+            scales: {
+              y: {
+                ticks: { callback: (v) => money(v), font: { size: 11 } },
+                grid: { color: 'rgba(148,163,184,0.1)' },
+              },
+              x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+            },
+          },
+        });
+      }
+    }
+
+    function atualizarPreviewEdicao(c) {
+      if (!c) return;
+      const saldo = Number(c.saldo) || 0;
+      const restante = Math.max(0, Number(c.restante) || 0);
+      chartEdicaoMeta = destruirChart(chartEdicaoMeta);
+      const ctx = document.getElementById('chartEdicaoMeta');
+      if (ctx && typeof Chart !== 'undefined') {
+        chartEdicaoMeta = new Chart(ctx.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels: ['Guardado', 'Falta'],
+            datasets: [{
+              data: [Math.max(saldo, 0.001), Math.max(restante, 0.001)],
+              backgroundColor: ['#2563EB', '#CBD5E1'],
+              borderWidth: 0,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+              tooltip: { callbacks: { label: (item) => ` ${money(item.raw)}` } },
+            },
+          },
+        });
+      }
+
+      const taxaInput = document.getElementById('edTaxa').value.trim();
+      const taxa = taxaInput === '' ? null : Number(taxaInput);
+      const prevBox = document.getElementById('edProjecaoPreview');
+      const semTaxa = document.getElementById('edSemTaxaMsg');
+      if (!taxaValida(taxa)) {
+        prevBox.hidden = true;
+        semTaxa.hidden = false;
+        return;
+      }
+      semTaxa.hidden = true;
+      prevBox.hidden = false;
+      document.getElementById('edProjecaoPreviewSub').textContent =
+        `Com ${taxa}% ao mês sobre ${money(saldo)} guardados:`;
+      const linhas = montarProjecao(saldo, taxa);
+      document.getElementById('edProjecaoPreviewGrid').innerHTML = linhas.map((l) => `
+        <div class="proj-tile"><span>${l.label}</span><strong>${money(l.valor)}</strong></div>
+      `).join('');
+    }
 
     function popularMesAno(selMes, selAno) {
       selMes.innerHTML = MESES.map((m) => `<option value="${m}">${m}</option>`).join('');
@@ -506,15 +969,15 @@
       document.getElementById('detNome').textContent = c.nome;
       document.getElementById('detSaldo').textContent = money(c.saldo);
       document.getElementById('detAlvo').textContent = `de ${money(c.alvo)}`;
-      document.getElementById('detBar').style.width = `${c.progresso != null ? Math.round(c.progresso * 100) : 0}%`;
-      document.getElementById('detBar').parentElement.classList.toggle('concluido', c.situacao === 'concluido');
       document.getElementById('detSub').textContent = linhaResumo(c);
+      document.getElementById('detBadge').textContent = c.situacao;
+      const hero = document.getElementById('detHero');
+      hero.classList.toggle('concluido', c.situacao === 'concluido');
       document.getElementById('detBtnArquivar').textContent = c.situacao === 'arquivado' ? 'Reativar' : 'Arquivar';
-      // Editar / Arquivar / Excluir só para o dono
-      const acoesDono = document.querySelector('#detailView .section-card .modal-actions');
-      if (acoesDono) acoesDono.style.display = c.souDono ? '' : 'none';
+      document.getElementById('detAcoesDono').style.display = c.souDono ? '' : 'none';
 
       renderParticipantes(c);
+      atualizarGraficosDetalhe(c);
 
       const box = document.getElementById('detParcelas');
       if (!c.parcelas || !c.parcelas.length) {
@@ -622,8 +1085,15 @@
       document.getElementById('edAporte').value = (c.compartilhado ? c.meuAporte : c.aporteMensal) ?? '';
       if (c.mesAlvo) document.getElementById('edMes').value = c.mesAlvo;
       if (c.anoAlvo) document.getElementById('edAno').value = c.anoAlvo;
+      document.getElementById('edTaxa').value = c.taxaRendimentoMensal != null ? c.taxaRendimentoMensal : '';
       document.getElementById('modalEditar').classList.add('visible');
+      setTimeout(() => atualizarPreviewEdicao(c), 0);
     }
+
+    document.getElementById('edTaxa').addEventListener('input', () => {
+      const c = cofres.find((x) => x.id === detId);
+      if (c) atualizarPreviewEdicao(c);
+    });
 
     async function excluirParcelaCofrinho(parcelaId) {
       const c = cofres.find((x) => x.id === detId);
@@ -656,6 +1126,11 @@
         body.aporteMensal = Number(document.getElementById('edAporte').value) || null;
       }
       if (!body.nome) return alert('O nome não pode ficar vazio.');
+      const taxaRaw = document.getElementById('edTaxa').value.trim();
+      body.taxaRendimentoMensal = taxaRaw === '' ? null : Number(taxaRaw);
+      if (body.taxaRendimentoMensal != null && (!Number.isFinite(body.taxaRendimentoMensal) || body.taxaRendimentoMensal < 0 || body.taxaRendimentoMensal > 100)) {
+        return alert('Informe uma taxa entre 0 e 100 % ao mês, ou deixe em branco.');
+      }
       await api(`/api/cofrinhos/${detId}`, { method: 'PUT', body: JSON.stringify(body) });
       fecharModal('modalEditar');
       await carregar();

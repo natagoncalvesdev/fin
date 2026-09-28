@@ -450,6 +450,8 @@ class Cofrinho(Base):
     data_inicio: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)
     situacao: Mapped[str] = mapped_column(String(20), nullable=False, default="ativo")
     data_concluido: Mapped[date | None] = mapped_column(Date, nullable=True)
+    # Rendimento mensal esperado (%), opcional — usado na projeção com juros compostos.
+    taxa_rendimento_mensal: Mapped[float | None] = mapped_column(Float, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     usuario: Mapped["Usuario"] = relationship(back_populates="cofrinhos")

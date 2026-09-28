@@ -20,6 +20,7 @@ class CofrinhoCreate(BaseModel):
     aporteMensal: float | None = Field(default=None, gt=0, le=1_000_000_000)
     mesAlvo: str
     anoAlvo: int = Field(ge=2000, le=2100)
+    taxaRendimentoMensal: float | None = Field(default=None, ge=0, le=100)
 
     @field_validator("nome")
     @classmethod
@@ -34,6 +35,7 @@ class CofrinhoUpdate(BaseModel):
     mesAlvo: str | None = None
     anoAlvo: int | None = Field(default=None, ge=2000, le=2100)
     situacao: str | None = None
+    taxaRendimentoMensal: float | None = Field(default=None, ge=0, le=100)
 
     @field_validator("nome")
     @classmethod
@@ -234,6 +236,7 @@ def create_cofrinho(
         aporte_mensal=body.aporteMensal,
         mes_alvo=body.mesAlvo,
         ano_alvo=body.anoAlvo,
+        taxa_rendimento_mensal=body.taxaRendimentoMensal,
         data_inicio=date.today(),
         situacao="ativo",
     )
@@ -299,6 +302,8 @@ def update_cofrinho(
         cofrinho.situacao = body.situacao
         if body.situacao == "arquivado":
             cofrinho.data_concluido = None
+    if "taxaRendimentoMensal" in enviados:
+        cofrinho.taxa_rendimento_mensal = body.taxaRendimentoMensal
 
     db.flush()
     if cronograma_mudou:

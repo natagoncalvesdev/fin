@@ -443,4 +443,5 @@ def payload(db: Session, cofrinho: Cofrinho, eu: Usuario) -> dict:
         "aporteSugerido": round(pendentes_minhas[0].valor, 2) if pendentes_minhas else None,
         "projecaoFinal": projecao_final,
         "participantes": participantes,
+        "taxaRendimentoMensal": cofrinho.taxa_rendimento_mensal,
     }

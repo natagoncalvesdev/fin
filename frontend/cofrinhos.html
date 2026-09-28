@@ -286,6 +286,36 @@
     }
     .proj-tile.destaque { border-color: rgba(124, 58, 237, 0.35); background: rgba(124, 58, 237, 0.06); }
 
+    .ed-final-plano {
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(124, 58, 237, 0.35);
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(37, 99, 235, 0.06));
+    }
+    .ed-final-plano .ed-final-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+    }
+    .ed-final-plano .ed-final-valor {
+      display: block;
+      margin-top: 8px;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--ink-950);
+    }
+    .ed-final-plano .ed-final-sub {
+      display: block;
+      margin-top: 8px;
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
     .modal-edit-cofrinho {
       max-width: 920px !important;
       width: calc(100% - 32px);
@@ -475,7 +505,12 @@
             <canvas id="chartEdicaoMeta"></canvas>
           </div>
           <div id="edProjecaoPreview" hidden style="margin-top:14px;">
-            <p class="info-text" style="margin:0 0 8px;" id="edProjecaoPreviewSub"></p>
+            <div id="edProjecaoFinalDestaque" class="ed-final-plano" hidden>
+              <span class="ed-final-label">Valor final (todas as parcelas pagas + rendimento)</span>
+              <span class="ed-final-valor" id="edProjecaoFinalValor">R$ 0,00</span>
+              <span class="ed-final-sub" id="edProjecaoFinalSub"></span>
+            </div>
+            <p class="info-text" style="margin:12px 0 8px;" id="edProjecaoPreviewSub"></p>
             <div id="edProjecaoPreviewGrid" class="proj-grid"></div>
           </div>
           <p id="edSemTaxaMsg" class="info-text" style="margin:14px 0 0;">Defina uma taxa % ao mês para ver a projeção de rendimento.</p>
@@ -644,6 +679,10 @@
       const limites = limitesPlanoParcelas(parcelas);
       if (!limites) return 0;
       return patrimonioEntreMeses(parcelas, taxaPct, limites.ini, limites.fim, false);
+    }
+
+    function somaNominalParcelas(parcelas) {
+      return (parcelas || []).reduce((s, p) => s + (Number(p.valor) || 0), 0);
     }
 
     function montarProjecaoRendimento(saldo, parcelas, taxaPct) {
@@ -925,24 +964,27 @@
       prevBox.hidden = false;
       const proj = montarProjecaoRendimento(saldo, c.parcelas, taxa);
       const temParcelas = c.parcelas && c.parcelas.length;
+      const destaque = document.getElementById('edProjecaoFinalDestaque');
+      if (temParcelas && proj.planoFinal > 0) {
+        const nominal = somaNominalParcelas(c.parcelas);
+        const rendimento = Math.max(0, proj.planoFinal - nominal);
+        destaque.hidden = false;
+        document.getElementById('edProjecaoFinalValor').textContent = money(proj.planoFinal);
+        document.getElementById('edProjecaoFinalSub').textContent =
+          `Soma das parcelas: ${money(nominal)} · Rendimento estimado (${taxa}% a.m.): ${money(rendimento)} · Simulação com juros compostos mês a mês.`;
+      } else {
+        destaque.hidden = true;
+      }
       document.getElementById('edProjecaoPreviewSub').textContent = temParcelas
-        ? `Prévia: guardado + rend. vs plano completo a ${taxa}% ao mês.`
+        ? `Horizontes (1° a 6°): guardado hoje + rend. vs plano completo a ${taxa}% ao mês.`
         : `Com ${taxa}% ao mês sobre ${money(saldo)} guardados:`;
-      let prevHtml = proj.linhas.map((l) => `
+      document.getElementById('edProjecaoPreviewGrid').innerHTML = proj.linhas.map((l) => `
         <div class="proj-tile">
           <span>${l.label}</span>
           <strong>${money(l.valorAtual)}</strong>
           ${temParcelas ? `<span class="proj-plano">Plano: ${money(l.valorPlano)}</span>` : ''}
         </div>
       `).join('');
-      if (temParcelas && proj.planoFinal > 0) {
-        prevHtml += `
-          <div class="proj-tile destaque">
-            <span>Fim do plano</span>
-            <strong>${money(proj.planoFinal)}</strong>
-          </div>`;
-      }
-      document.getElementById('edProjecaoPreviewGrid').innerHTML = prevHtml;
     }
 
     function popularMesAno(selMes, selAno) {

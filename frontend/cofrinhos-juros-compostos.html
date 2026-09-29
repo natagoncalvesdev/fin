@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Juros compostos | Cofrinhos</title>
+  <link rel="icon" href="img/icone.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="sidebar.css?v=10">
+  <link rel="stylesheet" href="css/theme.css?v=7">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=8">
+  <script src="js/fin-run-once.js"></script>
+  <script src="js/fin-config.js?v=1"></script>
+  <script src="js/fin-sdk.js?v=6"></script>
+  <script src="sidebar.js?v=9"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-main);
+      display: flex;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text-primary);
+    }
+
+    .content {
+      flex: 1;
+      padding: 40px;
+      margin-left: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      max-width: 900px;
+    }
+
+    .campo { display: flex; flex-direction: column; gap: 6px; }
+    .campo > label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+    }
+    .campo > input {
+      padding: 11px 13px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border-color);
+      background: var(--bg-section);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: var(--font-family);
+    }
+    .campo > input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .modo-toggle { display: flex; gap: 8px; }
+    .modo-opt {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border-color);
+      background: var(--bg-section);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 12.5px;
+      cursor: pointer;
+      font-family: var(--font-family);
+    }
+    .modo-opt.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .calc-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 640px) {
+      .calc-form-grid { grid-template-columns: 1fr; }
+    }
+    .calc-inline-toggle { margin-top: 4px; }
+
+    .proj-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+    @media (max-width: 640px) {
+      .proj-grid { grid-template-columns: 1fr; }
+    }
+    .proj-tile {
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-main);
+    }
+    .proj-tile span {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+    }
+    .proj-tile strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 15px;
+      color: var(--ink-950);
+    }
+    .proj-tile .proj-plano {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .proj-tile.destaque {
+      border-color: rgba(124, 58, 237, 0.35);
+      background: rgba(124, 58, 237, 0.06);
+    }
+
+    .chart-box {
+      position: relative;
+      height: 280px;
+      margin-top: 16px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    @media (max-width: 768px), (max-height: 500px) {
+      .content { max-width: 100%; padding: 20px 16px 40px; margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="content">
+    <div class="page-header-row">
+      <div class="page-header">
+        <h1>Juros compostos</h1>
+        <p>Simule aportes com rendimento composto mês a mês e compare o que você deposita com o saldo final.</p>
+      </div>
+      <div class="header-actions">
+        <a href="cofrinhos.html" class="btn-cancel">Voltar aos cofrinhos</a>
+      </div>
+    </div>
+
+    <section class="section-card">
+      <h3 class="section-card-title">Dados da simulação</h3>
+      <div class="calc-form-grid">
+        <div class="campo">
+          <label for="calcInicial">Valor inicial (R$)</label>
+          <input id="calcInicial" type="number" step="0.01" min="0" value="0" placeholder="0">
+        </div>
+        <div class="campo">
+          <label for="calcTaxa">Taxa de juros (%)</label>
+          <input id="calcTaxa" type="number" step="0.01" min="0" placeholder="Ex.: 0,8 ou 10">
+          <div class="modo-toggle calc-inline-toggle" id="calcTaxaPeriodo">
+            <button type="button" class="modo-opt active" data-p="mensal">Ao mês</button>
+            <button type="button" class="modo-opt" data-p="anual">Ao ano</button>
+          </div>
+        </div>
+        <div class="campo">
+          <label for="calcAporteMensal">Aporte mensal (R$)</label>
+          <input id="calcAporteMensal" type="number" step="0.01" min="0" value="0" placeholder="500">
+        </div>
+        <div class="campo">
+          <label for="calcAporteAnual">Aporte anual extra (R$)</label>
+          <input id="calcAporteAnual" type="number" step="0.01" min="0" value="0" placeholder="0">
+          <p class="info-text" style="margin:6px 0 0;">Somado uma vez a cada 12 meses da simulação.</p>
+        </div>
+        <div class="campo">
+          <label for="calcDuracao">Prazo</label>
+          <input id="calcDuracao" type="number" min="1" max="600" value="12">
+          <div class="modo-toggle calc-inline-toggle" id="calcDuracaoUnidade">
+            <button type="button" class="modo-opt active" data-u="meses">Meses</button>
+            <button type="button" class="modo-opt" data-u="anos">Anos</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions" style="margin-top:20px; justify-content:flex-start;">
+        <button type="button" class="btn-confirm" onclick="finRunOnce(event, () => calcular())">Calcular</button>
+      </div>
+    </section>
+
+    <section class="section-card" id="calcResultado" hidden>
+      <h3 class="section-card-title">Resultado</h3>
+      <div id="calcResumoGrid" class="proj-grid"></div>
+      <p class="info-text" style="margin:12px 0 0;">Linha tracejada: total depositado (inicial + aportes). Linha azul: saldo com rendimento composto em cada mês.</p>
+      <div class="chart-box">
+        <canvas id="chartCalcJuros"></canvas>
+      </div>
+    </section>
+
+    <p id="calcErro" class="info-text" style="margin:0;" hidden></p>
+  </main>
+
+  <script>
+    const auth = firebase.auth();
+    const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+    const money = (v) => brl.format(Number(v) || 0);
+
+    let chartCalcJuros = null;
+    let calcTaxaPeriodo = 'mensal';
+    let calcDuracaoUnidade = 'meses';
+
+    function destruirChart(ch) {
+      if (ch) ch.destroy();
+      return null;
+    }
+
+    function taxaMensalEquivalente(taxaPct, periodo) {
+      const t = Number(taxaPct);
+      if (!Number.isFinite(t) || t < 0) return 0;
+      const r = t / 100;
+      if (periodo === 'anual') return Math.pow(1 + r, 1 / 12) - 1;
+      return r;
+    }
+
+    function simularCalculadoraJuros(opts) {
+      const inicial = Math.max(0, Number(opts.inicial) || 0);
+      const aporteMensal = Math.max(0, Number(opts.aporteMensal) || 0);
+      const aporteAnual = Math.max(0, Number(opts.aporteAnual) || 0);
+      let meses = Math.max(1, Math.round(Number(opts.meses) || 1));
+      if (meses > 600) meses = 600;
+      const r = taxaMensalEquivalente(opts.taxaPct, opts.taxaPeriodo);
+
+      const labels = ['Início'];
+      const totalPago = [inicial];
+      const saldoComRend = [inicial];
+      let pago = inicial;
+      let saldo = inicial;
+
+      for (let m = 1; m <= meses; m += 1) {
+        if (r > 0) saldo *= (1 + r);
+        pago += aporteMensal;
+        saldo += aporteMensal;
+        if (m % 12 === 0 && aporteAnual > 0) {
+          pago += aporteAnual;
+          saldo += aporteAnual;
+        }
+        labels.push(`Mês ${m}`);
+        totalPago.push(Math.round(pago * 100) / 100);
+        saldoComRend.push(Math.round(saldo * 100) / 100);
+      }
+
+      return {
+        labels,
+        totalPago,
+        saldoComRend,
+        meses,
+        totalDepositado: pago,
+        saldoFinal: saldo,
+        rendimento: Math.max(0, saldo - pago),
+      };
+    }
+
+    function lerInputs() {
+      const taxaRaw = document.getElementById('calcTaxa').value.trim();
+      return {
+        inicial: document.getElementById('calcInicial').value,
+        taxaPct: taxaRaw === '' ? null : Number(taxaRaw),
+        aporteMensal: document.getElementById('calcAporteMensal').value,
+        aporteAnual: document.getElementById('calcAporteAnual').value,
+        duracao: Number(document.getElementById('calcDuracao').value) || 1,
+      };
+    }
+
+    function validarInputs(inputs) {
+      const dur = Math.max(1, Math.min(600, inputs.duracao));
+      const meses = calcDuracaoUnidade === 'anos' ? dur * 12 : dur;
+      const inicial = Number(inputs.inicial) || 0;
+      const mensal = Number(inputs.aporteMensal) || 0;
+      const anual = Number(inputs.aporteAnual) || 0;
+      const taxa = inputs.taxaPct;
+
+      if (meses < 1) return 'Informe um prazo válido.';
+      if (taxa != null && (!Number.isFinite(taxa) || taxa < 0 || taxa > 100)) {
+        return 'A taxa deve estar entre 0 e 100%.';
+      }
+      if (inicial <= 0 && mensal <= 0 && anual <= 0 && !(taxa != null && taxa > 0 && inicial >= 0)) {
+        return 'Informe valor inicial, aportes ou uma taxa com algum capital para simular.';
+      }
+      if (inicial <= 0 && mensal <= 0 && anual <= 0) {
+        return 'Informe pelo menos um aporte ou valor inicial maior que zero.';
+      }
+      return null;
+    }
+
+    function calcular() {
+      const erroEl = document.getElementById('calcErro');
+      const resultado = document.getElementById('calcResultado');
+      erroEl.hidden = true;
+      erroEl.textContent = '';
+
+      const inputs = lerInputs();
+      const msg = validarInputs(inputs);
+      if (msg) {
+        resultado.hidden = true;
+        erroEl.textContent = msg;
+        erroEl.hidden = false;
+        chartCalcJuros = destruirChart(chartCalcJuros);
+        return;
+      }
+
+      const dur = Math.max(1, Math.min(600, inputs.duracao));
+      const meses = calcDuracaoUnidade === 'anos' ? dur * 12 : dur;
+      const sim = simularCalculadoraJuros({
+        inicial: inputs.inicial,
+        taxaPct: inputs.taxaPct != null && Number.isFinite(inputs.taxaPct) ? inputs.taxaPct : 0,
+        taxaPeriodo: calcTaxaPeriodo,
+        aporteMensal: inputs.aporteMensal,
+        aporteAnual: inputs.aporteAnual,
+        meses,
+      });
+
+      resultado.hidden = false;
+
+      const taxaLabel = calcTaxaPeriodo === 'anual' ? 'a.a.' : 'a.m.';
+      const taxaTxt = inputs.taxaPct != null && Number.isFinite(inputs.taxaPct)
+        ? `${inputs.taxaPct}% ${taxaLabel}`
+        : '0%';
+
+      document.getElementById('calcResumoGrid').innerHTML = `
+        <div class="proj-tile">
+          <span>Total depositado</span>
+          <strong>${money(sim.totalDepositado)}</strong>
+          <span class="proj-plano">Inicial + aportes</span>
+        </div>
+        <div class="proj-tile">
+          <span>Rendimento</span>
+          <strong>${money(sim.rendimento)}</strong>
+          <span class="proj-plano">Taxa: ${taxaTxt}</span>
+        </div>
+        <div class="proj-tile destaque">
+          <span>Saldo final</span>
+          <strong>${money(sim.saldoFinal)}</strong>
+          <span class="proj-plano">${sim.meses} meses</span>
+        </div>`;
+
+      chartCalcJuros = destruirChart(chartCalcJuros);
+      const canvas = document.getElementById('chartCalcJuros');
+      if (!canvas || typeof Chart === 'undefined') return;
+
+      const maxPts = 120;
+      const step = sim.labels.length > maxPts ? Math.ceil(sim.labels.length / maxPts) : 1;
+      const pick = (arr) => arr.filter((_, i) => i === 0 || i === arr.length - 1 || i % step === 0);
+
+      chartCalcJuros = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: pick(sim.labels),
+          datasets: [
+            {
+              label: 'Total pago (depositado)',
+              data: pick(sim.totalPago),
+              borderColor: '#64748B',
+              backgroundColor: 'rgba(100, 116, 139, 0.12)',
+              fill: false,
+              tension: 0.25,
+              pointRadius: sim.meses > 36 ? 0 : 3,
+              pointHoverRadius: 5,
+              borderWidth: 2,
+              borderDash: [6, 4],
+              order: 2,
+            },
+            {
+              label: 'Saldo (pago + rendimento)',
+              data: pick(sim.saldoComRend),
+              borderColor: '#2563EB',
+              backgroundColor: 'rgba(37, 99, 235, 0.18)',
+              fill: true,
+              tension: 0.25,
+              pointRadius: sim.meses > 36 ? 0 : 4,
+              pointHoverRadius: 7,
+              borderWidth: 3,
+              order: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: { boxWidth: 14, font: { size: 11 }, padding: 14 },
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ` ${ctx.dataset.label}: ${money(ctx.parsed.y)}`,
+              },
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: (v) => money(v), font: { size: 11 } },
+              grid: { color: 'rgba(148,163,184,0.12)' },
+            },
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 18 },
+            },
+          },
+        },
+      });
+    }
+
+    document.querySelectorAll('#calcTaxaPeriodo .modo-opt').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        calcTaxaPeriodo = btn.dataset.p;
+        document.querySelectorAll('#calcTaxaPeriodo .modo-opt').forEach((b) => {
+          b.classList.toggle('active', b.dataset.p === calcTaxaPeriodo);
+        });
+      });
+    });
+    document.querySelectorAll('#calcDuracaoUnidade .modo-opt').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        calcDuracaoUnidade = btn.dataset.u;
+        document.querySelectorAll('#calcDuracaoUnidade .modo-opt').forEach((b) => {
+          b.classList.toggle('active', b.dataset.u === calcDuracaoUnidade);
+        });
+        const inp = document.getElementById('calcDuracao');
+        if (calcDuracaoUnidade === 'anos' && Number(inp.value) > 50) inp.value = 10;
+      });
+    });
+
+    auth.onAuthStateChanged((user) => {
+      if (!user) window.location.href = 'login.html';
+    });
+  </script>
+  <script src="js/mobile-nav.js?v=13"></script>
+</body>
+</html>

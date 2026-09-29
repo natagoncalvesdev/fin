@@ -343,6 +343,7 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
+
   </style>
 </head>
 <body>
@@ -355,7 +356,10 @@
           <h1>Cofrinhos</h1>
           <p>Metas de economia: cada mês vira uma parcela nas suas contas. Pagou = guardou.</p>
         </div>
-        <button class="btn-add" onclick="abrirModalNovo()">Novo cofrinho</button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <a href="cofrinhos-juros-compostos.html" class="btn-inline">Calcular juros compostos</a>
+          <button class="btn-add" onclick="abrirModalNovo()">Novo cofrinho</button>
+        </div>
       </div>
 
       <div id="conviteBanner" class="convite-banner" hidden></div>

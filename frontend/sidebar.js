@@ -23,7 +23,7 @@ function carregarSidebar() {
     { href: 'contas.html', label: 'Contas', icon: 'contas', ativo: paginaAtual === 'contas.html' },
     { href: 'cartoes.html', label: 'Cartões', icon: 'cartoes', ativo: paginaAtual === 'cartoes.html' },
     { href: 'reservados.html', label: 'Reservas', icon: 'reservas', ativo: paginaAtual === 'reservados.html' },
-    { href: 'cofrinhos.html', label: 'Cofrinhos', icon: 'cofrinhos', ativo: paginaAtual === 'cofrinhos.html' },
+    { href: 'cofrinhos.html', label: 'Cofrinhos', icon: 'cofrinhos', ativo: paginaAtual === 'cofrinhos.html' || paginaAtual === 'cofrinhos-juros-compostos.html' },
     { href: 'veiculos.html', label: 'Veículos', icon: 'veiculos', ativo: paginaAtual === 'veiculos.html' },
     { href: 'saude.html', label: 'Saúde', icon: 'saude', ativo: paginaAtual === 'saude.html' },
     { href: 'conquistas.html', label: 'Conquistas', icon: 'conquistas', ativo: paginaAtual === 'conquistas.html' },

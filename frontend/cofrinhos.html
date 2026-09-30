@@ -331,17 +331,75 @@
     }
 
     .modal-edit-cofrinho {
-      max-width: 920px !important;
-      width: calc(100% - 32px);
+      max-width: min(920px, 100%) !important;
+      width: 100%;
+      box-sizing: border-box;
+      overflow-x: hidden;
     }
     .edit-cofrinho-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 24px;
       align-items: start;
+      min-width: 0;
+    }
+    .edit-cofrinho-form,
+    .edit-preview-card {
+      min-width: 0;
+      max-width: 100%;
     }
     @media (max-width: 768px) {
+      #modalEditar.modal-overlay {
+        padding: 10px;
+        overflow-x: hidden;
+        align-items: flex-start;
+      }
+      .modal-edit-cofrinho {
+        padding: 20px 16px;
+        max-height: calc(100dvh - 16px);
+      }
       .edit-cofrinho-grid { grid-template-columns: 1fr; }
+      .modal-edit-cofrinho .form-row {
+        flex-direction: column;
+      }
+      .modal-edit-cofrinho .form-row .campo {
+        width: 100%;
+        flex: 1 1 100%;
+      }
+      .modal-edit-cofrinho .form-row input,
+      .modal-edit-cofrinho .form-row select,
+      .modal-edit-cofrinho .campo > input,
+      .modal-edit-cofrinho .campo > select {
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+      }
+      .modal-edit-cofrinho .proj-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .modal-edit-cofrinho .cofre-chart-box {
+        max-width: 100%;
+        overflow: hidden;
+      }
+      .modal-edit-cofrinho .ed-parcela-row {
+        flex-wrap: wrap;
+      }
+      .modal-edit-cofrinho .ed-parcela-row .btn-inline {
+        margin-left: 0 !important;
+        width: 100%;
+        justify-content: center;
+      }
+      .modal-edit-cofrinho .modal-actions {
+        flex-direction: column-reverse;
+      }
+      .modal-edit-cofrinho .modal-actions .btn-cancel,
+      .modal-edit-cofrinho .modal-actions .btn-confirm {
+        width: 100%;
+      }
+      .modal-edit-cofrinho .ed-final-valor {
+        font-size: 20px;
+        overflow-wrap: anywhere;
+      }
     }
     .edit-preview-card {
       border: 1px solid var(--border-color);

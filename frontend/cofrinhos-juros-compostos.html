@@ -102,6 +102,56 @@
       font-weight: 600;
     }
 
+    .calc-tabela-wrap {
+      margin-top: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      max-width: 100%;
+    }
+    .calc-tabela {
+      width: 100%;
+      min-width: 520px;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    .calc-tabela th,
+    .calc-tabela td {
+      padding: 10px 12px;
+      text-align: right;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+    .calc-tabela th:first-child,
+    .calc-tabela td:first-child {
+      text-align: center;
+      width: 56px;
+    }
+    .calc-tabela thead th {
+      background: var(--bg-main);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+    }
+    .calc-tabela tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .calc-tabela tbody tr:nth-child(even) {
+      background: var(--slate-100);
+    }
+    .calc-tabela tbody tr:nth-child(odd) {
+      background: var(--bg-section);
+    }
+    .calc-leia-mais-wrap {
+      display: flex;
+      justify-content: center;
+      margin-top: 14px;
+    }
+
     @media (max-width: 640px) {
       .calc-form-grid { grid-template-columns: 1fr; }
     }
@@ -176,6 +226,26 @@
       <div class="chart-box">
         <canvas id="chartCalcJuros"></canvas>
       </div>
+
+      <h3 class="section-card-title" style="margin-top:28px; margin-bottom:0;">Tabela</h3>
+      <p class="info-text" style="margin:6px 0 0;">Mês a mês: juros do período, total depositado, juros acumulados e saldo.</p>
+      <div class="calc-tabela-wrap">
+        <table class="calc-tabela" aria-label="Projeção mês a mês">
+          <thead>
+            <tr>
+              <th scope="col">Meses</th>
+              <th scope="col">Juros</th>
+              <th scope="col">Total investido</th>
+              <th scope="col">Total juros</th>
+              <th scope="col">Acumulado</th>
+            </tr>
+          </thead>
+          <tbody id="calcTabelaBody"></tbody>
+        </table>
+      </div>
+      <div class="calc-leia-mais-wrap">
+        <button type="button" id="calcLeiaMais" class="btn-inline" hidden>Leia mais</button>
+      </div>
     </section>
   </main>
 
@@ -187,6 +257,11 @@
     let chartCalcJuros = null;
     let calcTaxaPeriodo = 'mensal';
     let calcDuracaoUnidade = 'meses';
+    let calcLinhasTabela = [];
+    let calcTabelaExpandida = false;
+    const CALC_TABELA_LIMITE = 12;
+
+    const round2 = (v) => Math.round(Number(v) * 100) / 100;
 
     function destruirChart(ch) {
       if (ch) ch.destroy();
@@ -209,34 +284,71 @@
       if (meses > 600) meses = 600;
       const r = taxaMensalEquivalente(opts.taxaPct, opts.taxaPeriodo);
 
-      const labels = ['Início'];
-      const totalPago = [inicial];
-      const saldoComRend = [inicial];
-      let pago = inicial;
-      let saldo = inicial;
+      const linhas = [{
+        mes: 0,
+        jurosMes: 0,
+        totalInvestido: round2(inicial),
+        totalJuros: 0,
+        acumulado: round2(inicial),
+      }];
+
+      let acumulado = inicial;
+      let totalInvestido = inicial;
 
       for (let m = 1; m <= meses; m += 1) {
-        if (r > 0) saldo *= (1 + r);
-        pago += aporteMensal;
-        saldo += aporteMensal;
-        if (m % 12 === 0 && aporteAnual > 0) {
-          pago += aporteAnual;
-          saldo += aporteAnual;
-        }
-        labels.push(`Mês ${m}`);
-        totalPago.push(Math.round(pago * 100) / 100);
-        saldoComRend.push(Math.round(saldo * 100) / 100);
+        const saldoAntes = acumulado;
+        const jurosMes = r > 0 ? saldoAntes * r : 0;
+        let aporteMes = aporteMensal;
+        if (m % 12 === 0 && aporteAnual > 0) aporteMes += aporteAnual;
+        totalInvestido += aporteMes;
+        acumulado = saldoAntes + jurosMes + aporteMes;
+        const totalJuros = Math.max(0, acumulado - totalInvestido);
+        linhas.push({
+          mes: m,
+          jurosMes: round2(jurosMes),
+          totalInvestido: round2(totalInvestido),
+          totalJuros: round2(totalJuros),
+          acumulado: round2(acumulado),
+        });
       }
 
+      const labels = linhas.map((l) => (l.mes === 0 ? 'Início' : `Mês ${l.mes}`));
+      const totalPago = linhas.map((l) => l.totalInvestido);
+      const saldoComRend = linhas.map((l) => l.acumulado);
+      const ultimo = linhas[linhas.length - 1];
+
       return {
+        linhas,
         labels,
         totalPago,
         saldoComRend,
         meses,
-        totalDepositado: pago,
-        saldoFinal: saldo,
-        rendimento: Math.max(0, saldo - pago),
+        totalDepositado: ultimo.totalInvestido,
+        saldoFinal: ultimo.acumulado,
+        rendimento: Math.max(0, ultimo.acumulado - ultimo.totalInvestido),
       };
+    }
+
+    function renderTabelaProjecao(linhas, expandida) {
+      const limite = expandida ? linhas.length : Math.min(CALC_TABELA_LIMITE, linhas.length);
+      const visiveis = linhas.slice(0, limite);
+      document.getElementById('calcTabelaBody').innerHTML = visiveis.map((l) => `
+        <tr>
+          <td>${l.mes}</td>
+          <td>${money(l.jurosMes)}</td>
+          <td>${money(l.totalInvestido)}</td>
+          <td>${money(l.totalJuros)}</td>
+          <td>${money(l.acumulado)}</td>
+        </tr>
+      `).join('');
+
+      const btn = document.getElementById('calcLeiaMais');
+      if (linhas.length > CALC_TABELA_LIMITE) {
+        btn.hidden = false;
+        btn.textContent = expandida ? 'Mostrar menos' : 'Leia mais';
+      } else {
+        btn.hidden = true;
+      }
     }
 
     function lerInputs() {
@@ -297,6 +409,10 @@
         aporteAnual: inputs.aporteAnual,
         meses,
       });
+
+      calcLinhasTabela = sim.linhas;
+      calcTabelaExpandida = false;
+      renderTabelaProjecao(calcLinhasTabela, calcTabelaExpandida);
 
       resultado.hidden = false;
 
@@ -408,6 +524,11 @@
         });
       });
     });
+    document.getElementById('calcLeiaMais').addEventListener('click', () => {
+      calcTabelaExpandida = !calcTabelaExpandida;
+      renderTabelaProjecao(calcLinhasTabela, calcTabelaExpandida);
+    });
+
     document.querySelectorAll('#calcDuracaoUnidade .modo-opt').forEach((btn) => {
       btn.addEventListener('click', () => {
         calcDuracaoUnidade = btn.dataset.u;

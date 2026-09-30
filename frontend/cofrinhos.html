@@ -287,6 +287,48 @@
       margin-bottom: 8px;
     }
     .det-projecao-head .modo-toggle { min-width: 200px; max-width: 280px; }
+
+    .calc-tabela-wrap {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      max-width: 100%;
+    }
+    .calc-tabela {
+      width: 100%;
+      min-width: 640px;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    .calc-tabela th,
+    .calc-tabela td {
+      padding: 10px 12px;
+      text-align: right;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+    .calc-tabela th:first-child,
+    .calc-tabela td:first-child {
+      text-align: left;
+    }
+    .calc-tabela thead th {
+      background: var(--bg-main);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+    }
+    .calc-tabela tbody tr:last-child td { border-bottom: none; }
+    .calc-tabela tbody tr:nth-child(even) { background: var(--slate-100); }
+    .calc-tabela tbody tr:nth-child(odd) { background: var(--bg-section); }
+    .calc-tabela tbody tr.cofre-parcela-click { cursor: pointer; }
+    .calc-tabela tbody tr.cofre-parcela-click:hover { background: var(--accent-soft) !important; }
+    .calc-tabela .parcela-tag { margin: 0; display: inline-block; }
+    .calc-mes-ref { display: block; font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-top: 2px; }
+    .calc-leia-mais-wrap { display: flex; justify-content: center; margin-top: 14px; }
     .proj-tile {
       padding: 12px;
       border-radius: 12px;
@@ -508,7 +550,6 @@
           <div class="cofre-chart-box tall">
             <canvas id="chartCofreProjecao"></canvas>
           </div>
-          <div id="detProjecaoGrid" class="proj-grid proj-grid-scroll"></div>
         </div>
       </div>
 
@@ -527,7 +568,11 @@
 
       <div class="section-card">
         <h3 class="section-card-title">Minhas parcelas</h3>
-        <div id="detParcelas" class="statement-list"></div>
+        <p class="info-text" id="detParcelasSub" style="margin:0 0 10px;"></p>
+        <div id="detParcelas"></div>
+        <div class="calc-leia-mais-wrap">
+          <button type="button" id="detParcelasLeiaMais" class="btn-inline" hidden>Leia mais</button>
+        </div>
       </div>
     </section>
   </main>
@@ -694,6 +739,11 @@
     let chartCofreProjecao = null;
     let chartEdicaoMeta = null;
     let detProjecaoVisao = 'mes';
+    let detTabelaLinhas = [];
+    let detTabelaExpandida = false;
+    const COFRE_TABELA_LIMITE = 12;
+
+    const round2 = (v) => Math.round(Number(v) * 100) / 100;
 
     const HORIZONTES_PROJECAO = [
       { meses: 1, label: '1°' },
@@ -888,6 +938,97 @@
       });
     }
 
+    function parcelaClicavel(id) {
+      return id && !String(id).startsWith('virt');
+    }
+
+    /** Tabela mês a mês (estilo calculadora) com status de cada parcela. */
+    function montarLinhasTabelaCofrinho(c) {
+      const parcelas = parcelasOrdenadas(parcelasParaDetalhe(c));
+      if (!parcelas.length) return [];
+      const r = taxaValida(c.taxaRendimentoMensal) ? Number(c.taxaRendimentoMensal) / 100 : 0;
+      let acumulado = 0;
+      let totalInvestido = 0;
+      const linhas = [];
+      parcelas.forEach((p, i) => {
+        const saldoAntes = acumulado;
+        const jurosMes = r > 0 ? saldoAntes * r : 0;
+        const valor = Number(p.valor) || 0;
+        totalInvestido += valor;
+        acumulado = saldoAntes + jurosMes + valor;
+        const totalJuros = Math.max(0, acumulado - totalInvestido);
+        linhas.push({
+          mes: i + 1,
+          mesLabel: `${p.mes.slice(0, 3)}/${p.ano}`,
+          jurosMes: round2(jurosMes),
+          totalInvestido: round2(totalInvestido),
+          totalJuros: round2(totalJuros),
+          acumulado: round2(acumulado),
+          parcelaId: p.id,
+          status: p.status,
+          vencida: p.vencida,
+        });
+      });
+      return linhas;
+    }
+
+    function rotuloStatusParcela(l) {
+      if (l.status === 'pago') return { cls: 'pago', txt: 'Pago' };
+      if (l.vencida) return { cls: 'vencida', txt: 'Vencida' };
+      return { cls: 'pendente', txt: 'Pendente' };
+    }
+
+    function renderTabelaParcelasDetalhe() {
+      const box = document.getElementById('detParcelas');
+      const btn = document.getElementById('detParcelasLeiaMais');
+      if (!detTabelaLinhas.length) {
+        box.innerHTML = '<div class="statement-empty">Sem parcelas para você nesta caixinha.</div>';
+        btn.hidden = true;
+        return;
+      }
+      const limite = detTabelaExpandida
+        ? detTabelaLinhas.length
+        : Math.min(COFRE_TABELA_LIMITE, detTabelaLinhas.length);
+      const visiveis = detTabelaLinhas.slice(0, limite);
+      box.innerHTML = `
+        <div class="calc-tabela-wrap">
+          <table class="calc-tabela" aria-label="Minhas parcelas mês a mês">
+            <thead>
+              <tr>
+                <th scope="col">Meses</th>
+                <th scope="col">Juros</th>
+                <th scope="col">Total investido</th>
+                <th scope="col">Total juros</th>
+                <th scope="col">Acumulado</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody id="detParcelasTabelaBody">
+              ${visiveis.map((l) => {
+                const st = rotuloStatusParcela(l);
+                const click = parcelaClicavel(l.parcelaId) ? ' cofre-parcela-click' : '';
+                const pid = parcelaClicavel(l.parcelaId) ? ` data-parcela-id="${l.parcelaId}"` : '';
+                return `
+              <tr class="${click.trim()}"${pid} title="${parcelaClicavel(l.parcelaId) ? 'Toque para editar a parcela' : ''}">
+                <td><strong>${l.mes}</strong><span class="calc-mes-ref">${l.mesLabel}</span></td>
+                <td>${money(l.jurosMes)}</td>
+                <td>${money(l.totalInvestido)}</td>
+                <td>${money(l.totalJuros)}</td>
+                <td>${money(l.acumulado)}</td>
+                <td><span class="parcela-tag ${st.cls}">${st.txt}</span></td>
+              </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>`;
+      if (detTabelaLinhas.length > COFRE_TABELA_LIMITE) {
+        btn.hidden = false;
+        btn.textContent = detTabelaExpandida ? 'Mostrar menos' : 'Leia mais';
+      } else {
+        btn.hidden = true;
+      }
+    }
+
     function patrimonioEntreMeses(parcelas, taxaPct, idxInicio, idxFim, somentePagas) {
       const r = Number(taxaPct) / 100;
       let b = 0;
@@ -1053,27 +1194,14 @@
 
       document.getElementById('detProjecaoSub').textContent = temPlano
         ? (detProjecaoVisao === 'ano'
-          ? `Por ano: azul = parcelas já pagas + ${taxa}% ao mês; cinza = plano completo (todas as parcelas).`
-          : `Por mês: azul = o que você já guardou + rendimento; cinza = plano com todas as parcelas + ${taxa}% ao mês.`)
-        : `Defina parcelas ou meta com prazo para ver a projeção mês a mês. Saldo hoje: ${money(c.saldo)}.`;
+          ? `Por ano: azul = parcelas já pagas + ${taxa}% ao mês; cinza = plano completo. Detalhes mês a mês estão em Minhas parcelas.`
+          : `Por mês: azul = guardado + rendimento; cinza = plano completo + ${taxa}% ao mês. Detalhes mês a mês estão em Minhas parcelas.`)
+        : `Defina parcelas ou meta com prazo para ver o gráfico. Saldo hoje: ${money(c.saldo)}.`;
 
-      const gridEl = document.getElementById('detProjecaoGrid');
       if (!temPlano) {
-        gridEl.innerHTML = '';
         chartCofreProjecao = destruirChart(chartCofreProjecao);
         return;
       }
-
-      const n = timeline.linhas.length;
-      gridEl.innerHTML = timeline.linhas.map((l, i) => {
-        const destaque = i === n - 1 ? ' destaque' : '';
-        return `
-        <div class="proj-tile${destaque}">
-          <span>${l.label}${i === n - 1 ? ' · fim' : ''}</span>
-          <strong>${money(l.valorPago)}</strong>
-          <span class="proj-plano">Plano: ${money(l.valorPlano)}</span>
-        </div>`;
-      }).join('');
 
       chartCofreProjecao = destruirChart(chartCofreProjecao);
       const ctxP = document.getElementById('chartCofreProjecao');
@@ -1497,21 +1625,15 @@
       renderParticipantes(c);
       atualizarGraficosDetalhe(c);
 
-      const box = document.getElementById('detParcelas');
-      if (!c.parcelas || !c.parcelas.length) {
-        box.innerHTML = '<div class="statement-empty">Sem parcelas para você nesta caixinha.</div>';
-        return;
+      const sub = document.getElementById('detParcelasSub');
+      if (taxaValida(c.taxaRendimentoMensal)) {
+        sub.textContent = `Projeção com ${c.taxaRendimentoMensal}% ao mês. Toque na linha para editar valor ou marcar como paga.`;
+      } else {
+        sub.textContent = 'Toque na linha para editar valor ou marcar como paga. Defina rendimento % no cofrinho para ver juros na tabela.';
       }
-      box.innerHTML = c.parcelas.map((p) => {
-        const tag = p.status === 'pago' ? 'pago' : (p.vencida ? 'vencida' : 'pendente');
-        const rotulo = p.status === 'pago' ? 'Pago' : (p.vencida ? 'Vencida' : 'Pendente');
-        return `
-          <button type="button" class="parcela-row" onclick="abrirModalParcela('${p.id}')">
-            <span class="parcela-mes">${p.mes.slice(0,3)}/${p.ano}</span>
-            <span class="parcela-valor">${money(p.valor)}</span>
-            <span class="parcela-tag ${tag}">${rotulo}</span>
-          </button>`;
-      }).join('');
+      detTabelaLinhas = montarLinhasTabelaCofrinho(c);
+      detTabelaExpandida = false;
+      renderTabelaParcelasDetalhe();
     }
 
     function abrirDetalhe(id) { detId = id; renderDetalhe(); }
@@ -1633,6 +1755,16 @@
         const c = cofres.find((x) => x.id === detId);
         if (c) renderDetalheProjecao(c);
       });
+    });
+
+    document.getElementById('detParcelasLeiaMais').addEventListener('click', () => {
+      detTabelaExpandida = !detTabelaExpandida;
+      renderTabelaParcelasDetalhe();
+    });
+
+    document.getElementById('detParcelas').addEventListener('click', (e) => {
+      const tr = e.target.closest('tr[data-parcela-id]');
+      if (tr && tr.dataset.parcelaId) abrirModalParcela(tr.dataset.parcelaId);
     });
 
     async function excluirParcelaCofrinho(parcelaId) {

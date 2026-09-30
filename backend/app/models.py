@@ -524,3 +524,9 @@ class GrupoMembro(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     grupo: Mapped["Grupo"] = relationship(back_populates="membros")
+
+
+class TabelaTeste(base):
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    nome: Mapped[str] = mapped_column(String(255), nullable=False)

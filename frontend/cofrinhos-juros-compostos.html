@@ -18,11 +18,11 @@
     [hidden] { display: none !important; }
 
     body {
+      margin: 0;
       font-family: var(--font-family);
       background: var(--bg-main);
       display: flex;
       min-height: 100vh;
-      margin: 0;
       color: var(--text-primary);
     }
 
@@ -33,7 +33,7 @@
       display: flex;
       flex-direction: column;
       gap: 24px;
-      max-width: 900px;
+      max-width: 1180px;
     }
 
     .campo { display: flex; flex-direction: column; gap: 6px; }
@@ -83,63 +83,27 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 16px;
     }
-    @media (max-width: 640px) {
-      .calc-form-grid { grid-template-columns: 1fr; }
-    }
     .calc-inline-toggle { margin-top: 4px; }
-
-    .proj-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: 16px;
-    }
-    @media (max-width: 640px) {
-      .proj-grid { grid-template-columns: 1fr; }
-    }
-    .proj-tile {
-      padding: 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      background: var(--bg-main);
-    }
-    .proj-tile span {
-      display: block;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--text-secondary);
-    }
-    .proj-tile strong {
-      display: block;
-      margin-top: 6px;
-      font-size: 15px;
-      color: var(--ink-950);
-    }
-    .proj-tile .proj-plano {
-      display: block;
-      margin-top: 4px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-secondary);
-    }
-    .proj-tile.destaque {
-      border-color: rgba(124, 58, 237, 0.35);
-      background: rgba(124, 58, 237, 0.06);
-    }
 
     .chart-box {
       position: relative;
-      height: 280px;
+      height: 260px;
       margin-top: 16px;
     }
 
-    .header-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
+    .calc-erro {
+      margin: 0;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(185, 28, 28, 0.25);
+      background: rgba(185, 28, 28, 0.06);
+      color: var(--negative);
+      font-size: 13.5px;
+      font-weight: 600;
+    }
+
+    @media (max-width: 640px) {
+      .calc-form-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 768px), (max-height: 500px) {
@@ -155,13 +119,13 @@
         <h1>Juros compostos</h1>
         <p>Simule aportes com rendimento composto mês a mês e compare o que você deposita com o saldo final.</p>
       </div>
-      <div class="header-actions">
-        <a href="cofrinhos.html" class="btn-cancel">Voltar aos cofrinhos</a>
+      <div class="section-actions">
+        <a href="cofrinhos.html" class="btn-inline">Voltar aos cofrinhos</a>
       </div>
     </div>
 
     <section class="section-card">
-      <h3 class="section-card-title">Dados da simulação</h3>
+      <h2 class="section-card-title">Dados da simulação</h2>
       <div class="calc-form-grid">
         <div class="campo">
           <label for="calcInicial">Valor inicial (R$)</label>
@@ -193,21 +157,26 @@
           </div>
         </div>
       </div>
-      <div class="modal-actions" style="margin-top:20px; justify-content:flex-start;">
-        <button type="button" class="btn-confirm" onclick="finRunOnce(event, () => calcular())">Calcular</button>
+      <div class="section-actions" style="margin-top:20px;">
+        <button type="button" class="btn-add" onclick="finRunOnce(event, () => calcular())">Calcular</button>
       </div>
     </section>
 
+    <p id="calcErro" class="calc-erro" hidden></p>
+
     <section class="section-card" id="calcResultado" hidden>
-      <h3 class="section-card-title">Resultado</h3>
-      <div id="calcResumoGrid" class="proj-grid"></div>
-      <p class="info-text" style="margin:12px 0 0;">Linha tracejada: total depositado (inicial + aportes). Linha azul: saldo com rendimento composto em cada mês.</p>
+      <h2 class="section-card-title">Resultado</h2>
+      <div class="saldo-card">
+        <div class="saldo-card-label">Saldo final (com rendimento)</div>
+        <div class="saldo-card-value" id="calcSaldoFinal">R$ 0,00</div>
+        <div class="saldo-card-trend" id="calcSaldoMeta">—</div>
+      </div>
+      <div id="calcResumoGrid" class="stat-row" style="margin-top:16px;"></div>
+      <p class="info-text" style="margin:16px 0 0;">Linha tracejada: total depositado (inicial + aportes). Linha azul: saldo com rendimento composto em cada mês.</p>
       <div class="chart-box">
         <canvas id="chartCalcJuros"></canvas>
       </div>
     </section>
-
-    <p id="calcErro" class="info-text" style="margin:0;" hidden></p>
   </main>
 
   <script>
@@ -336,21 +305,28 @@
         ? `${inputs.taxaPct}% ${taxaLabel}`
         : '0%';
 
+      document.getElementById('calcSaldoFinal').textContent = money(sim.saldoFinal);
+      document.getElementById('calcSaldoMeta').textContent =
+        `${sim.meses} meses · Rendimento ${money(sim.rendimento)} · Taxa ${taxaTxt}`;
+
       document.getElementById('calcResumoGrid').innerHTML = `
-        <div class="proj-tile">
-          <span>Total depositado</span>
-          <strong>${money(sim.totalDepositado)}</strong>
-          <span class="proj-plano">Inicial + aportes</span>
+        <div class="stat-tile">
+          <div class="stat-tile-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          </div>
+          <div class="stat-tile-body">
+            <span class="stat-tile-label">Total depositado</span>
+            <span class="stat-tile-value">${money(sim.totalDepositado)}</span>
+          </div>
         </div>
-        <div class="proj-tile">
-          <span>Rendimento</span>
-          <strong>${money(sim.rendimento)}</strong>
-          <span class="proj-plano">Taxa: ${taxaTxt}</span>
-        </div>
-        <div class="proj-tile destaque">
-          <span>Saldo final</span>
-          <strong>${money(sim.saldoFinal)}</strong>
-          <span class="proj-plano">${sim.meses} meses</span>
+        <div class="stat-tile positive">
+          <div class="stat-tile-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          </div>
+          <div class="stat-tile-body">
+            <span class="stat-tile-label">Rendimento</span>
+            <span class="stat-tile-value">${money(sim.rendimento)}</span>
+          </div>
         </div>`;
 
       chartCalcJuros = destruirChart(chartCalcJuros);

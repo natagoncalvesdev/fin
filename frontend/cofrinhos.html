@@ -329,6 +329,29 @@
     .calc-tabela .parcela-tag { margin: 0; display: inline-block; }
     .calc-mes-ref { display: block; font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-top: 2px; }
     .calc-leia-mais-wrap { display: flex; justify-content: center; margin-top: 14px; }
+    .extras-cofrinho-list {
+      list-style: none;
+      margin: 10px 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .extras-cofrinho-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-main);
+      font-size: 13px;
+    }
+    @media (max-width: 768px) {
+      .extras-cofrinho-add { flex-direction: column; align-items: stretch; }
+      .extras-cofrinho-add .btn-inline { width: 100%; justify-content: center; }
+    }
     .proj-tile {
       padding: 12px;
       border-radius: 12px;
@@ -603,6 +626,23 @@
       </div>
       <div class="campo" id="campoDurante" hidden><label for="novoDurante">Durante quantos meses</label><input id="novoDurante" type="number" min="1" max="120" value="6"></div>
 
+      <div class="campo">
+        <label for="novoValorInicial">Valor inicial já guardado (R$)</label>
+        <input id="novoValorInicial" type="number" step="0.01" min="0" value="0" placeholder="0">
+        <p class="info-text" style="margin:6px 0 0;">Opcional. Entra no progresso e na projeção com rendimento.</p>
+      </div>
+
+      <div class="campo extras-cofrinho-block">
+        <label>Aporte extra em um mês</label>
+        <div class="form-row extras-cofrinho-add">
+          <select id="novoExtraMes" style="flex:1; min-width:0; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);"></select>
+          <select id="novoExtraAno" style="min-width:88px; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);"></select>
+          <input id="novoExtraValor" type="number" step="0.01" min="0" placeholder="R$" style="flex:1; min-width:0; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);">
+          <button type="button" class="btn-inline" onclick="adicionarExtraNovo()">Adicionar</button>
+        </div>
+        <ul id="novoExtrasLista" class="extras-cofrinho-list"></ul>
+      </div>
+
       <div class="modal-actions">
         <button class="btn-cancel" onclick="fecharModal('modalNovo')">Cancelar</button>
         <button class="btn-confirm" onclick="finRunOnce(event, () => salvarNovo())">Criar</button>
@@ -624,9 +664,34 @@
             <div class="campo" style="flex:1;"><label for="edAno">Ano</label><select id="edAno"></select></div>
           </div>
           <div class="campo">
+            <label for="edValorInicial">Valor inicial já guardado (R$)</label>
+            <input id="edValorInicial" type="number" step="0.01" min="0" placeholder="0">
+          </div>
+          <div class="campo extras-cofrinho-block">
+            <label>Aporte extra em um mês</label>
+            <div class="form-row extras-cofrinho-add">
+              <select id="edExtraMes" style="flex:1; min-width:0; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);"></select>
+              <select id="edExtraAno" style="min-width:88px; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);"></select>
+              <input id="edExtraValor" type="number" step="0.01" min="0" placeholder="R$" style="flex:1; min-width:0; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);">
+              <button type="button" class="btn-inline" onclick="adicionarExtraEdicao()">Adicionar</button>
+            </div>
+            <ul id="edExtrasLista" class="extras-cofrinho-list"></ul>
+          </div>
+          <div class="campo">
             <label for="edTaxa">Rendimento esperado (% ao mês)</label>
             <input id="edTaxa" type="number" step="0.01" min="0" max="100" placeholder="Ex.: 0,8 — deixe vazio se não aplicável" />
-            <p class="info-text" style="margin:6px 0 0;">Opcional. Na prévia, simula todas as parcelas do plano (pagas ou não) com juros compostos mês a mês.</p>
+            <p class="info-text" style="margin:6px 0 0;">Taxa base até a primeira alteração abaixo. Na prévia, juros compostos mês a mês em todas as parcelas do plano.</p>
+          </div>
+          <div class="campo extras-cofrinho-block">
+            <label>Nova taxa a partir de um mês</label>
+            <div class="form-row extras-cofrinho-add">
+              <select id="edTaxaAltMes" style="flex:1; min-width:0; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);"></select>
+              <select id="edTaxaAltAno" style="min-width:88px; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);"></select>
+              <input id="edTaxaAltValor" type="number" step="0.01" min="0" max="100" placeholder="% a.m." style="flex:1; min-width:0; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);">
+              <button type="button" class="btn-inline" onclick="adicionarTaxaEdicao()">Adicionar</button>
+            </div>
+            <ul id="edTaxasLista" class="extras-cofrinho-list"></ul>
+            <p class="info-text" style="margin:6px 0 0;">Ex.: 1,2% na criação e, a partir de jan/2029, 1,3% — só muda a projeção; parcelas já geradas não são recalculadas.</p>
           </div>
           <p class="info-text" style="margin:0;">Alterações no plano recalculam as parcelas ainda não pagas.</p>
         </div>
@@ -742,8 +807,64 @@
     let detTabelaLinhas = [];
     let detTabelaExpandida = false;
     const COFRE_TABELA_LIMITE = 12;
+    let extrasNovo = [];
+    let extrasEdicao = [];
+    let taxasEdicao = [];
 
     const round2 = (v) => Math.round(Number(v) * 100) / 100;
+
+    function somaExtrasMes(extras, mes, ano) {
+      return (extras || []).reduce((s, e) => (
+        e.mes === mes && Number(e.ano) === Number(ano) ? s + (Number(e.valor) || 0) : s
+      ), 0);
+    }
+
+    function renderExtrasLista(ulId, extras, removerFnName) {
+      const ul = document.getElementById(ulId);
+      if (!ul) return;
+      if (!extras.length) {
+        ul.innerHTML = '<li class="info-text" style="border:none;background:transparent;padding:4px 0;">Nenhum aporte extra.</li>';
+        return;
+      }
+      ul.innerHTML = extras.map((e, i) => `
+        <li>
+          <span>${e.mes.slice(0, 3)}/${e.ano} · ${money(e.valor)}</span>
+          <button type="button" class="btn-inline fin-btn-danger" onclick="${removerFnName}(${i})">Remover</button>
+        </li>
+      `).join('');
+    }
+
+    function adicionarExtraNovo() {
+      const mes = document.getElementById('novoExtraMes').value;
+      const ano = Number(document.getElementById('novoExtraAno').value);
+      const valor = Number(document.getElementById('novoExtraValor').value);
+      if (!valor || valor <= 0) return alert('Informe o valor extra.');
+      extrasNovo.push({ mes, ano, valor: round2(valor) });
+      document.getElementById('novoExtraValor').value = '';
+      renderExtrasLista('novoExtrasLista', extrasNovo, 'removerExtraNovo');
+    }
+    function removerExtraNovo(i) {
+      extrasNovo.splice(i, 1);
+      renderExtrasLista('novoExtrasLista', extrasNovo, 'removerExtraNovo');
+    }
+
+    function adicionarExtraEdicao() {
+      const mes = document.getElementById('edExtraMes').value;
+      const ano = Number(document.getElementById('edExtraAno').value);
+      const valor = Number(document.getElementById('edExtraValor').value);
+      if (!valor || valor <= 0) return alert('Informe o valor extra.');
+      extrasEdicao.push({ mes, ano, valor: round2(valor) });
+      document.getElementById('edExtraValor').value = '';
+      renderExtrasLista('edExtrasLista', extrasEdicao, 'removerExtraEdicao');
+      const c = cofres.find((x) => x.id === detId);
+      if (c) atualizarPreviewEdicao(c);
+    }
+    function removerExtraEdicao(i) {
+      extrasEdicao.splice(i, 1);
+      renderExtrasLista('edExtrasLista', extrasEdicao, 'removerExtraEdicao');
+      const c = cofres.find((x) => x.id === detId);
+      if (c) atualizarPreviewEdicao(c);
+    }
 
     const HORIZONTES_PROJECAO = [
       { meses: 1, label: '1°' },
@@ -756,6 +877,89 @@
 
     function taxaValida(taxa) {
       return taxa != null && Number(taxa) > 0;
+    }
+
+    function taxaContextFromCofrinho(c, overrides) {
+      const o = overrides || {};
+      let taxaBase = o.taxaBase !== undefined ? o.taxaBase : c.taxaRendimentoMensal;
+      if (taxaBase === '' || Number.isNaN(Number(taxaBase))) taxaBase = null;
+      else if (taxaBase != null) taxaBase = Number(taxaBase);
+      const fonte = o.alteracoesTaxa !== undefined ? o.alteracoesTaxa : (c.alteracoesTaxa || []);
+      const alts = fonte.map((a) => ({
+        mes: a.mes,
+        ano: Number(a.ano),
+        taxaMensal: Number(a.taxaMensal),
+      })).sort((a, b) => indiceMes(a.mes, a.ano) - indiceMes(b.mes, b.ano));
+      return { taxaBase, alts };
+    }
+
+    function cofrinhoTemTaxa(ctx) {
+      if (taxaValida(ctx.taxaBase)) return true;
+      return ctx.alts.some((a) => taxaValida(a.taxaMensal));
+    }
+
+    function criarObterTaxaMensal(ctx) {
+      const chaves = ctx.alts.map((a) => ({ idx: indiceMes(a.mes, a.ano), taxa: a.taxaMensal }));
+      return function obterTaxaPct(idx) {
+        let taxa = ctx.taxaBase;
+        for (const ch of chaves) {
+          if (ch.idx <= idx) taxa = ch.taxa;
+          else break;
+        }
+        return taxa;
+      };
+    }
+
+    function taxaDecimalNoIndice(obterTaxaPct, idx) {
+      const t = obterTaxaPct(idx);
+      if (!taxaValida(t)) return 0;
+      return Number(t) / 100;
+    }
+
+    function rotuloTaxaProjecao(c) {
+      const ctx = taxaContextFromCofrinho(c);
+      if (!ctx.alts.length && taxaValida(ctx.taxaBase)) return `${ctx.taxaBase}% ao mês`;
+      if (!ctx.alts.length) return '';
+      const partes = ctx.alts.map((a) => `${a.taxaMensal}% desde ${a.mes.slice(0, 3)}/${a.ano}`);
+      const base = taxaValida(ctx.taxaBase) ? `${ctx.taxaBase}% até a 1ª alteração; ` : '';
+      return base + partes.join('; ');
+    }
+
+    function renderTaxasLista(listId, itens, removerFnName) {
+      const ul = document.getElementById(listId);
+      if (!ul) return;
+      if (!itens.length) {
+        ul.innerHTML = '';
+        return;
+      }
+      ul.innerHTML = itens.map((e, i) => `
+        <li>
+          <span>A partir de ${e.mes.slice(0, 3)}/${e.ano} · ${e.taxaMensal}% a.m.</span>
+          <button type="button" class="btn-inline fin-btn-danger" onclick="${removerFnName}(${i})">Remover</button>
+        </li>
+      `).join('');
+    }
+
+    function adicionarTaxaEdicao() {
+      const mes = document.getElementById('edTaxaAltMes').value;
+      const ano = Number(document.getElementById('edTaxaAltAno').value);
+      const taxaMensal = round2(Number(document.getElementById('edTaxaAltValor').value));
+      if (!taxaValida(taxaMensal) || taxaMensal > 100) return alert('Informe a nova taxa (% ao mês), entre 0 e 100.');
+      const dup = taxasEdicao.some((t) => t.mes === mes && Number(t.ano) === ano);
+      if (dup) return alert('Já existe uma taxa definida para esse mês. Remova-a antes de adicionar outra.');
+      taxasEdicao.push({ mes, ano, taxaMensal });
+      taxasEdicao.sort((a, b) => indiceMes(a.mes, a.ano) - indiceMes(b.mes, b.ano));
+      document.getElementById('edTaxaAltValor').value = '';
+      renderTaxasLista('edTaxasLista', taxasEdicao, 'removerTaxaEdicao');
+      const c = cofres.find((x) => x.id === detId);
+      if (c) atualizarPreviewEdicao(c);
+    }
+
+    function removerTaxaEdicao(i) {
+      taxasEdicao.splice(i, 1);
+      renderTaxasLista('edTaxasLista', taxasEdicao, 'removerTaxaEdicao');
+      const c = cofres.find((x) => x.id === detId);
+      if (c) atualizarPreviewEdicao(c);
     }
 
     function valorComJurosCompostos(capital, taxaPct, meses) {
@@ -833,6 +1037,8 @@
         aporte: document.getElementById('edAporte').value.trim(),
         mesAlvo: document.getElementById('edMes').value,
         anoAlvo: document.getElementById('edAno').value,
+        valorInicial: document.getElementById('edValorInicial').value.trim(),
+        extras: extrasEdicao,
       };
     }
 
@@ -851,14 +1057,20 @@
       } else if (valorAlvo > 0) {
         valorParcela = valorAlvo / meses.length;
       }
-      if (!(valorParcela > 0)) return [];
-      return meses.map((m, i) => ({
-        id: `virt-${i}`,
-        mes: m.mes,
-        ano: m.ano,
-        valor: Math.round(valorParcela * 100) / 100,
-        status: 'pendente',
-      }));
+      if (!(valorParcela > 0) && !form.extras?.length) return [];
+      const extras = form.extras || c.aportesExtras || [];
+      return meses.map((m, i) => {
+        const ex = somaExtrasMes(extras, m.mes, m.ano);
+        const v = Math.round((valorParcela + ex) * 100) / 100;
+        if (!(v > 0)) return null;
+        return {
+          id: `virt-${i}`,
+          mes: m.mes,
+          ano: m.ano,
+          valor: v,
+          status: 'pendente',
+        };
+      }).filter(Boolean);
     }
 
     function parcelasOrdenadas(parcelas) {
@@ -945,13 +1157,28 @@
     /** Tabela mês a mês (estilo calculadora) com status de cada parcela. */
     function montarLinhasTabelaCofrinho(c) {
       const parcelas = parcelasOrdenadas(parcelasParaDetalhe(c));
-      if (!parcelas.length) return [];
-      const r = taxaValida(c.taxaRendimentoMensal) ? Number(c.taxaRendimentoMensal) / 100 : 0;
-      let acumulado = 0;
-      let totalInvestido = 0;
+      const obterTaxa = criarObterTaxaMensal(taxaContextFromCofrinho(c));
+      let acumulado = Number(c.valorInicial) || 0;
+      let totalInvestido = acumulado;
       const linhas = [];
+      if (acumulado > 0) {
+        linhas.push({
+          mes: 0,
+          mesLabel: 'Início',
+          jurosMes: 0,
+          totalInvestido: round2(totalInvestido),
+          totalJuros: 0,
+          acumulado: round2(acumulado),
+          parcelaId: null,
+          status: 'inicial',
+          vencida: false,
+        });
+      }
+      if (!parcelas.length) return linhas;
       parcelas.forEach((p, i) => {
         const saldoAntes = acumulado;
+        const idx = indiceMes(p.mes, p.ano);
+        const r = taxaDecimalNoIndice(obterTaxa, idx);
         const jurosMes = r > 0 ? saldoAntes * r : 0;
         const valor = Number(p.valor) || 0;
         totalInvestido += valor;
@@ -973,6 +1200,7 @@
     }
 
     function rotuloStatusParcela(l) {
+      if (l.status === 'inicial') return { cls: 'pago', txt: 'Inicial' };
       if (l.status === 'pago') return { cls: 'pago', txt: 'Pago' };
       if (l.vencida) return { cls: 'vencida', txt: 'Vencida' };
       return { cls: 'pendente', txt: 'Pendente' };
@@ -1029,9 +1257,8 @@
       }
     }
 
-    function patrimonioEntreMeses(parcelas, taxaPct, idxInicio, idxFim, somentePagas) {
-      const r = Number(taxaPct) / 100;
-      let b = 0;
+    function patrimonioEntreMeses(parcelas, obterTaxaPct, idxInicio, idxFim, somentePagas, saldoInicial) {
+      let b = Number(saldoInicial) || 0;
       const map = new Map();
       (parcelas || []).forEach((p) => {
         if (somentePagas && p.status !== 'pago') return;
@@ -1039,6 +1266,7 @@
         map.set(k, (map.get(k) || 0) + (Number(p.valor) || 0));
       });
       for (let idx = idxInicio; idx <= idxFim; idx += 1) {
+        const r = taxaDecimalNoIndice(obterTaxaPct, idx);
         if (r > 0) b *= (1 + r);
         b += map.get(idx) || 0;
       }
@@ -1057,53 +1285,53 @@
     }
 
     /** Patrimônio se todas as parcelas entrassem no prazo, com juros mês a mês até o horizonte. */
-    function simularPlanoRendimentoAteHorizonte(parcelas, taxaPct, mesesDesdeHoje) {
+    function simularPlanoRendimentoAteHorizonte(parcelas, obterTaxaPct, mesesDesdeHoje) {
       const limites = limitesPlanoParcelas(parcelas);
-      if (!limites) return valorComJurosCompostos(0, taxaPct, mesesDesdeHoje);
+      if (!limites) return 0;
       const hoje = new Date();
       const hojeIdx = indiceMes(MESES[hoje.getMonth()], hoje.getFullYear());
       const alvo = Math.min(limites.fim, hojeIdx + mesesDesdeHoje);
       if (alvo < limites.ini) return 0;
-      return patrimonioEntreMeses(parcelas, taxaPct, limites.ini, alvo, false);
+      return patrimonioEntreMeses(parcelas, obterTaxaPct, limites.ini, alvo, false);
     }
 
-    function simularPlanoRendimentoFinal(parcelas, taxaPct) {
+    function simularPlanoRendimentoFinal(parcelas, obterTaxaPct) {
       const limites = limitesPlanoParcelas(parcelas);
       if (!limites) return 0;
-      return patrimonioEntreMeses(parcelas, taxaPct, limites.ini, limites.fim, false);
+      return patrimonioEntreMeses(parcelas, obterTaxaPct, limites.ini, limites.fim, false);
     }
 
     /** N meses contados desde o 1º mês do plano (todas as parcelas entram, pagas ou não). */
-    function simularPlanoRendimentoMesesDesdeInicio(parcelas, taxaPct, mesesNoPlano) {
+    function simularPlanoRendimentoMesesDesdeInicio(parcelas, obterTaxaPct, mesesNoPlano) {
       const limites = limitesPlanoParcelas(parcelas);
       if (!limites || mesesNoPlano <= 0) return 0;
       const alvo = Math.min(limites.fim, limites.ini + mesesNoPlano - 1);
-      return patrimonioEntreMeses(parcelas, taxaPct, limites.ini, alvo, false);
+      return patrimonioEntreMeses(parcelas, obterTaxaPct, limites.ini, alvo, false);
     }
 
-    function montarProjecaoEdicao(parcelas, taxaPct) {
-      if (!taxaValida(taxaPct)) return null;
+    function montarProjecaoEdicao(parcelas, obterTaxaPct) {
+      if (!obterTaxaPct) return null;
       const linhas = HORIZONTES_PROJECAO.map((h) => ({
         label: h.label,
         meses: h.meses,
-        valor: simularPlanoRendimentoMesesDesdeInicio(parcelas, taxaPct, h.meses),
+        valor: simularPlanoRendimentoMesesDesdeInicio(parcelas, obterTaxaPct, h.meses),
       }));
-      return { linhas, planoFinal: simularPlanoRendimentoFinal(parcelas, taxaPct) };
+      return { linhas, planoFinal: simularPlanoRendimentoFinal(parcelas, obterTaxaPct) };
     }
 
     function somaNominalParcelas(parcelas) {
       return (parcelas || []).reduce((s, p) => s + (Number(p.valor) || 0), 0);
     }
 
-    function montarProjecaoRendimento(saldo, parcelas, taxaPct) {
-      if (!taxaValida(taxaPct)) return null;
+    function montarProjecaoRendimento(saldo, parcelas, obterTaxaPct) {
+      if (!obterTaxaPct) return null;
       const linhas = HORIZONTES_PROJECAO.map((h) => ({
         label: h.label,
         meses: h.meses,
-        valorAtual: valorComJurosCompostos(saldo, taxaPct, h.meses),
-        valorPlano: simularPlanoRendimentoAteHorizonte(parcelas, taxaPct, h.meses),
+        valorAtual: valorComJurosCompostos(saldo, obterTaxaPct(0), h.meses),
+        valorPlano: simularPlanoRendimentoAteHorizonte(parcelas, obterTaxaPct, h.meses),
       }));
-      const planoFinal = simularPlanoRendimentoFinal(parcelas, taxaPct);
+      const planoFinal = simularPlanoRendimentoFinal(parcelas, obterTaxaPct);
       return { linhas, planoFinal };
     }
 
@@ -1114,10 +1342,11 @@
     }
 
     /** Valores acumulados em cada mês ou fim de cada ano do plano (parcelas pagas vs plano completo). */
-    function montarTimelineProjecao(parcelas, taxaPct, visao) {
-      if (!taxaValida(taxaPct)) return null;
+    function montarTimelineProjecao(parcelas, obterTaxaPct, visao, saldoInicial) {
+      if (!obterTaxaPct) return null;
       const limites = limitesPlanoParcelas(parcelas);
       if (!limites) return null;
+      const ini = Number(saldoInicial) || 0;
       const linhas = [];
       if (visao === 'ano') {
         let anoAtual = null;
@@ -1127,8 +1356,8 @@
           if (anoAtual !== null && ano !== anoAtual) {
             linhas.push({
               label: String(anoAtual),
-              valorPlano: patrimonioEntreMeses(parcelas, taxaPct, limites.ini, fimIdxAno, false),
-              valorPago: patrimonioEntreMeses(parcelas, taxaPct, limites.ini, fimIdxAno, true),
+              valorPlano: patrimonioEntreMeses(parcelas, obterTaxaPct, limites.ini, fimIdxAno, false, ini),
+              valorPago: patrimonioEntreMeses(parcelas, obterTaxaPct, limites.ini, fimIdxAno, true, ini),
             });
           }
           anoAtual = ano;
@@ -1137,22 +1366,22 @@
         if (anoAtual != null) {
           linhas.push({
             label: String(anoAtual),
-            valorPlano: patrimonioEntreMeses(parcelas, taxaPct, limites.ini, fimIdxAno, false),
-            valorPago: patrimonioEntreMeses(parcelas, taxaPct, limites.ini, fimIdxAno, true),
+            valorPlano: patrimonioEntreMeses(parcelas, obterTaxaPct, limites.ini, fimIdxAno, false, ini),
+            valorPago: patrimonioEntreMeses(parcelas, obterTaxaPct, limites.ini, fimIdxAno, true, ini),
           });
         }
       } else {
         for (let idx = limites.ini; idx <= limites.fim; idx += 1) {
           linhas.push({
             label: rotuloIndiceMes(idx),
-            valorPlano: patrimonioEntreMeses(parcelas, taxaPct, limites.ini, idx, false),
-            valorPago: patrimonioEntreMeses(parcelas, taxaPct, limites.ini, idx, true),
+            valorPlano: patrimonioEntreMeses(parcelas, obterTaxaPct, limites.ini, idx, false, ini),
+            valorPago: patrimonioEntreMeses(parcelas, obterTaxaPct, limites.ini, idx, true, ini),
           });
         }
       }
       return {
         linhas,
-        planoFinal: simularPlanoRendimentoFinal(parcelas, taxaPct),
+        planoFinal: patrimonioEntreMeses(parcelas, obterTaxaPct, limites.ini, limites.fim, false, ini),
       };
     }
 
@@ -1174,7 +1403,8 @@
     function renderDetalheProjecao(c) {
       const cardProj = document.getElementById('detProjecaoCard');
       const metaCard = cardProj && cardProj.parentElement && cardProj.parentElement.firstElementChild;
-      if (!taxaValida(c.taxaRendimentoMensal)) {
+      const ctxTaxa = taxaContextFromCofrinho(c);
+      if (!cofrinhoTemTaxa(ctxTaxa)) {
         cardProj.hidden = true;
         if (metaCard) metaCard.style.gridColumn = '1 / -1';
         chartCofreProjecao = destruirChart(chartCofreProjecao);
@@ -1187,15 +1417,16 @@
         btn.classList.toggle('active', btn.dataset.v === detProjecaoVisao);
       });
 
-      const taxa = c.taxaRendimentoMensal;
+      const obterTaxa = criarObterTaxaMensal(ctxTaxa);
+      const taxaTxt = rotuloTaxaProjecao(c);
       const parcelasDet = parcelasParaDetalhe(c);
-      const timeline = montarTimelineProjecao(parcelasDet, taxa, detProjecaoVisao);
+      const timeline = montarTimelineProjecao(parcelasDet, obterTaxa, detProjecaoVisao, c.valorInicial);
       const temPlano = timeline && timeline.linhas.length > 0;
 
       document.getElementById('detProjecaoSub').textContent = temPlano
         ? (detProjecaoVisao === 'ano'
-          ? `Por ano: azul = parcelas já pagas + ${taxa}% ao mês; cinza = plano completo. Detalhes mês a mês estão em Minhas parcelas.`
-          : `Por mês: azul = guardado + rendimento; cinza = plano completo + ${taxa}% ao mês. Detalhes mês a mês estão em Minhas parcelas.`)
+          ? `Por ano: azul = parcelas já pagas + rendimento (${taxaTxt}); cinza = plano completo. Detalhes mês a mês estão em Minhas parcelas.`
+          : `Por mês: azul = guardado + rendimento; cinza = plano completo (${taxaTxt}). Detalhes mês a mês estão em Minhas parcelas.`)
         : `Defina parcelas ou meta com prazo para ver o gráfico. Saldo hoje: ${money(c.saldo)}.`;
 
       if (!temPlano) {
@@ -1436,10 +1667,11 @@
       }
 
       const taxaInput = document.getElementById('edTaxa').value.trim();
-      const taxa = taxaInput === '' ? null : Number(taxaInput);
+      const taxaBase = taxaInput === '' ? null : Number(taxaInput);
+      const ctxTaxa = taxaContextFromCofrinho(c, { taxaBase, alteracoesTaxa: taxasEdicao });
       const prevBox = document.getElementById('edProjecaoPreview');
       const semTaxa = document.getElementById('edSemTaxaMsg');
-      if (!taxaValida(taxa)) {
+      if (!cofrinhoTemTaxa(ctxTaxa)) {
         prevBox.hidden = true;
         semTaxa.hidden = false;
         return;
@@ -1448,7 +1680,9 @@
       prevBox.hidden = false;
       const form = lerFormEdicao();
       const parcelasProj = parcelasPlanoEdicao(c, form);
-      const timeline = montarTimelineProjecao(parcelasProj, taxa, 'mes');
+      const vi = form.valorInicial !== '' ? Number(form.valorInicial) : (Number(c.valorInicial) || 0);
+      const obterTaxa = criarObterTaxaMensal(ctxTaxa);
+      const timeline = montarTimelineProjecao(parcelasProj, obterTaxa, 'mes', vi);
       const temPlano = timeline && timeline.linhas.length > 0 && timeline.planoFinal > 0;
       const destaque = document.getElementById('edProjecaoFinalDestaque');
       if (temPlano) {
@@ -1456,13 +1690,19 @@
         const rendimento = Math.max(0, timeline.planoFinal - nominal);
         destaque.hidden = false;
         document.getElementById('edProjecaoFinalValor').textContent = money(timeline.planoFinal);
+        const taxaTxt = ctxTaxa.alts.length
+          ? rotuloTaxaProjecao({ taxaRendimentoMensal: ctxTaxa.taxaBase, alteracoesTaxa: ctxTaxa.alts })
+          : `${ctxTaxa.taxaBase}% a.m.`;
         document.getElementById('edProjecaoFinalSub').textContent =
-          `Soma das parcelas: ${money(nominal)} · Rendimento estimado (${taxa}% a.m.): ${money(rendimento)} · Mesma lógica da projeção no detalhe do cofrinho.`;
+          `Soma das parcelas: ${money(nominal)} · Rendimento estimado (${taxaTxt}): ${money(rendimento)} · Mesma lógica da projeção no detalhe do cofrinho.`;
       } else {
         destaque.hidden = true;
       }
+      const taxaSub = ctxTaxa.alts.length
+        ? rotuloTaxaProjecao({ taxaRendimentoMensal: ctxTaxa.taxaBase, alteracoesTaxa: ctxTaxa.alts })
+        : `${ctxTaxa.taxaBase}% a.m.`;
       document.getElementById('edProjecaoPreviewSub').textContent = temPlano
-        ? `Por mês (plano completo + ${taxa}% a.m.) — igual à seção Projeção com rendimento.`
+        ? `Por mês (plano completo + ${taxaSub}) — igual à seção Projeção com rendimento.`
         : 'Informe meta e prazo (ou aporte mensal) para simular o plano com rendimento.';
       const n = timeline ? timeline.linhas.length : 0;
       document.getElementById('edProjecaoPreviewGrid').innerHTML = (timeline ? timeline.linhas : []).map((l, i) => `
@@ -1646,9 +1886,13 @@
       document.getElementById('novoAporte').value = '';
       document.getElementById('novoDurante').value = 6;
       setModoNovo('valor');
+      extrasNovo = [];
       const hoje = new Date();
       popularMesAno(document.getElementById('novoMesInicio'), document.getElementById('novoAnoInicio'));
       popularMesAno(document.getElementById('novoMes'), document.getElementById('novoAno'));
+      popularMesAno(document.getElementById('novoExtraMes'), document.getElementById('novoExtraAno'));
+      document.getElementById('novoValorInicial').value = '0';
+      renderExtrasLista('novoExtrasLista', extrasNovo, 'removerExtraNovo');
       document.getElementById('novoMesInicio').value = MESES[hoje.getMonth()];
       document.getElementById('novoAnoInicio').value = hoje.getFullYear();
       document.getElementById('modalNovo').classList.add('visible');
@@ -1668,7 +1912,14 @@
       if (!nome) return alert('Dê um nome ao cofrinho.');
       const mesInicio = document.getElementById('novoMesInicio').value;
       const anoInicio = Number(document.getElementById('novoAnoInicio').value);
-      const body = { nome, mesInicio, anoInicio };
+      const vi = Number(document.getElementById('novoValorInicial').value);
+      const body = {
+        nome,
+        mesInicio,
+        anoInicio,
+        valorInicial: vi > 0 ? vi : 0,
+        aportesExtras: extrasNovo,
+      };
       if (novoModo === 'valor') {
         const v = Number(document.getElementById('novoValorAlvo').value);
         if (!v || v <= 0) return alert('Informe o valor alvo.');
@@ -1727,12 +1978,19 @@
       document.getElementById('edAporte').value = (c.compartilhado ? c.meuAporte : c.aporteMensal) ?? '';
       if (c.mesAlvo) document.getElementById('edMes').value = c.mesAlvo;
       if (c.anoAlvo) document.getElementById('edAno').value = c.anoAlvo;
+      document.getElementById('edValorInicial').value = c.valorInicial != null && c.valorInicial > 0 ? c.valorInicial : '';
+      popularMesAno(document.getElementById('edExtraMes'), document.getElementById('edExtraAno'));
+      popularMesAno(document.getElementById('edTaxaAltMes'), document.getElementById('edTaxaAltAno'));
+      extrasEdicao = (c.aportesExtras || []).map((e) => ({ ...e }));
+      renderExtrasLista('edExtrasLista', extrasEdicao, 'removerExtraEdicao');
+      taxasEdicao = (c.alteracoesTaxa || []).map((t) => ({ ...t }));
+      renderTaxasLista('edTaxasLista', taxasEdicao, 'removerTaxaEdicao');
       document.getElementById('edTaxa').value = c.taxaRendimentoMensal != null ? c.taxaRendimentoMensal : '';
       document.getElementById('modalEditar').classList.add('visible');
       setTimeout(() => atualizarPreviewEdicao(c), 0);
     }
 
-    ['edTaxa', 'edValorAlvo', 'edAporte', 'edMes', 'edAno'].forEach((id) => {
+    ['edTaxa', 'edValorAlvo', 'edAporte', 'edMes', 'edAno', 'edValorInicial'].forEach((id) => {
       const el = document.getElementById(id);
       if (!el) return;
       el.addEventListener('input', () => {
@@ -1803,6 +2061,13 @@
       if (body.taxaRendimentoMensal != null && (!Number.isFinite(body.taxaRendimentoMensal) || body.taxaRendimentoMensal < 0 || body.taxaRendimentoMensal > 100)) {
         return alert('Informe uma taxa entre 0 e 100 % ao mês, ou deixe em branco.');
       }
+      const viRaw = document.getElementById('edValorInicial').value.trim();
+      body.valorInicial = viRaw === '' ? 0 : Number(viRaw);
+      if (!Number.isFinite(body.valorInicial) || body.valorInicial < 0) {
+        return alert('Valor inicial inválido.');
+      }
+      body.aportesExtras = extrasEdicao;
+      body.alteracoesTaxa = taxasEdicao;
       await api(`/api/cofrinhos/${detId}`, { method: 'PUT', body: JSON.stringify(body) });
       fecharModal('modalEditar');
       await carregar();

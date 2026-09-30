@@ -18,6 +18,7 @@ medalha para cada participante ativo.
 
 from __future__ import annotations
 
+import json
 from datetime import date
 
 from sqlalchemy.orm import Session
@@ -67,6 +68,124 @@ def checar_prazo_inicio_fim(mes_inicio: str, ano_inicio: int, mes_alvo: str, ano
 
 def _modo(cofrinho: Cofrinho) -> str:
     return "valor_prazo" if cofrinho.valor_alvo is not None else "aporte_prazo"
+
+
+def _valor_inicial(cofrinho: Cofrinho) -> float:
+    return max(0.0, float(cofrinho.valor_inicial or 0))
+
+
+def listar_aportes_extras(cofrinho: Cofrinho) -> list[dict]:
+    if not cofrinho.aportes_extras:
+        return []
+    try:
+        raw = json.loads(cofrinho.aportes_extras)
+    except (json.JSONDecodeError, TypeError):
+        return []
+    if not isinstance(raw, list):
+        return []
+    out: list[dict] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        mes = item.get("mes")
+        ano = item.get("ano")
+        valor = item.get("valor")
+        if mes not in MESES or not isinstance(ano, int) or valor is None:
+            continue
+        v = float(valor)
+        if v <= 0:
+            continue
+        out.append({"mes": mes, "ano": int(ano), "valor": round(v, 2)})
+    return out
+
+
+def definir_aportes_extras(cofrinho: Cofrinho, itens: list[dict]) -> None:
+    limpos: list[dict] = []
+    for item in itens:
+        mes = item.get("mes")
+        ano = int(item.get("ano", 0))
+        valor = round(float(item.get("valor", 0)), 2)
+        if mes not in MESES or ano < 2000 or valor <= 0:
+            raise ValueError("Aporte extra inválido.")
+        limpos.append({"mes": mes, "ano": ano, "valor": valor})
+    cofrinho.aportes_extras = json.dumps(limpos, ensure_ascii=False) if limpos else None
+
+
+def extra_valor_mes(cofrinho: Cofrinho, ano: int, mes: str) -> float:
+    return sum(
+        e["valor"]
+        for e in listar_aportes_extras(cofrinho)
+        if e["mes"] == mes and e["ano"] == ano
+    )
+
+
+def _indice_calendario(ano: int, mes: str) -> int:
+    idx = _mes_idx(mes)
+    if idx is None:
+        raise ValueError("Mês inválido.")
+    return int(ano) * 12 + idx
+
+
+def listar_alteracoes_taxa(cofrinho: Cofrinho) -> list[dict]:
+    if not cofrinho.historico_taxas:
+        return []
+    try:
+        raw = json.loads(cofrinho.historico_taxas)
+    except (json.JSONDecodeError, TypeError):
+        return []
+    if not isinstance(raw, list):
+        return []
+    out: list[dict] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        mes = item.get("mes")
+        ano = item.get("ano")
+        taxa = item.get("taxaMensal", item.get("taxa"))
+        if mes not in MESES or not isinstance(ano, int) or taxa is None:
+            continue
+        t = float(taxa)
+        if t < 0 or t > 100:
+            continue
+        out.append({"mes": mes, "ano": int(ano), "taxaMensal": round(t, 4)})
+    out.sort(key=lambda x: _indice_calendario(x["ano"], x["mes"]))
+    return out
+
+
+def definir_alteracoes_taxa(cofrinho: Cofrinho, itens: list[dict]) -> None:
+    limpos: list[dict] = []
+    vistos: set[int] = set()
+    for item in itens:
+        mes = item.get("mes")
+        ano = int(item.get("ano", 0))
+        taxa = round(float(item.get("taxaMensal", item.get("taxa", 0))), 4)
+        if mes not in MESES or ano < 2000 or taxa < 0 or taxa > 100:
+            raise ValueError("Alteração de taxa inválida.")
+        chave = _indice_calendario(ano, mes)
+        if chave in vistos:
+            raise ValueError("Há mais de uma taxa definida para o mesmo mês.")
+        vistos.add(chave)
+        limpos.append({"mes": mes, "ano": ano, "taxaMensal": taxa})
+    limpos.sort(key=lambda x: _indice_calendario(x["ano"], x["mes"]))
+    cofrinho.historico_taxas = json.dumps(limpos, ensure_ascii=False) if limpos else None
+
+
+def taxa_mensal_vigente(cofrinho: Cofrinho, ano: int, mes: str) -> float | None:
+    """Taxa % ao mês aplicável naquele mês (considera histórico «a partir de»)."""
+    idx = _indice_calendario(ano, mes)
+    taxa: float | None = (
+        float(cofrinho.taxa_rendimento_mensal)
+        if cofrinho.taxa_rendimento_mensal is not None
+        else None
+    )
+    for ch in listar_alteracoes_taxa(cofrinho):
+        if _indice_calendario(ch["ano"], ch["mes"]) <= idx:
+            taxa = ch["taxaMensal"]
+    return taxa
+
+
+def _pago_contas(contas: list[Conta]) -> float:
+    return sum(c.valor for c in contas if c.situacao == "pago")
 
 
 def _meses_plano(cofrinho: Cofrinho, desde: date | None = None) -> list[tuple[int, str]]:
@@ -198,11 +317,29 @@ def gerar_parcelas_participante(
     }
     if is_compartilhado(db, cofrinho) or participante.aporte_mensal is not None:
         valor = float(participante.aporte_mensal or 0)
+        for ano, mes in meses:
+            if (ano, mes) in existentes:
+                continue
+            valor_mes = round(valor + extra_valor_mes(cofrinho, ano, mes), 2)
+            criar_conta(
+                db,
+                usuario,
+                ano=ano,
+                mes=mes,
+                nome=TITULO_CONTA_COFRINHO,
+                descricao=(cofrinho.nome or "").strip(),
+                valor=valor_mes,
+                status="pendente",
+                categoria=CATEGORIA_COFRINHO,
+                id_cofrinho=cofrinho.id,
+            )
+        return
     else:
         valor = float(cofrinho.valor_alvo or 0) / len(meses)
     for ano, mes in meses:
         if (ano, mes) in existentes:
             continue
+        valor_mes = round(valor + extra_valor_mes(cofrinho, ano, mes), 2)
         criar_conta(
             db,
             usuario,
@@ -210,7 +347,7 @@ def gerar_parcelas_participante(
             mes=mes,
             nome=TITULO_CONTA_COFRINHO,
             descricao=(cofrinho.nome or "").strip(),
-            valor=round(valor, 2),
+            valor=valor_mes,
             status="pendente",
             categoria=CATEGORIA_COFRINHO,
             id_cofrinho=cofrinho.id,
@@ -235,7 +372,7 @@ def ajustar_parcelas_apos_edicao(db: Session, cofrinho: Cofrinho) -> None:
                     db.delete(conta)
     db.flush()
     gerar_parcelas(db, cofrinho)
-    recalcular_pendentes(db, cofrinho)
+    sincronizar_valores_parcelas(db, cofrinho)
 
 
 def apagar_parcelas_pendentes(
@@ -247,19 +384,46 @@ def apagar_parcelas_pendentes(
     db.flush()
 
 
+def sincronizar_valores_parcelas(db: Session, cofrinho: Cofrinho) -> bool:
+    """Atualiza valores das parcelas pendentes (aporte fixo + extras ou redistribuição)."""
+    if cofrinho.valor_alvo is not None and not is_compartilhado(db, cofrinho):
+        return recalcular_pendentes(db, cofrinho)
+    mudou = False
+    for participante in participantes_ativos(db, cofrinho):
+        base = float(participante.aporte_mensal or cofrinho.aporte_mensal or 0)
+        for c in _contas(db, cofrinho, participante):
+            if c.situacao == "pago":
+                continue
+            mes = MESES[c.data_conta.month - 1]
+            desejado = round(base + extra_valor_mes(cofrinho, c.data_conta.year, mes), 2)
+            if abs(c.valor - desejado) > 0.005:
+                c.valor = desejado
+                mudou = True
+    return mudou
+
+
 def recalcular_pendentes(db: Session, cofrinho: Cofrinho) -> bool:
     """Redistribui o que falta entre as parcelas pendentes. Só no modo valor e
     só enquanto o cofrinho é solo."""
     if cofrinho.valor_alvo is None or is_compartilhado(db, cofrinho):
         return False
     contas = _contas(db, cofrinho)
-    pago = sum(c.valor for c in contas if c.situacao == "pago")
+    pago = _pago_contas(contas) + _valor_inicial(cofrinho)
     pendentes = [c for c in contas if c.situacao != "pago"]
     if not pendentes:
         return False
-    novo = round(max(0.0, float(cofrinho.valor_alvo) - pago) / len(pendentes), 2)
+    extras_pendentes = sum(
+        extra_valor_mes(cofrinho, c.data_conta.year, MESES[c.data_conta.month - 1])
+        for c in pendentes
+    )
+    base = round(
+        max(0.0, float(cofrinho.valor_alvo) - pago - extras_pendentes) / len(pendentes),
+        2,
+    )
     mudou = False
     for c in pendentes:
+        mes = MESES[c.data_conta.month - 1]
+        novo = round(base + extra_valor_mes(cofrinho, c.data_conta.year, mes), 2)
         if abs(c.valor - novo) > 0.005:
             c.valor = novo
             mudou = True
@@ -298,7 +462,7 @@ def sincronizar(db: Session, cofrinho: Cofrinho) -> bool:
     if cofrinho.situacao == "arquivado":
         return False
     contas = _contas(db, cofrinho)
-    pago = sum(c.valor for c in contas if c.situacao == "pago")
+    pago = _pago_contas(contas) + _valor_inicial(cofrinho)
     alvo = _alvo(db, cofrinho)
     mudou = False
     if alvo > 0 and pago >= alvo - 0.005:
@@ -397,7 +561,7 @@ def payload(db: Session, cofrinho: Cofrinho, eu: Usuario) -> dict:
     )
     contas_all = _contas(db, cofrinho)
     hoje = date.today()
-    pago_total = round(sum(c.valor for c in contas_all if c.situacao == "pago"), 2)
+    pago_total = round(_pago_contas(contas_all) + _valor_inicial(cofrinho), 2)
     alvo = round(_alvo(db, cofrinho), 2)
     compartilhado = is_compartilhado(db, cofrinho)
     modo = "compartilhado" if compartilhado else _modo(cofrinho)
@@ -481,4 +645,7 @@ def payload(db: Session, cofrinho: Cofrinho, eu: Usuario) -> dict:
         "projecaoFinal": projecao_final,
         "participantes": participantes,
         "taxaRendimentoMensal": cofrinho.taxa_rendimento_mensal,
+        "valorInicial": round(_valor_inicial(cofrinho), 2),
+        "aportesExtras": listar_aportes_extras(cofrinho),
+        "alteracoesTaxa": listar_alteracoes_taxa(cofrinho),
     }

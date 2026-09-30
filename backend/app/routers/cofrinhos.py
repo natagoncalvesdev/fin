@@ -14,6 +14,18 @@ from app.validators import nome_sem_html
 router = APIRouter(prefix="/api/cofrinhos", tags=["cofrinhos"])
 
 
+class AporteExtra(BaseModel):
+    mes: str
+    ano: int = Field(ge=2000, le=2100)
+    valor: float = Field(gt=0, le=1_000_000_000)
+
+
+class AlteracaoTaxa(BaseModel):
+    mes: str
+    ano: int = Field(ge=2000, le=2100)
+    taxaMensal: float = Field(ge=0, le=100)
+
+
 class CofrinhoCreate(BaseModel):
     nome: str = Field(min_length=1, max_length=120)
     valorAlvo: float | None = Field(default=None, gt=0, le=1_000_000_000)
@@ -22,6 +34,9 @@ class CofrinhoCreate(BaseModel):
     anoInicio: int = Field(ge=2000, le=2100)
     mesAlvo: str
     anoAlvo: int = Field(ge=2000, le=2100)
+    valorInicial: float | None = Field(default=None, ge=0, le=1_000_000_000)
+    aportesExtras: list[AporteExtra] = Field(default_factory=list)
+    alteracoesTaxa: list[AlteracaoTaxa] = Field(default_factory=list)
     taxaRendimentoMensal: float | None = Field(default=None, ge=0, le=100)
 
     @field_validator("nome")
@@ -36,6 +51,9 @@ class CofrinhoUpdate(BaseModel):
     aporteMensal: float | None = Field(default=None, gt=0, le=1_000_000_000)
     mesAlvo: str | None = None
     anoAlvo: int | None = Field(default=None, ge=2000, le=2100)
+    valorInicial: float | None = Field(default=None, ge=0, le=1_000_000_000)
+    aportesExtras: list[AporteExtra] | None = None
+    alteracoesTaxa: list[AlteracaoTaxa] | None = None
     situacao: str | None = None
     taxaRendimentoMensal: float | None = Field(default=None, ge=0, le=100)
 
@@ -250,13 +268,33 @@ def create_cofrinho(
         mes_alvo=body.mesAlvo,
         ano_alvo=body.anoAlvo,
         taxa_rendimento_mensal=body.taxaRendimentoMensal,
+        valor_inicial=float(body.valorInicial or 0),
         data_inicio=data_inicio,
         situacao="ativo",
     )
     db.add(cofrinho)
     db.flush()
+    for extra in body.aportesExtras:
+        _checar_mes(extra.mes)
+    try:
+        cofrinhos_service.definir_aportes_extras(
+            cofrinho,
+            [e.model_dump() for e in body.aportesExtras],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    for alt in body.alteracoesTaxa:
+        _checar_mes(alt.mes)
+    try:
+        cofrinhos_service.definir_alteracoes_taxa(
+            cofrinho,
+            [a.model_dump() for a in body.alteracoesTaxa],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     cofrinhos_service.garantir_dono(db, cofrinho)
     cofrinhos_service.gerar_parcelas(db, cofrinho)
+    cofrinhos_service.sincronizar_valores_parcelas(db, cofrinho)
     db.commit()
     db.refresh(cofrinho)
     return cofrinhos_service.payload(db, cofrinho, current_user)
@@ -274,6 +312,7 @@ def update_cofrinho(
     enviados = body.model_fields_set
     prazo_mudou = False
     valor_mudou = False
+    extras_mudou = False
 
     if body.nome is not None and body.nome.strip() != cofrinho.nome:
         cofrinho.nome = body.nome.strip()
@@ -318,6 +357,30 @@ def update_cofrinho(
             cofrinho.data_concluido = None
     if "taxaRendimentoMensal" in enviados:
         cofrinho.taxa_rendimento_mensal = body.taxaRendimentoMensal
+    if "valorInicial" in enviados:
+        cofrinho.valor_inicial = float(body.valorInicial or 0)
+        valor_mudou = True
+    if "aportesExtras" in enviados:
+        for extra in body.aportesExtras or []:
+            _checar_mes(extra.mes)
+        try:
+            cofrinhos_service.definir_aportes_extras(
+                cofrinho,
+                [e.model_dump() for e in (body.aportesExtras or [])],
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        extras_mudou = True
+    if "alteracoesTaxa" in enviados:
+        for alt in body.alteracoesTaxa or []:
+            _checar_mes(alt.mes)
+        try:
+            cofrinhos_service.definir_alteracoes_taxa(
+                cofrinho,
+                [a.model_dump() for a in (body.alteracoesTaxa or [])],
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     if prazo_mudou:
         mes_ini = MESES[cofrinho.data_inicio.month - 1]
@@ -331,8 +394,8 @@ def update_cofrinho(
     db.flush()
     if prazo_mudou:
         cofrinhos_service.ajustar_parcelas_apos_edicao(db, cofrinho)
-    elif valor_mudou:
-        cofrinhos_service.recalcular_pendentes(db, cofrinho)
+    elif valor_mudou or extras_mudou:
+        cofrinhos_service.sincronizar_valores_parcelas(db, cofrinho)
     cofrinhos_service.sincronizar(db, cofrinho)
     db.commit()
     db.refresh(cofrinho)

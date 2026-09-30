@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -448,6 +448,11 @@ class Cofrinho(Base):
     mes_alvo: Mapped[str | None] = mapped_column(String(20), nullable=True)
     ano_alvo: Mapped[int | None] = mapped_column(Integer, nullable=True)
     data_inicio: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)
+    valor_inicial: Mapped[float | None] = mapped_column(Float, nullable=True, default=0.0)
+    # JSON: [{"mes":"Janeiro","ano":2027,"valor":500}, ...]
+    aportes_extras: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # JSON: [{"mes":"Janeiro","ano":2029,"taxaMensal":1.3}, ...] — vigora a partir desse mês
+    historico_taxas: Mapped[str | None] = mapped_column(Text, nullable=True)
     situacao: Mapped[str] = mapped_column(String(20), nullable=False, default="ativo")
     data_concluido: Mapped[date | None] = mapped_column(Date, nullable=True)
     # Rendimento mensal esperado (%), opcional — usado na projeção com juros compostos.

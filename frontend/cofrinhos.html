@@ -273,6 +273,20 @@
     @media (max-width: 640px) {
       .proj-grid { grid-template-columns: repeat(2, 1fr); }
     }
+    .proj-grid-scroll {
+      max-height: 280px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .det-projecao-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .det-projecao-head .modo-toggle { min-width: 200px; max-width: 280px; }
     .proj-tile {
       padding: 12px;
       border-radius: 12px;
@@ -425,12 +439,18 @@
           <p id="chartCofreMetaVazio" class="info-text" style="margin:8px 0 0; display:none;">Cadastre parcelas para ver a evolução.</p>
         </div>
         <div class="section-card" id="detProjecaoCard" hidden>
-          <h3 class="section-card-title" style="margin-bottom:8px;">Projeção com rendimento</h3>
+          <div class="det-projecao-head">
+            <h3 class="section-card-title" style="margin:0;">Projeção com rendimento</h3>
+            <div class="modo-toggle" id="detProjecaoVisao" role="group" aria-label="Ver projeção por">
+              <button type="button" class="modo-opt active" data-v="mes">Por mês</button>
+              <button type="button" class="modo-opt" data-v="ano">Por ano</button>
+            </div>
+          </div>
           <p class="info-text" id="detProjecaoSub" style="margin:0 0 4px;"></p>
           <div class="cofre-chart-box tall">
             <canvas id="chartCofreProjecao"></canvas>
           </div>
-          <div id="detProjecaoGrid" class="proj-grid"></div>
+          <div id="detProjecaoGrid" class="proj-grid proj-grid-scroll"></div>
         </div>
       </div>
 
@@ -468,6 +488,10 @@
       <div class="campo" id="campoValorAlvo"><label for="novoValorAlvo">Valor alvo (R$)</label><input id="novoValorAlvo" type="number" step="0.01" min="0" placeholder="10000"></div>
       <div class="campo" id="campoAporte" hidden><label for="novoAporte">Guardar por mês (R$)</label><input id="novoAporte" type="number" step="0.01" min="0" placeholder="500"></div>
 
+      <div class="form-row">
+        <div class="campo" style="flex:1;"><label for="novoMesInicio">Começar em</label><select id="novoMesInicio"></select></div>
+        <div class="campo" style="flex:1;"><label for="novoAnoInicio">Ano</label><select id="novoAnoInicio"></select></div>
+      </div>
       <div id="campoAte">
         <div class="form-row">
           <div class="campo" style="flex:1;"><label for="novoMes">Até o mês</label><select id="novoMes"></select></div>
@@ -515,7 +539,7 @@
               <span class="ed-final-sub" id="edProjecaoFinalSub"></span>
             </div>
             <p class="info-text" style="margin:12px 0 8px;" id="edProjecaoPreviewSub"></p>
-            <div id="edProjecaoPreviewGrid" class="proj-grid"></div>
+            <div id="edProjecaoPreviewGrid" class="proj-grid proj-grid-scroll"></div>
           </div>
           <p id="edSemTaxaMsg" class="info-text" style="margin:14px 0 0;">Defina uma taxa % ao mês para ver a projeção de rendimento.</p>
         </div>
@@ -611,6 +635,7 @@
     let chartCofreMeta = null;
     let chartCofreProjecao = null;
     let chartEdicaoMeta = null;
+    let detProjecaoVisao = 'mes';
 
     const HORIZONTES_PROJECAO = [
       { meses: 1, label: '1°' },
@@ -647,12 +672,23 @@
       return Number(ano) * 12 + i;
     }
 
+    function dataInicioPlano(c) {
+      if (c.dataInicio) return new Date(`${c.dataInicio}T12:00:00`);
+      if (c.mesInicio && c.anoInicio) {
+        return new Date(Number(c.anoInicio), MESES.indexOf(c.mesInicio), 1);
+      }
+      const hoje = new Date();
+      return new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    }
+
     /** Espelha `_meses_plano` do backend: do mês inicial ao mês-alvo. */
-    function listarMesesPlano(dataInicioIso, mesAlvo, anoAlvo) {
+    function listarMesesPlano(c, form) {
+      const mesAlvo = (form && form.mesAlvo) || c.mesAlvo;
+      const anoAlvo = (form && form.anoAlvo) || c.anoAlvo;
       if (!mesAlvo || !anoAlvo) return [];
       const alvoIdx = MESES.indexOf(mesAlvo);
       if (alvoIdx < 0) return [];
-      const ini = dataInicioIso ? new Date(`${dataInicioIso}T12:00:00`) : new Date();
+      const ini = dataInicioPlano(c);
       let total = (Number(anoAlvo) - ini.getFullYear()) * 12 + (alvoIdx - ini.getMonth()) + 1;
       total = Math.max(1, total);
       const out = [];
@@ -669,6 +705,20 @@
       return out;
     }
 
+    function indiceMesAlvo(mesNome, ano) {
+      return indiceMes(mesNome, ano);
+    }
+
+    function prazoCofrinhoValido(mesIni, anoIni, mesFim, anoFim) {
+      return indiceMesAlvo(mesFim, anoFim) >= indiceMesAlvo(mesIni, anoIni);
+    }
+
+    function mesAnoSomando(mesBase, anoBase, offsetMeses) {
+      const d = new Date(Number(anoBase), MESES.indexOf(mesBase), 1);
+      d.setMonth(d.getMonth() + offsetMeses);
+      return { mes: MESES[d.getMonth()], ano: d.getFullYear() };
+    }
+
     function lerFormEdicao() {
       return {
         valorAlvo: document.getElementById('edValorAlvo').value.trim(),
@@ -680,7 +730,7 @@
 
     /** Parcelas simuladas a partir dos campos do modal (independente de pagamento). */
     function parcelasVirtuaisFromForm(c, form) {
-      const meses = listarMesesPlano(c.dataInicio, form.mesAlvo || c.mesAlvo, form.anoAlvo || c.anoAlvo);
+      const meses = listarMesesPlano(c, form);
       if (!meses.length) return [];
       const valorAlvo = Number(form.valorAlvo !== '' ? form.valorAlvo : c.valorAlvo);
       const aporteInformado = form.aporte !== '' ? Number(form.aporte) : null;
@@ -703,11 +753,36 @@
       }));
     }
 
-    /** Plano completo para a prévia do modal: formulário primeiro; senão parcelas da API (pagas + pendentes). */
+    function filtrarParcelasNoPlano(c, parcelas, form) {
+      const meses = listarMesesPlano(c, form);
+      if (!meses.length) return parcelas || [];
+      const set = new Set(meses.map((m) => `${m.mes}|${m.ano}`));
+      return (parcelas || []).filter((p) => set.has(`${p.mes}|${p.ano}`));
+    }
+
+    /** Plano simulado alinhado ao backend (início → fim); usado na prévia antes de salvar. */
     function parcelasPlanoEdicao(c, form) {
       const virt = parcelasVirtuaisFromForm(c, form);
       if (virt.length) return virt;
-      return (c.parcelas && c.parcelas.length) ? c.parcelas : [];
+      return filtrarParcelasNoPlano(c, c.parcelas, form);
+    }
+
+    function parcelasParaDetalhe(c) {
+      const form = {
+        mesAlvo: c.mesAlvo,
+        anoAlvo: c.anoAlvo,
+      };
+      const virt = parcelasVirtuaisFromForm(c, form);
+      if (virt.length) {
+        const api = filtrarParcelasNoPlano(c, c.parcelas, form);
+        if (!api.length) return virt;
+        const porMes = new Map(api.map((p) => [`${p.mes}|${p.ano}`, p]));
+        return virt.map((v) => {
+          const hit = porMes.get(`${v.mes}|${v.ano}`);
+          return hit ? { ...v, id: hit.id, valor: hit.valor, status: hit.status } : v;
+        });
+      }
+      return filtrarParcelasNoPlano(c, c.parcelas, form);
     }
 
     function patrimonioEntreMeses(parcelas, taxaPct, idxInicio, idxFim, somentePagas) {
@@ -786,6 +861,192 @@
       }));
       const planoFinal = simularPlanoRendimentoFinal(parcelas, taxaPct);
       return { linhas, planoFinal };
+    }
+
+    function rotuloIndiceMes(idx) {
+      const mes = MESES[idx % 12] || '—';
+      const ano = Math.floor(idx / 12);
+      return `${mes.slice(0, 3)}/${String(ano).slice(-2)}`;
+    }
+
+    /** Valores acumulados em cada mês ou fim de cada ano do plano (parcelas pagas vs plano completo). */
+    function montarTimelineProjecao(parcelas, taxaPct, visao) {
+      if (!taxaValida(taxaPct)) return null;
+      const limites = limitesPlanoParcelas(parcelas);
+      if (!limites) return null;
+      const linhas = [];
+      if (visao === 'ano') {
+        let anoAtual = null;
+        let fimIdxAno = limites.ini;
+        for (let idx = limites.ini; idx <= limites.fim; idx += 1) {
+          const ano = Math.floor(idx / 12);
+          if (anoAtual !== null && ano !== anoAtual) {
+            linhas.push({
+              label: String(anoAtual),
+              valorPlano: patrimonioEntreMeses(parcelas, taxaPct, limites.ini, fimIdxAno, false),
+              valorPago: patrimonioEntreMeses(parcelas, taxaPct, limites.ini, fimIdxAno, true),
+            });
+          }
+          anoAtual = ano;
+          fimIdxAno = idx;
+        }
+        if (anoAtual != null) {
+          linhas.push({
+            label: String(anoAtual),
+            valorPlano: patrimonioEntreMeses(parcelas, taxaPct, limites.ini, fimIdxAno, false),
+            valorPago: patrimonioEntreMeses(parcelas, taxaPct, limites.ini, fimIdxAno, true),
+          });
+        }
+      } else {
+        for (let idx = limites.ini; idx <= limites.fim; idx += 1) {
+          linhas.push({
+            label: rotuloIndiceMes(idx),
+            valorPlano: patrimonioEntreMeses(parcelas, taxaPct, limites.ini, idx, false),
+            valorPago: patrimonioEntreMeses(parcelas, taxaPct, limites.ini, idx, true),
+          });
+        }
+      }
+      return {
+        linhas,
+        planoFinal: simularPlanoRendimentoFinal(parcelas, taxaPct),
+      };
+    }
+
+    function amostrarSerieChart(labels, ...series) {
+      const maxPts = 48;
+      if (labels.length <= maxPts) {
+        return { labels, series: series.map((s) => s.slice()) };
+      }
+      const idxs = [0];
+      const step = Math.ceil((labels.length - 1) / (maxPts - 1));
+      for (let i = step; i < labels.length - 1; i += step) idxs.push(i);
+      if (idxs[idxs.length - 1] !== labels.length - 1) idxs.push(labels.length - 1);
+      return {
+        labels: idxs.map((i) => labels[i]),
+        series: series.map((s) => idxs.map((i) => s[i])),
+      };
+    }
+
+    function renderDetalheProjecao(c) {
+      const cardProj = document.getElementById('detProjecaoCard');
+      const metaCard = cardProj && cardProj.parentElement && cardProj.parentElement.firstElementChild;
+      if (!taxaValida(c.taxaRendimentoMensal)) {
+        cardProj.hidden = true;
+        if (metaCard) metaCard.style.gridColumn = '1 / -1';
+        chartCofreProjecao = destruirChart(chartCofreProjecao);
+        return;
+      }
+      if (metaCard) metaCard.style.gridColumn = '';
+      cardProj.hidden = false;
+
+      document.querySelectorAll('#detProjecaoVisao .modo-opt').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.v === detProjecaoVisao);
+      });
+
+      const taxa = c.taxaRendimentoMensal;
+      const parcelasDet = parcelasParaDetalhe(c);
+      const timeline = montarTimelineProjecao(parcelasDet, taxa, detProjecaoVisao);
+      const temPlano = timeline && timeline.linhas.length > 0;
+
+      document.getElementById('detProjecaoSub').textContent = temPlano
+        ? (detProjecaoVisao === 'ano'
+          ? `Por ano: azul = parcelas já pagas + ${taxa}% ao mês; cinza = plano completo (todas as parcelas).`
+          : `Por mês: azul = o que você já guardou + rendimento; cinza = plano com todas as parcelas + ${taxa}% ao mês.`)
+        : `Defina parcelas ou meta com prazo para ver a projeção mês a mês. Saldo hoje: ${money(c.saldo)}.`;
+
+      const gridEl = document.getElementById('detProjecaoGrid');
+      if (!temPlano) {
+        gridEl.innerHTML = '';
+        chartCofreProjecao = destruirChart(chartCofreProjecao);
+        return;
+      }
+
+      const n = timeline.linhas.length;
+      gridEl.innerHTML = timeline.linhas.map((l, i) => {
+        const destaque = i === n - 1 ? ' destaque' : '';
+        return `
+        <div class="proj-tile${destaque}">
+          <span>${l.label}${i === n - 1 ? ' · fim' : ''}</span>
+          <strong>${money(l.valorPago)}</strong>
+          <span class="proj-plano">Plano: ${money(l.valorPlano)}</span>
+        </div>`;
+      }).join('');
+
+      chartCofreProjecao = destruirChart(chartCofreProjecao);
+      const ctxP = document.getElementById('chartCofreProjecao');
+      if (!ctxP || typeof Chart === 'undefined') return;
+
+      const labels = timeline.linhas.map((l) => l.label);
+      const plano = timeline.linhas.map((l) => l.valorPlano);
+      const pago = timeline.linhas.map((l) => l.valorPago);
+      const amostra = amostrarSerieChart(labels, plano, pago);
+
+      chartCofreProjecao = new Chart(ctxP.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: amostra.labels,
+          datasets: [
+            {
+              label: 'Plano (todas + rend.)',
+              data: amostra.series[0],
+              borderColor: 'rgba(148, 163, 184, 0.55)',
+              backgroundColor: 'rgba(148, 163, 184, 0.12)',
+              fill: true,
+              tension: 0.35,
+              pointRadius: timeline.linhas.length > 36 ? 0 : 3,
+              pointHoverRadius: 5,
+              borderWidth: 2,
+              order: 2,
+            },
+            {
+              label: 'Guardado (pagas + rend.)',
+              data: amostra.series[1],
+              borderColor: '#2563EB',
+              backgroundColor: 'rgba(37, 99, 235, 0.18)',
+              fill: true,
+              tension: 0.35,
+              pointRadius: timeline.linhas.length > 36 ? 0 : 4,
+              pointHoverRadius: 7,
+              borderWidth: 3,
+              order: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: { boxWidth: 14, font: { size: 11 }, padding: 12 },
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ` ${ctx.dataset.label}: ${money(ctx.parsed.y)}`,
+              },
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: (v) => money(v), font: { size: 11 } },
+              grid: { color: 'rgba(148,163,184,0.1)' },
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { size: 10 },
+                maxRotation: 45,
+                minRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: detProjecaoVisao === 'mes' ? 14 : 12,
+              },
+            },
+          },
+        },
+      });
     }
 
     function destruirChart(ch) {
@@ -912,102 +1173,7 @@
         });
       }
 
-      const cardProj = document.getElementById('detProjecaoCard');
-      const metaCard = cardProj && cardProj.parentElement && cardProj.parentElement.firstElementChild;
-      if (!taxaValida(c.taxaRendimentoMensal)) {
-        cardProj.hidden = true;
-        if (metaCard) metaCard.style.gridColumn = '1 / -1';
-        chartCofreProjecao = destruirChart(chartCofreProjecao);
-        return;
-      }
-      if (metaCard) metaCard.style.gridColumn = '';
-      cardProj.hidden = false;
-      const taxa = c.taxaRendimentoMensal;
-      const proj = montarProjecaoRendimento(saldo, c.parcelas, taxa);
-      const temParcelas = c.parcelas && c.parcelas.length;
-      document.getElementById('detProjecaoSub').textContent = temParcelas
-        ? `Roxo: rendimento sobre ${money(saldo)} guardados hoje. Cinza: plano com todas as parcelas pagas + ${taxa}% ao mês.`
-        : `Rendimento sobre ${money(saldo)} guardados hoje a ${taxa}% ao mês (sem novas parcelas no plano).`;
-      let gridHtml = proj.linhas.map((l) => `
-        <div class="proj-tile">
-          <span>${l.label}</span>
-          <strong>${money(l.valorAtual)}</strong>
-          ${temParcelas ? `<span class="proj-plano">Plano: ${money(l.valorPlano)}</span>` : ''}
-        </div>
-      `).join('');
-      if (temParcelas && proj.planoFinal > 0) {
-        gridHtml += `
-          <div class="proj-tile destaque">
-            <span>Fim do plano</span>
-            <strong>${money(proj.planoFinal)}</strong>
-            <span class="proj-plano">Todas as parcelas + rendimento</span>
-          </div>`;
-      }
-      document.getElementById('detProjecaoGrid').innerHTML = gridHtml;
-
-      chartCofreProjecao = destruirChart(chartCofreProjecao);
-      const ctxP = document.getElementById('chartCofreProjecao');
-      if (ctxP && typeof Chart !== 'undefined') {
-        const datasets = [];
-        if (temParcelas) {
-          datasets.push({
-            label: 'Plano (todas pagas + rend.)',
-            data: proj.linhas.map((l) => l.valorPlano),
-            borderColor: 'rgba(148, 163, 184, 0.55)',
-            backgroundColor: 'rgba(148, 163, 184, 0.12)',
-            fill: true,
-            tension: 0.35,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            borderWidth: 2,
-            order: 2,
-          });
-        }
-        datasets.push({
-          label: 'Guardado hoje + rend.',
-          data: proj.linhas.map((l) => l.valorAtual),
-          borderColor: '#7C3AED',
-          backgroundColor: 'rgba(124, 58, 237, 0.18)',
-          fill: true,
-          tension: 0.35,
-          pointRadius: 5,
-          pointHoverRadius: 7,
-          borderWidth: 3,
-          order: 1,
-        });
-        chartCofreProjecao = new Chart(ctxP.getContext('2d'), {
-          type: 'line',
-          data: {
-            labels: proj.linhas.map((l) => l.label),
-            datasets,
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-              legend: {
-                display: true,
-                position: 'bottom',
-                labels: { boxWidth: 14, font: { size: 11 }, padding: 12 },
-              },
-              tooltip: {
-                callbacks: {
-                  label: (ctx) => ` ${ctx.dataset.label}: ${money(ctx.parsed.y)}`,
-                },
-              },
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: { callback: (v) => money(v), font: { size: 11 } },
-                grid: { color: 'rgba(148,163,184,0.1)' },
-              },
-              x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-            },
-          },
-        });
-      }
+      renderDetalheProjecao(c);
     }
 
     function atualizarPreviewEdicao(c) {
@@ -1051,26 +1217,28 @@
       prevBox.hidden = false;
       const form = lerFormEdicao();
       const parcelasProj = parcelasPlanoEdicao(c, form);
-      const proj = montarProjecaoEdicao(parcelasProj, taxa);
-      const temPlano = parcelasProj.length > 0 && proj && proj.planoFinal > 0;
+      const timeline = montarTimelineProjecao(parcelasProj, taxa, 'mes');
+      const temPlano = timeline && timeline.linhas.length > 0 && timeline.planoFinal > 0;
       const destaque = document.getElementById('edProjecaoFinalDestaque');
       if (temPlano) {
         const nominal = somaNominalParcelas(parcelasProj);
-        const rendimento = Math.max(0, proj.planoFinal - nominal);
+        const rendimento = Math.max(0, timeline.planoFinal - nominal);
         destaque.hidden = false;
-        document.getElementById('edProjecaoFinalValor').textContent = money(proj.planoFinal);
+        document.getElementById('edProjecaoFinalValor').textContent = money(timeline.planoFinal);
         document.getElementById('edProjecaoFinalSub').textContent =
-          `Soma das parcelas: ${money(nominal)} · Rendimento estimado (${taxa}% a.m.): ${money(rendimento)} · Plano completo (parcelas pagas e pendentes), juros compostos até o mês-alvo.`;
+          `Soma das parcelas: ${money(nominal)} · Rendimento estimado (${taxa}% a.m.): ${money(rendimento)} · Mesma lógica da projeção no detalhe do cofrinho.`;
       } else {
         destaque.hidden = true;
       }
       document.getElementById('edProjecaoPreviewSub').textContent = temPlano
-        ? `Projeção com ${taxa}% ao mês: cada parcela do plano entra no mês previsto, sem distinguir se já foi paga.`
+        ? `Por mês (plano completo + ${taxa}% a.m.) — igual à seção Projeção com rendimento.`
         : 'Informe meta e prazo (ou aporte mensal) para simular o plano com rendimento.';
-      document.getElementById('edProjecaoPreviewGrid').innerHTML = (proj && proj.linhas ? proj.linhas : []).map((l) => `
-        <div class="proj-tile">
-          <span>${l.label}</span>
-          <strong>${money(l.valor)}</strong>
+      const n = timeline ? timeline.linhas.length : 0;
+      document.getElementById('edProjecaoPreviewGrid').innerHTML = (timeline ? timeline.linhas : []).map((l, i) => `
+        <div class="proj-tile${i === n - 1 ? ' destaque' : ''}">
+          <span>${l.label}${i === n - 1 ? ' · fim' : ''}</span>
+          <strong>${money(l.valorPlano)}</strong>
+          <span class="proj-plano">Pagas: ${money(l.valorPago)}</span>
         </div>
       `).join('');
     }
@@ -1253,7 +1421,11 @@
       document.getElementById('novoAporte').value = '';
       document.getElementById('novoDurante').value = 6;
       setModoNovo('valor');
+      const hoje = new Date();
+      popularMesAno(document.getElementById('novoMesInicio'), document.getElementById('novoAnoInicio'));
       popularMesAno(document.getElementById('novoMes'), document.getElementById('novoAno'));
+      document.getElementById('novoMesInicio').value = MESES[hoje.getMonth()];
+      document.getElementById('novoAnoInicio').value = hoje.getFullYear();
       document.getElementById('modalNovo').classList.add('visible');
     }
     function setModoNovo(modo) {
@@ -1266,28 +1438,26 @@
     }
     document.querySelectorAll('#modalNovo .modo-opt').forEach((b) => b.addEventListener('click', () => setModoNovo(b.dataset.modo)));
 
-    function mesAnoDaqui(n) {
-      const d = new Date();
-      d.setDate(1);
-      d.setMonth(d.getMonth() + n);
-      return { mes: MESES[d.getMonth()], ano: d.getFullYear() };
-    }
-
     async function salvarNovo() {
       const nome = document.getElementById('novoNome').value.trim();
       if (!nome) return alert('Dê um nome ao cofrinho.');
-      const body = { nome };
+      const mesInicio = document.getElementById('novoMesInicio').value;
+      const anoInicio = Number(document.getElementById('novoAnoInicio').value);
+      const body = { nome, mesInicio, anoInicio };
       if (novoModo === 'valor') {
         const v = Number(document.getElementById('novoValorAlvo').value);
         if (!v || v <= 0) return alert('Informe o valor alvo.');
         body.valorAlvo = v;
         body.mesAlvo = document.getElementById('novoMes').value;
         body.anoAlvo = Number(document.getElementById('novoAno').value);
+        if (!prazoCofrinhoValido(mesInicio, anoInicio, body.mesAlvo, body.anoAlvo)) {
+          return alert('A data final deve ser igual ou posterior ao mês em que você começa a guardar.');
+        }
       } else {
         const v = Number(document.getElementById('novoAporte').value);
         if (!v || v <= 0) return alert('Informe quanto vai guardar por mês.');
         const n = Math.max(1, Number(document.getElementById('novoDurante').value) || 1);
-        const alvo = mesAnoDaqui(n - 1);
+        const alvo = mesAnoSomando(mesInicio, anoInicio, n - 1);
         body.aporteMensal = v;
         body.mesAlvo = alvo.mes;
         body.anoAlvo = alvo.ano;
@@ -1351,6 +1521,14 @@
         if (c && document.getElementById('modalEditar').classList.contains('visible')) {
           atualizarPreviewEdicao(c);
         }
+      });
+    });
+
+    document.querySelectorAll('#detProjecaoVisao .modo-opt').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        detProjecaoVisao = btn.dataset.v === 'ano' ? 'ano' : 'mes';
+        const c = cofres.find((x) => x.id === detId);
+        if (c) renderDetalheProjecao(c);
       });
     });
 

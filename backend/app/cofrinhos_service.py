@@ -46,6 +46,25 @@ def _tem_prazo(cofrinho: Cofrinho) -> bool:
     return _mes_idx(cofrinho.mes_alvo) is not None and bool(cofrinho.ano_alvo)
 
 
+def _primeiro_dia_mes(mes: str, ano: int) -> date:
+    idx = _mes_idx(mes)
+    if idx is None:
+        raise ValueError("Mês inválido.")
+    return date(int(ano), idx + 1, 1)
+
+
+def _indice_mes_calendario(mes: str, ano: int) -> int:
+    idx = _mes_idx(mes)
+    if idx is None:
+        raise ValueError("Mês inválido.")
+    return int(ano) * 12 + idx
+
+
+def checar_prazo_inicio_fim(mes_inicio: str, ano_inicio: int, mes_alvo: str, ano_alvo: int) -> None:
+    if _indice_mes_calendario(mes_alvo, ano_alvo) < _indice_mes_calendario(mes_inicio, ano_inicio):
+        raise ValueError("O mês final deve ser igual ou posterior ao mês de início.")
+
+
 def _modo(cofrinho: Cofrinho) -> str:
     return "valor_prazo" if cofrinho.valor_alvo is not None else "aporte_prazo"
 
@@ -202,6 +221,21 @@ def gerar_parcelas(db: Session, cofrinho: Cofrinho) -> None:
     garantir_dono(db, cofrinho)
     for participante in participantes_ativos(db, cofrinho):
         gerar_parcelas_participante(db, cofrinho, participante)
+
+
+def ajustar_parcelas_apos_edicao(db: Session, cofrinho: Cofrinho) -> None:
+    """Remove pendentes fora do prazo e cria só o que falta (normalmente no fim).
+    Não apaga todas as pendentes nem recria meses anteriores já existentes."""
+    meses_plano = set(_meses_plano(cofrinho))
+    for participante in participantes_ativos(db, cofrinho):
+        for conta in _contas(db, cofrinho, participante):
+            if conta.situacao != "pago":
+                chave = (conta.data_conta.year, MESES[conta.data_conta.month - 1])
+                if chave not in meses_plano:
+                    db.delete(conta)
+    db.flush()
+    gerar_parcelas(db, cofrinho)
+    recalcular_pendentes(db, cofrinho)
 
 
 def apagar_parcelas_pendentes(
@@ -431,6 +465,8 @@ def payload(db: Session, cofrinho: Cofrinho, eu: Usuario) -> dict:
         "aporteMensal": dono.aporte_mensal,
         "mesAlvo": cofrinho.mes_alvo,
         "anoAlvo": cofrinho.ano_alvo,
+        "mesInicio": MESES[cofrinho.data_inicio.month - 1],
+        "anoInicio": cofrinho.data_inicio.year,
         "dataInicio": cofrinho.data_inicio.isoformat(),
         "situacao": cofrinho.situacao,
         "dataConcluido": cofrinho.data_concluido.isoformat() if cofrinho.data_concluido else None,

@@ -18,6 +18,8 @@ class CofrinhoCreate(BaseModel):
     nome: str = Field(min_length=1, max_length=120)
     valorAlvo: float | None = Field(default=None, gt=0, le=1_000_000_000)
     aporteMensal: float | None = Field(default=None, gt=0, le=1_000_000_000)
+    mesInicio: str
+    anoInicio: int = Field(ge=2000, le=2100)
     mesAlvo: str
     anoAlvo: int = Field(ge=2000, le=2100)
     taxaRendimentoMensal: float | None = Field(default=None, ge=0, le=100)
@@ -227,8 +229,19 @@ def create_cofrinho(
     current_user: Annotated[Usuario, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
+    _checar_mes(body.mesInicio)
     _checar_mes(body.mesAlvo)
     _checar_modo(body.valorAlvo, body.aporteMensal)
+    try:
+        cofrinhos_service.checar_prazo_inicio_fim(
+            body.mesInicio, body.anoInicio, body.mesAlvo, body.anoAlvo
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    try:
+        data_inicio = cofrinhos_service._primeiro_dia_mes(body.mesInicio, body.anoInicio)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     cofrinho = Cofrinho(
         id_usuario=current_user.id,
         nome=body.nome.strip(),
@@ -237,7 +250,7 @@ def create_cofrinho(
         mes_alvo=body.mesAlvo,
         ano_alvo=body.anoAlvo,
         taxa_rendimento_mensal=body.taxaRendimentoMensal,
-        data_inicio=date.today(),
+        data_inicio=data_inicio,
         situacao="ativo",
     )
     db.add(cofrinho)
@@ -259,7 +272,8 @@ def update_cofrinho(
     cofrinho = _get_dono_or_404(db, cofrinho_id, current_user)
     cofrinhos_service.garantir_dono(db, cofrinho)
     enviados = body.model_fields_set
-    cronograma_mudou = False
+    prazo_mudou = False
+    valor_mudou = False
 
     if body.nome is not None and body.nome.strip() != cofrinho.nome:
         cofrinho.nome = body.nome.strip()
@@ -267,15 +281,15 @@ def update_cofrinho(
     if body.mesAlvo is not None:
         _checar_mes(body.mesAlvo)
         cofrinho.mes_alvo = body.mesAlvo
-        cronograma_mudou = True
+        prazo_mudou = True
     if body.anoAlvo is not None:
         cofrinho.ano_alvo = body.anoAlvo
-        cronograma_mudou = True
+        prazo_mudou = True
 
     compartilhado = cofrinhos_service.is_compartilhado(db, cofrinho)
     if "valorAlvo" in enviados:
         cofrinho.valor_alvo = body.valorAlvo
-        cronograma_mudou = True
+        valor_mudou = True
     if "aporteMensal" in enviados:
         if compartilhado:
             # o dono edita o próprio aporte pela linha de participante
@@ -285,7 +299,7 @@ def update_cofrinho(
             cofrinho.aporte_mensal = body.aporteMensal
             dono = cofrinhos_service.garantir_dono(db, cofrinho)
             dono.aporte_mensal = body.aporteMensal
-        cronograma_mudou = True
+        valor_mudou = True
     if ("valorAlvo" in enviados or "aporteMensal" in enviados) and not compartilhado:
         _checar_modo(cofrinho.valor_alvo, cofrinho.aporte_mensal)
     if compartilhado and cofrinho.valor_alvo is None:
@@ -305,10 +319,19 @@ def update_cofrinho(
     if "taxaRendimentoMensal" in enviados:
         cofrinho.taxa_rendimento_mensal = body.taxaRendimentoMensal
 
+    if prazo_mudou:
+        mes_ini = MESES[cofrinho.data_inicio.month - 1]
+        try:
+            cofrinhos_service.checar_prazo_inicio_fim(
+                mes_ini, cofrinho.data_inicio.year, cofrinho.mes_alvo, cofrinho.ano_alvo
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
     db.flush()
-    if cronograma_mudou:
-        cofrinhos_service.apagar_parcelas_pendentes(db, cofrinho)
-        cofrinhos_service.gerar_parcelas(db, cofrinho)
+    if prazo_mudou:
+        cofrinhos_service.ajustar_parcelas_apos_edicao(db, cofrinho)
+    elif valor_mudou:
         cofrinhos_service.recalcular_pendentes(db, cofrinho)
     cofrinhos_service.sincronizar(db, cofrinho)
     db.commit()

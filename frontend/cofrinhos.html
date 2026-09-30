@@ -753,36 +753,81 @@
       }));
     }
 
-    function filtrarParcelasNoPlano(c, parcelas, form) {
-      const meses = listarMesesPlano(c, form);
-      if (!meses.length) return parcelas || [];
-      const set = new Set(meses.map((m) => `${m.mes}|${m.ano}`));
-      return (parcelas || []).filter((p) => set.has(`${p.mes}|${p.ano}`));
+    function parcelasOrdenadas(parcelas) {
+      return [...(parcelas || [])].sort(
+        (a, b) => indiceMes(a.mes, a.ano) - indiceMes(b.mes, b.ano),
+      );
     }
 
-    /** Plano simulado alinhado ao backend (início → fim); usado na prévia antes de salvar. */
+    function parcelasAteFimForm(parcelas, form) {
+      const mesFim = form.mesAlvo;
+      const anoFim = form.anoAlvo;
+      if (!mesFim || !anoFim) return parcelasOrdenadas(parcelas);
+      const idxFim = indiceMes(mesFim, Number(anoFim));
+      return parcelasOrdenadas(parcelas).filter((p) => indiceMes(p.mes, p.ano) <= idxFim);
+    }
+
+    function mesesExtrasAposUltimaParcela(c, form, parcelas) {
+      if (!parcelas.length) return [];
+      const last = parcelas[parcelas.length - 1];
+      const mesAlvo = form.mesAlvo || c.mesAlvo;
+      const anoAlvo = Number(form.anoAlvo || c.anoAlvo);
+      if (!mesAlvo || !anoAlvo) return [];
+      const idxUlt = indiceMes(last.mes, last.ano);
+      const idxFim = indiceMes(mesAlvo, anoAlvo);
+      const out = [];
+      for (let idx = idxUlt + 1; idx <= idxFim; idx += 1) {
+        out.push({ mes: MESES[idx % 12], ano: Math.floor(idx / 12) });
+      }
+      return out;
+    }
+
+    function valorNovaParcelaPreview(c, form, parcelasExistentes, qtdExtras) {
+      const modoAporte = c.modo === 'aporte_prazo' || c.compartilhado;
+      const aporteInformado = form.aporte !== '' ? Number(form.aporte) : null;
+      const aporteCofre = c.compartilhado ? c.meuAporte : c.aporteMensal;
+      if (modoAporte) {
+        const ap = aporteInformado != null && !Number.isNaN(aporteInformado) ? aporteInformado : Number(aporteCofre);
+        return ap > 0 ? Math.round(ap * 100) / 100 : 0;
+      }
+      const valorAlvo = Number(form.valorAlvo !== '' ? form.valorAlvo : c.valorAlvo);
+      const pago = parcelasExistentes
+        .filter((p) => p.status === 'pago')
+        .reduce((s, p) => s + (Number(p.valor) || 0), 0);
+      const qtdPendentes = parcelasExistentes.filter((p) => p.status !== 'pago').length + qtdExtras;
+      if (qtdPendentes <= 0 || !(valorAlvo > 0)) return 0;
+      return Math.round(Math.max(0, valorAlvo - pago) / qtdPendentes * 100) / 100;
+    }
+
+    /**
+     * Prévia / projeção: parcelas reais da API (excluídas somem). Só simula meses
+     * novos no fim se o prazo do formulário for maior que a última parcela.
+     */
     function parcelasPlanoEdicao(c, form) {
-      const virt = parcelasVirtuaisFromForm(c, form);
-      if (virt.length) return virt;
-      return filtrarParcelasNoPlano(c, c.parcelas, form);
+      const api = parcelasAteFimForm(c.parcelas, form);
+      if (api.length) {
+        const extras = mesesExtrasAposUltimaParcela(c, form, api);
+        if (!extras.length) return api;
+        const valor = valorNovaParcelaPreview(c, form, api, extras.length);
+        const extraParcelas = extras.map((m, i) => ({
+          id: `virt-ext-${i}`,
+          mes: m.mes,
+          ano: m.ano,
+          valor,
+          status: 'pendente',
+        }));
+        return [...api, ...extraParcelas];
+      }
+      return parcelasVirtuaisFromForm(c, form);
     }
 
     function parcelasParaDetalhe(c) {
-      const form = {
+      return parcelasPlanoEdicao(c, {
         mesAlvo: c.mesAlvo,
-        anoAlvo: c.anoAlvo,
-      };
-      const virt = parcelasVirtuaisFromForm(c, form);
-      if (virt.length) {
-        const api = filtrarParcelasNoPlano(c, c.parcelas, form);
-        if (!api.length) return virt;
-        const porMes = new Map(api.map((p) => [`${p.mes}|${p.ano}`, p]));
-        return virt.map((v) => {
-          const hit = porMes.get(`${v.mes}|${v.ano}`);
-          return hit ? { ...v, id: hit.id, valor: hit.valor, status: hit.status } : v;
-        });
-      }
-      return filtrarParcelasNoPlano(c, c.parcelas, form);
+        anoAlvo: c.anoAlvo != null ? String(c.anoAlvo) : '',
+        valorAlvo: c.valorAlvo != null ? String(c.valorAlvo) : '',
+        aporte: String((c.compartilhado ? c.meuAporte : c.aporteMensal) ?? ''),
+      });
     }
 
     function patrimonioEntreMeses(parcelas, taxaPct, idxInicio, idxFim, somentePagas) {

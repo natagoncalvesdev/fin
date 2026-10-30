@@ -108,6 +108,45 @@
     }
 
     .anticipate-sub-item { padding-left: 26px; }
+
+    .anticipate-sub-item label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .anticipate-parcela-info { min-width: 0; }
+
+    .anticipate-parcela-valor {
+      font-weight: 600;
+      font-size: 13px;
+      white-space: nowrap;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .anticipate-total {
+      display: none;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 2px 2px 0;
+    }
+
+    .anticipate-total.visible { display: flex; }
+
+    .anticipate-total-label {
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .anticipate-total-valor {
+      font-size: 15px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
   </style>
 </head>
 <body>
@@ -235,6 +274,10 @@
     <div class="modal-content">
       <h3>Adiantar parcelas para o mês atual</h3>
       <div id="anticipateList" class="modal-month-list"><p class="info-text">Buscando parcelas futuras…</p></div>
+      <div id="anticipateTotal" class="anticipate-total">
+        <span class="anticipate-total-label">Total selecionado</span>
+        <span id="anticipateTotalValor" class="anticipate-total-valor"></span>
+      </div>
       <div class="modal-actions">
         <button class="btn-cancel" id="btnCancelarAdiantar">Cancelar</button>
         <button class="btn-confirm" id="btnConfirmarAdiantar">Concluir</button>
@@ -530,11 +573,25 @@
 
     // --- Adiantar parcela ---
     const anticipateModal = document.getElementById('anticipateModal');
+    const anticipateTotalEl = document.getElementById('anticipateTotal');
+    const anticipateTotalValorEl = document.getElementById('anticipateTotalValor');
+
+    function atualizarTotalAdiantar() {
+      const checks = document.querySelectorAll('#anticipateList input[type="checkbox"][data-idx]:checked');
+      let soma = 0;
+      checks.forEach((chk) => {
+        const item = parcelasParaAdiantar[Number(chk.dataset.idx)];
+        soma += Number((item && item.valor) || 0);
+      });
+      anticipateTotalValorEl.textContent = F.formatar(soma);
+    }
+
     document.getElementById('btnAdiantar').addEventListener('click', async () => {
       if (!cartaoSelecionado) return;
       anticipateModal.classList.add('visible');
       const lista = document.getElementById('anticipateList');
       lista.innerHTML = '<p class="info-text">Buscando parcelas futuras…</p>';
+      anticipateTotalEl.classList.remove('visible');
 
       const mesIndex = F.MESES.indexOf(periodo.mes);
       const encontradas = [];
@@ -580,11 +637,6 @@
             <span class="anticipate-group-sub">${itens.length} parcela(s) · Total ${F.formatar(total)}</span>
           </label>
         `;
-        header.querySelector('input').addEventListener('change', (ev) => {
-          groupDiv.querySelectorAll('.anticipate-sub-item input[type="checkbox"]').forEach((chk) => {
-            chk.checked = ev.target.checked;
-          });
-        });
         groupDiv.appendChild(header);
 
         itens.forEach((item) => {
@@ -592,13 +644,36 @@
           sub.className = 'modal-month-item anticipate-sub-item';
           sub.innerHTML = `
             <input type="checkbox" id="adiantar-${item.idx}" data-idx="${item.idx}">
-            <label for="adiantar-${item.idx}">Parcela ${item.parcelas} <span class="anticipate-group-sub">— ${item.origemMes}/${item.origemAno}</span></label>
+            <label for="adiantar-${item.idx}">
+              <span class="anticipate-parcela-info">
+                Parcela ${item.parcelas}
+                <span class="anticipate-group-sub">— ${item.origemMes}/${item.origemAno}</span>
+              </span>
+              <span class="anticipate-parcela-valor">${F.formatar(item.valor)}</span>
+            </label>
           `;
           groupDiv.appendChild(sub);
         });
 
         lista.appendChild(groupDiv);
       });
+
+      anticipateTotalEl.classList.add('visible');
+      atualizarTotalAdiantar();
+    });
+
+    document.getElementById('anticipateList').addEventListener('change', (ev) => {
+      const input = ev.target;
+      if (!(input instanceof HTMLInputElement) || input.type !== 'checkbox') return;
+      if (!input.dataset.idx) {
+        const grupo = input.closest('.anticipate-group');
+        if (grupo) {
+          grupo.querySelectorAll('.anticipate-sub-item input[type="checkbox"]').forEach((chk) => {
+            chk.checked = input.checked;
+          });
+        }
+      }
+      atualizarTotalAdiantar();
     });
 
     document.getElementById('btnCancelarAdiantar').addEventListener('click', () => anticipateModal.classList.remove('visible'));

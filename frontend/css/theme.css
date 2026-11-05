@@ -635,7 +635,8 @@ button {
 }
 
 .form-row input,
-.form-row select {
+.form-row select,
+.form-row textarea {
   flex: 1;
   min-width: 160px;
   padding: 12px 14px;
@@ -645,11 +646,13 @@ button {
   color: var(--text-primary);
   font-size: 14px;
   font-family: var(--font-family);
+  box-sizing: border-box;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .form-row input:focus,
-.form-row select:focus {
+.form-row select:focus,
+.form-row textarea:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);

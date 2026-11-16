@@ -557,7 +557,7 @@
   }
 
   function destinoMesOffset(anoBase, mesIndexBase, offset) {
-    const idx = (mesIndexBase + offset) % 12;
+    const idx = (((mesIndexBase + offset) % 12) + 12) % 12;
     const ano = anoBase + Math.floor((mesIndexBase + offset) / 12);
     return { ano, mes: MESES[idx] };
   }

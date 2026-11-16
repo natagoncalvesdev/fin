@@ -3,8 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reservados | Fin</title>
+  <title>Reservas | Fin</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#FFFFFF" />
+  <meta name="color-scheme" content="light" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="Fin" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Fin" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
+  <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
   <link rel="stylesheet" href="css/theme.css?v=10">
   <link rel="stylesheet" href="css/mobile-shell.css?v=8">
@@ -34,6 +44,81 @@
       gap: 16px;
       max-width: 1200px;
     }
+
+    #selectAno { min-width: 92px; }
+    #selectMes { min-width: 140px; }
+
+    .rs-resumo {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 420px);
+      gap: 28px;
+      align-items: center;
+      padding: 26px 28px;
+    }
+
+    .rs-rot { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+
+    .rs-total {
+      font-size: 38px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 6px 0 10px;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rs-selo {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: #eaf0ff;
+      color: var(--accent);
+    }
+
+    .rs-pilha { display: flex; height: 10px; gap: 3px; margin-bottom: 14px; }
+    .rs-pilha div { height: 100%; border-radius: 99px; }
+    .rs-pilha.vazia { background: #f1f5f9; border-radius: 99px; }
+
+    .rs-comp { display: grid; gap: 10px; font-size: 13px; }
+    .rs-comp div { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto 40px; gap: 10px; align-items: center; }
+    .rs-comp i { width: 10px; height: 10px; border-radius: 3px; }
+    .rs-comp span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rs-comp b { font-variant-numeric: tabular-nums; }
+    .rs-comp span:last-child { text-align: right; color: var(--text-secondary); }
+
+    .rs-cab {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .rs-cab h2 { margin: 0; font-size: 14px; font-weight: 600; }
+    .rs-cab h2 small { font-weight: 500; color: var(--text-secondary); margin-left: 6px; }
+
+    .rs-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .rs-chip {
+      font: 500 12px var(--font-family);
+      padding: 7px 12px;
+      border-radius: 99px;
+      border: 1px solid #e8eaee;
+      background: #fff;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .rs-chip.on { background: var(--text-primary); border-color: var(--text-primary); color: #fff; }
+    .rs-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    @media (max-width: 860px) {
+      .rs-resumo { grid-template-columns: 1fr; }
+      .rs-total { font-size: 32px; }
+    }
   </style>
 </head>
 <body>
@@ -41,64 +126,67 @@
   <main class="content">
     <div class="page-header-row">
       <div class="page-header">
-        <h1>Reservados</h1>
+        <h1>Reservas</h1>
         <p id="tituloPeriodo">Carregando…</p>
       </div>
       <div class="period-controls" style="display:flex; gap:8px; flex-wrap:wrap;">
-        <select id="selectAno" aria-label="Ano" style="min-width:92px;"></select>
-        <select id="selectMes" aria-label="Mês" style="min-width:140px;"></select>
-        <button class="btn-add" id="btnAddReservado">+ Nova reserva</button>
+        <select id="selectAno" aria-label="Ano"></select>
+        <select id="selectMes" aria-label="Mês"></select>
+        <button type="button" class="btn-add" id="btnAddReservado">+ Nova reserva</button>
       </div>
     </div>
 
-    <div class="stat-row">
-      <div class="stat-tile">
-        <div class="stat-tile-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
-        <div class="stat-tile-body">
-          <span class="stat-tile-label">Total reservado no mês</span>
-          <span class="stat-tile-value" id="reservaTotal">R$ 0,00</span>
-        </div>
+    <section class="section-card rs-resumo" aria-label="Resumo das reservas">
+      <div>
+        <div class="rs-rot">Total reservado no mês</div>
+        <div class="rs-total" id="reservaTotal">R$ 0,00</div>
+        <span class="rs-selo" id="reservaSelo">—</span>
       </div>
-      <div class="stat-tile">
-        <div class="stat-tile-icon" style="background:#f1f5f9;color:#475569;"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></div>
-        <div class="stat-tile-body">
-          <span class="stat-tile-label">Reservas</span>
-          <span class="stat-tile-value" id="reservaQtd">0</span>
-        </div>
+      <div>
+        <div class="rs-rot" style="margin-bottom:10px;">Por categoria</div>
+        <div class="rs-pilha vazia" id="reservaPilha"></div>
+        <div class="rs-comp" id="reservaComp"></div>
       </div>
-    </div>
+    </section>
 
     <section class="section-card">
-      <h2 class="section-card-title">Combustível, lazer e outras reservas</h2>
+      <div class="rs-cab">
+        <h2>Reservas do mês <small id="reservaQtd"></small></h2>
+        <div class="rs-chips" id="chipsReservas" role="tablist" aria-label="Filtrar por categoria"></div>
+      </div>
       <div id="listaReservado" class="statement-list"></div>
     </section>
   </main>
 
-  <!-- Modal: adicionar reservado -->
-  <div id="reservadoModal" class="modal-overlay">
-    <div class="modal-content">
-      <h3>Adicionar valor reservado</h3>
-      <div class="form-row" style="flex-direction: column; gap: 14px;">
-        <div>
-          <label class="fin-field-label" for="reservadoNomeModal">Título</label>
-          <input id="reservadoNomeModal" placeholder="Título" />
-        </div>
-        <div>
-          <label class="fin-field-label" for="reservadoDescricaoModal">Descrição</label>
-          <input id="reservadoDescricaoModal" type="text" placeholder="Detalhes opcionais" />
-        </div>
-        <div>
-          <label class="fin-field-label" for="reservadoValorModal">Valor</label>
-          <input id="reservadoValorModal" type="number" step="0.01" placeholder="Valor em R$" />
-        </div>
-        <div>
-          <label class="fin-field-label" for="reservadoCategoriaModal">Categoria</label>
-          <select id="reservadoCategoriaModal"><option value="">Selecione uma categoria</option></select>
+  <div id="reservadoModal" class="modal-overlay fin-entry-overlay">
+    <div class="modal-content fin-entry-modal">
+      <div class="fin-entry-head">
+        <h3>Nova reserva</h3>
+        <button type="button" class="fin-entry-x" id="reservadoModalFechar" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="fin-entry-valor">
+        <label for="reservadoValorModal">Valor</label>
+        <div class="fin-entry-valor-linha">
+          <span class="fin-entry-moeda">R$</span>
+          <input id="reservadoValorModal" class="fin-entry-valor-input" inputmode="numeric" autocomplete="off" placeholder="0,00" />
         </div>
       </div>
-      <div class="modal-actions">
-        <button class="btn-cancel" id="reservadoModalCancelar">Cancelar</button>
-        <button class="btn-confirm" id="reservadoModalSalvar">Adicionar</button>
+      <div class="fin-entry-campo">
+        <label for="reservadoNomeModal">Título</label>
+        <input class="fin-entry-input" id="reservadoNomeModal" autocomplete="off" placeholder="Ex.: Combustível" />
+      </div>
+      <div class="fin-entry-campo">
+        <label for="reservadoCategoriaModal">Categoria</label>
+        <select class="fin-entry-input" id="reservadoCategoriaModal"><option value="">Selecione uma categoria</option></select>
+      </div>
+      <div class="fin-entry-campo">
+        <label for="reservadoDescricaoModal">Observação <small>(opcional)</small></label>
+        <textarea class="fin-entry-input" id="reservadoDescricaoModal" placeholder="Algum detalhe sobre essa reserva?"></textarea>
+      </div>
+      <p class="fin-entry-erro" id="reservadoErro" role="alert"></p>
+      <div class="fin-entry-acoes">
+        <button type="button" class="fin-entry-btn fin-entry-btn-sec" id="reservadoModalCancelar">Cancelar</button>
+        <button type="button" class="fin-entry-btn fin-entry-btn-pri" id="reservadoModalSalvar">Adicionar reserva</button>
       </div>
     </div>
   </div>
@@ -107,66 +195,179 @@
     const auth = firebase.auth();
     const F = window.finFinanceiro;
 
+    const CORES = ['#2563eb', '#7c3aed', '#0d9488', '#f59e0b', '#ec4899', '#94a3b8'];
+
     let periodo = null;
     let observador = null;
+    let itensMes = [];
+    let receitasMes = 0;
+    let filtroCategoria = 'todas';
 
-    function renderizarReservados(itens) {
+    function esc(valor) {
+      return String(valor ?? '').replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[c]));
+    }
+
+    function nomeCategoria(item) {
+      return (item.categoria || '').trim() || 'Sem categoria';
+    }
+
+    function agruparPorCategoria(itens) {
+      const mapa = new Map();
+      itens.forEach((item) => {
+        const cat = nomeCategoria(item);
+        mapa.set(cat, (mapa.get(cat) || 0) + Number(item.valor || 0));
+      });
+      return [...mapa.entries()].sort((a, b) => b[1] - a[1]);
+    }
+
+    function renderizarResumo() {
+      const total = itensMes.reduce((s, i) => s + Number(i.valor || 0), 0);
+      document.getElementById('reservaTotal').textContent = F.formatar(total);
+
+      const selo = document.getElementById('reservaSelo');
+      if (!itensMes.length) {
+        selo.textContent = 'Nenhuma reserva neste mês';
+      } else if (receitasMes > 0) {
+        selo.textContent = `${Math.round((total / receitasMes) * 100)}% das receitas do mês`;
+      } else {
+        selo.textContent = `${itensMes.length} ${itensMes.length === 1 ? 'reserva' : 'reservas'}`;
+      }
+
+      const grupos = agruparPorCategoria(itensMes);
+      const top = grupos.slice(0, 5);
+      const outros = grupos.slice(5).reduce((s, [, v]) => s + v, 0);
+      const partes = top.map(([nome, valor], i) => [nome, valor, CORES[i]]);
+      if (outros > 0) partes.push(['Outras', outros, CORES[5]]);
+
+      const pilha = document.getElementById('reservaPilha');
+      pilha.classList.toggle('vazia', !partes.length);
+      pilha.innerHTML = partes.map(([, valor, cor]) => (
+        `<div style="width:${total ? (valor / total) * 100 : 0}%;background:${cor}"></div>`
+      )).join('');
+
+      document.getElementById('reservaComp').innerHTML = partes.length
+        ? partes.map(([nome, valor, cor]) => (
+          `<div><i style="background:${cor}"></i><span>${esc(nome)}</span><b>${F.formatar(valor)}</b><span>${total ? Math.round((valor / total) * 100) : 0}%</span></div>`
+        )).join('')
+        : '<span style="font-size:13px;color:var(--text-secondary);">As categorias aparecem aqui quando houver reservas.</span>';
+    }
+
+    function montarChips() {
+      const categorias = agruparPorCategoria(itensMes).map(([nome]) => nome);
+      if (filtroCategoria !== 'todas' && !categorias.includes(filtroCategoria)) filtroCategoria = 'todas';
+      const opcoes = [['todas', 'Todas'], ...categorias.map((c) => [c, c])];
+      document.getElementById('chipsReservas').innerHTML = opcoes.length > 2
+        ? opcoes.map(([k, nome]) => (
+          `<button type="button" role="tab" aria-selected="${k === filtroCategoria}" class="rs-chip${k === filtroCategoria ? ' on' : ''}" data-f="${esc(k)}">${esc(nome)}</button>`
+        )).join('')
+        : '';
+    }
+
+    function renderizarLista() {
+      montarChips();
       const lista = document.getElementById('listaReservado');
       lista.innerHTML = '';
-      document.getElementById('reservaTotal').textContent = F.formatar(itens.reduce((s, i) => s + Number(i.valor || 0), 0));
-      document.getElementById('reservaQtd').textContent = String(itens.length);
-      if (!itens.length) {
+      const qtd = itensMes.length;
+      document.getElementById('reservaQtd').textContent = qtd ? `${qtd} ${qtd === 1 ? 'lançamento' : 'lançamentos'}` : '';
+      if (!qtd) {
         lista.innerHTML = '<div class="statement-empty">Nenhum valor reservado neste mês.</div>';
         return;
       }
-      itens.forEach((item) => {
-        const row = F.renderStatementRow({
-          icone: F.svgDaCategoria(item.categoria),
-          titulo: item.nome,
-          subtitulo: F.subtituloFinanceiro(item),
-          valor: item.valor,
-          onClick: () => F.abrirModalItem({
-            tipo: 'reservado',
-            item,
-            onSalvo: () => observador && observador.forcar(),
-            onExcluido: () => observador && observador.forcar(),
-          }),
+      itensMes
+        .filter((item) => filtroCategoria === 'todas' || nomeCategoria(item) === filtroCategoria)
+        .forEach((item) => {
+          lista.appendChild(F.renderStatementRow({
+            icone: F.svgDaCategoria(item.categoria),
+            titulo: item.nome,
+            subtitulo: F.subtituloFinanceiro(item) || 'Sem categoria',
+            valor: item.valor,
+            onClick: () => F.abrirModalItem({
+              tipo: 'reservado',
+              item,
+              onSalvo: () => observador && observador.forcar(),
+              onExcluido: () => observador && observador.forcar(),
+            }),
+          }));
         });
-        lista.appendChild(row);
-      });
     }
 
+    function renderizarTudo(data) {
+      itensMes = data.reservado || [];
+      receitasMes = (data.adicionais || []).reduce((s, i) => s + Number(i.valor || 0), 0);
+      renderizarResumo();
+      renderizarLista();
+    }
+
+    document.getElementById('chipsReservas').addEventListener('click', (ev) => {
+      const chip = ev.target.closest('[data-f]');
+      if (!chip) return;
+      filtroCategoria = chip.dataset.f;
+      renderizarLista();
+    });
+
+    // --- Nova reserva (modal) ---
     const reservadoModal = document.getElementById('reservadoModal');
-    document.getElementById('btnAddReservado').addEventListener('click', () => {
-      document.getElementById('reservadoNomeModal').value = '';
+    const valorInput = document.getElementById('reservadoValorModal');
+    const nomeInput = document.getElementById('reservadoNomeModal');
+    const erroEl = document.getElementById('reservadoErro');
+    F.ligarMascaraMoeda(valorInput);
+
+    function abrirModal() {
+      nomeInput.value = '';
       document.getElementById('reservadoDescricaoModal').value = '';
-      document.getElementById('reservadoValorModal').value = '';
+      F.definirMoeda(valorInput, 0);
       F.popularSelectsCategoria(['reservadoCategoriaModal']);
       document.getElementById('reservadoCategoriaModal').value = '';
+      valorInput.classList.remove('erro');
+      nomeInput.classList.remove('erro');
+      erroEl.textContent = '';
       reservadoModal.classList.add('visible');
-    });
-    document.getElementById('reservadoModalCancelar').addEventListener('click', () => reservadoModal.classList.remove('visible'));
-    reservadoModal.addEventListener('click', (ev) => { if (ev.target === reservadoModal) reservadoModal.classList.remove('visible'); });
+      valorInput.focus();
+    }
+
+    function fecharModal() { reservadoModal.classList.remove('visible'); }
+
+    document.getElementById('btnAddReservado').addEventListener('click', abrirModal);
+    document.getElementById('reservadoModalCancelar').addEventListener('click', fecharModal);
+    document.getElementById('reservadoModalFechar').addEventListener('click', fecharModal);
+    reservadoModal.addEventListener('click', (ev) => { if (ev.target === reservadoModal) fecharModal(); });
 
     async function salvarNovoReservado() {
-      const nome = document.getElementById('reservadoNomeModal').value.trim();
-      const descricao = document.getElementById('reservadoDescricaoModal').value.trim();
-      const valor = Number(document.getElementById('reservadoValorModal').value);
-      const categoria = document.getElementById('reservadoCategoriaModal').value.trim();
-      if (!nome || !valor || valor <= 0) {
-        window.finToast?.('Preencha título e valor.', { type: 'error' });
+      const valor = F.lerMoeda(valorInput);
+      const nome = nomeInput.value.trim();
+      valorInput.classList.remove('erro');
+      nomeInput.classList.remove('erro');
+      if (!valor) {
+        valorInput.classList.add('erro');
+        erroEl.textContent = 'Informe um valor maior que zero.';
+        valorInput.focus();
         return;
       }
+      if (!nome) {
+        nomeInput.classList.add('erro');
+        erroEl.textContent = 'Dê um título para a reserva.';
+        nomeInput.focus();
+        return;
+      }
+      erroEl.textContent = '';
+      const descricao = document.getElementById('reservadoDescricaoModal').value.trim();
+      const categoria = document.getElementById('reservadoCategoriaModal').value.trim();
+      const botao = document.getElementById('reservadoModalSalvar');
+      botao.textContent = 'Salvando...';
       try {
         await F.api('/api/financeiro/reservados', {
           method: 'POST',
           body: JSON.stringify({ ano: Number(periodo.ano), mes: periodo.mes, nome, valor, categoria, descricao }),
         });
-        reservadoModal.classList.remove('visible');
-        window.finToast?.('Reservado adicionado.', { type: 'success' });
+        fecharModal();
+        window.finToast?.('Reserva adicionada.', { type: 'success' });
         observador && observador.forcar();
       } catch (err) {
-        window.finToast?.(err.message || 'Não foi possível adicionar.', { type: 'error' });
+        erroEl.textContent = err.message || 'Não foi possível salvar. Tente de novo.';
+      } finally {
+        botao.textContent = 'Adicionar reserva';
       }
     }
     document.getElementById('reservadoModalSalvar').addEventListener('click', (e) => finRunOnce(e, salvarNovoReservado));
@@ -176,9 +377,9 @@
         selectAno: document.getElementById('selectAno'),
         selectMes: document.getElementById('selectMes'),
         onChange: (ano, mes) => {
-          document.getElementById('tituloPeriodo').textContent = `${mes} / ${ano}`;
+          document.getElementById('tituloPeriodo').textContent = `${mes} de ${ano} · valores separados para gastos do mês`;
           if (observador) observador.parar();
-          observador = F.observarMes(() => ({ ano, mes }), (data) => renderizarReservados(data.reservado || []));
+          observador = F.observarMes(() => ({ ano, mes }), renderizarTudo);
         },
       });
       await F.carregarCategorias();

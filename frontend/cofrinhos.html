@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cofrinhos</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#FFFFFF" />
+  <meta name="color-scheme" content="light" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="Fin" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Fin" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
+  <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
   <link rel="stylesheet" href="css/theme.css?v=10">
   <link rel="stylesheet" href="css/mobile-shell.css?v=8">
@@ -28,50 +38,79 @@
     #detailView {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 16px;
       width: 100%;
     }
 
     .cofre-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 
     .cofre-card {
-      border: 1px solid var(--border-color); border-radius: 16px; padding: 18px; background: var(--bg-section);
+      border: 1px solid #e8eaee; border-radius: 16px; padding: 20px; background: var(--bg-section);
       display: flex; flex-direction: column; gap: 10px; cursor: pointer;
-      transition: border-color 0.15s ease, transform 0.15s ease;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    .cofre-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .cofre-card.concluido { border-color: rgba(21,128,61,0.45); background: rgba(21,128,61,0.05); }
+    .cofre-card:hover { border-color: #cbd5e1; box-shadow: 0 4px 14px -8px rgba(15, 23, 42, 0.18); }
+    .cofre-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .cofre-card.arquivado { opacity: 0.6; }
 
-    .cofre-card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
-    .cofre-nome { font-size: 16px; font-weight: 700; }
-    .cofre-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-    .cofre-badge.ativo { color: var(--accent); }
-    .cofre-badge.concluido { color: var(--positive); }
-    .cofre-badge.arquivado { color: var(--text-secondary); }
+    .cofre-card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .cofre-nome { font-size: 15px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cofre-badge,
+    .cofre-hero-badge {
+      font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+      background: #eef4ff; color: #1d4ed8;
+    }
+    .cofre-badge::first-letter,
+    .cofre-hero-badge::first-letter { text-transform: uppercase; }
+    .cofre-badge { display: inline-block; }
+    .cofre-badge.concluido, .cofre-hero.concluido .cofre-hero-badge { background: #e8f7ee; color: #15803d; }
+    .cofre-badge.arquivado { background: #f1f5f9; color: var(--text-secondary); }
 
-    .cofre-valores strong { font-size: 18px; }
-    .cofre-sub { font-size: 12.5px; color: var(--text-secondary); }
+    .cofre-valores strong { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .cofre-sub { font-size: 12px; color: var(--text-secondary); }
+    .cofre-rodape { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .cofre-pct { font-size: 12px; font-weight: 600; color: var(--text-primary); }
 
-    .cofre-bar { height: 9px; border-radius: 999px; background: var(--slate-200); overflow: hidden; }
+    .cofre-bar { height: 8px; border-radius: 999px; background: #eef2f7; overflow: hidden; }
     .cofre-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--accent); transition: width 0.3s ease; }
-    .cofre-card.concluido .cofre-bar > span, .cofre-bar.concluido > span { background: var(--positive); }
+    .cofre-card.concluido .cofre-bar > span, .cofre-bar.concluido > span { background: #16a34a; }
+
+    .cf-acoes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .cf-acoes a.btn-cancel { text-decoration: none; display: inline-flex; align-items: center; }
+
+    .cf-voltar {
+      display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 0;
+      margin-bottom: 6px; font: 600 12px var(--font-family); color: var(--text-secondary); cursor: pointer;
+    }
+    .cf-voltar:hover { color: var(--accent); }
+
+    .cf-card-topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .cf-card-topo .section-card-title { margin: 0; }
+
+    .cf-modal-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .cf-modal-head h3 { margin: 0; }
 
     .campo { display: flex; flex-direction: column; gap: 6px; }
-    .campo > label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); }
-    .campo > input, .campo > select {
-      padding: 11px 13px; border-radius: 10px; border: 1.5px solid var(--border-color);
+    .campo > label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+    .campo > input, .campo > select,
+    .extras-cofrinho-add select, .extras-cofrinho-add input {
+      padding: 10px 12px; border-radius: 10px; border: 1px solid #e2e6ec;
       background: var(--bg-section); color: var(--text-primary); font-size: 14px; font-family: var(--font-family);
     }
-    .campo > input:focus, .campo > select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .extras-cofrinho-add select, .extras-cofrinho-add input { flex: 1; min-width: 0; }
+    .extras-cofrinho-add select.cf-ano { flex: 0 0 auto; min-width: 88px; }
+    .campo > input:focus, .campo > select:focus,
+    .extras-cofrinho-add select:focus, .extras-cofrinho-add input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
 
-    .modo-toggle { display: flex; gap: 8px; }
+    .modo-toggle { display: flex; gap: 4px; padding: 4px; border: 1px solid #e8eaee; border-radius: 12px; background: #fff; }
     .modo-opt {
-      flex: 1; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border-color);
-      background: var(--bg-section); color: var(--text-secondary); font-weight: 600; font-size: 12.5px;
+      flex: 1; padding: 8px 10px; border-radius: 9px; border: 0;
+      background: transparent; color: var(--text-secondary); font-weight: 600; font-size: 12.5px;
       cursor: pointer; font-family: var(--font-family);
     }
-    .modo-opt.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+    .modo-opt:hover { color: var(--text-primary); }
+    .modo-opt.active { background: #0f172a; color: #fff; }
 
     .big-progress { display: flex; flex-direction: column; gap: 8px; }
     .big-progress .nums { display: flex; justify-content: space-between; align-items: baseline; }
@@ -87,12 +126,13 @@
     .parcela-mes { font-weight: 600; font-size: 14px; width: 84px; flex-shrink: 0; }
     .parcela-valor { flex: 1; font-weight: 700; }
     .parcela-tag {
-      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      font-size: 11px; font-weight: 600;
       padding: 3px 10px; border-radius: 999px; white-space: nowrap;
     }
-    .parcela-tag.pago { background: rgba(21,128,61,0.12); color: var(--positive); }
-    .parcela-tag.pendente { background: rgba(180,83,9,0.12); color: var(--warning); }
-    .parcela-tag.vencida { background: rgba(185,28,28,0.12); color: var(--negative); }
+    .parcela-tag::first-letter { text-transform: uppercase; }
+    .parcela-tag.pago { background: #e8f7ee; color: #15803d; }
+    .parcela-tag.pendente { background: #fff4e5; color: #b45309; }
+    .parcela-tag.vencida { background: #fdecec; color: #b91c1c; }
 
     .ed-parcela-row {
       display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
@@ -103,7 +143,7 @@
 
     .toggle-status { display: flex; gap: 8px; }
     .toggle-status button {
-      flex: 1; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border-color);
+      flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #e2e6ec;
       background: var(--bg-section); color: var(--text-secondary); font-weight: 600; font-size: 13px;
       cursor: pointer; font-family: var(--font-family);
     }
@@ -159,53 +199,29 @@
     /* —— Detalhe / painel do cofrinho —— */
     .cofre-hero {
       position: relative;
-      border-radius: 20px;
-      padding: 28px 24px;
-      color: #fff;
-      background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 45%, #0ea5e9 100%);
-      box-shadow: 0 18px 40px rgba(37, 99, 235, 0.28);
-      overflow: hidden;
-    }
-    .cofre-hero::after {
-      content: '';
-      position: absolute;
-      inset: -40% -20% auto auto;
-      width: 280px;
-      height: 280px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.12);
-      pointer-events: none;
-    }
-    .cofre-hero.concluido {
-      background: linear-gradient(135deg, #166534 0%, #15803d 50%, #22c55e 100%);
-      box-shadow: 0 18px 40px rgba(21, 128, 61, 0.25);
+      border-radius: 16px;
+      padding: 22px;
+      background: #fff;
+      border: 1px solid #e8eaee;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
     }
     .cofre-hero-top {
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
+      align-items: center;
+      gap: 10px;
       flex-wrap: wrap;
-      position: relative;
-      z-index: 1;
     }
-    .cofre-hero-badge {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.2);
-    }
+    .cofre-hero-top small { font-size: 13px; color: var(--text-secondary); }
     .cofre-hero-body {
       display: grid;
       grid-template-columns: auto 1fr;
       gap: 24px;
       align-items: center;
-      margin-top: 20px;
-      position: relative;
-      z-index: 1;
     }
     .cofre-ring-wrap {
       width: 112px;
@@ -220,32 +236,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      font-weight: 800;
-      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
       pointer-events: none;
     }
-    .cofre-hero-values .saldo { font-size: 32px; font-weight: 800; line-height: 1.1; }
-    .cofre-hero-values .alvo { opacity: 0.88; font-size: 14px; margin-top: 4px; display: block; }
-    .cofre-hero-meta { font-size: 13px; opacity: 0.9; margin-top: 10px; }
+    .cofre-hero-values .saldo { display: block; font-size: 38px; font-weight: 700; line-height: 1.1; margin-top: 6px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .cofre-hero-values .alvo { color: var(--text-secondary); font-size: 14px; margin-top: 4px; display: block; }
+    .cofre-hero-meta { font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
     .cofre-hero-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 22px;
-      position: relative;
-      z-index: 1;
+      gap: 8px;
     }
-    .cofre-hero-actions .btn-inline,
-    .cofre-hero-actions .btn-cancel {
-      background: rgba(255, 255, 255, 0.95);
-      border-color: transparent;
-      color: var(--ink-950);
-    }
-    .cofre-hero-actions .fin-btn-danger {
-      background: rgba(254, 226, 226, 0.95);
-      color: var(--negative);
-    }
+    .cofre-hero-actions .fin-btn-danger { color: var(--negative); }
 
     .cofre-dash-grid {
       display: grid;
@@ -314,18 +318,16 @@
       text-align: left;
     }
     .calc-tabela thead th {
-      background: var(--bg-main);
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      background: #f8fafc;
+      font-size: 12px;
+      font-weight: 600;
       color: var(--text-secondary);
     }
+    .calc-tabela th, .calc-tabela td { border-bottom-color: #eef0f3; }
     .calc-tabela tbody tr:last-child td { border-bottom: none; }
-    .calc-tabela tbody tr:nth-child(even) { background: var(--slate-100); }
-    .calc-tabela tbody tr:nth-child(odd) { background: var(--bg-section); }
+    .calc-tabela tbody tr { background: var(--bg-section); }
     .calc-tabela tbody tr.cofre-parcela-click { cursor: pointer; }
-    .calc-tabela tbody tr.cofre-parcela-click:hover { background: var(--accent-soft) !important; }
+    .calc-tabela tbody tr.cofre-parcela-click:hover { background: #f8fafc !important; }
     .calc-tabela .parcela-tag { margin: 0; display: inline-block; }
     .calc-mes-ref { display: block; font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-top: 2px; }
     .calc-leia-mais-wrap { display: flex; justify-content: center; margin-top: 14px; }
@@ -358,7 +360,7 @@
       border: 1px solid var(--border-color);
       background: var(--bg-main);
     }
-    .proj-tile span { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); }
+    .proj-tile span { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); }
     .proj-tile strong { display: block; margin-top: 6px; font-size: 15px; color: var(--ink-950); }
     .proj-tile .proj-plano {
       display: block; margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--text-secondary);
@@ -374,10 +376,8 @@
     }
     .ed-final-plano .ed-final-label {
       display: block;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      font-size: 12px;
+      font-weight: 500;
       color: var(--text-secondary);
     }
     .ed-final-plano .ed-final-valor {
@@ -475,10 +475,8 @@
     .edit-preview-card h4 {
       margin: 0 0 12px;
       font-size: 13px;
-      font-weight: 700;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      font-weight: 600;
+      color: var(--text-primary);
     }
 
   </style>
@@ -493,15 +491,15 @@
           <h1>Cofrinhos</h1>
           <p>Metas de economia: cada mês vira uma parcela nas suas contas. Pagou = guardou.</p>
         </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-          <a href="cofrinhos-juros-compostos.html" class="btn-inline">Calcular juros compostos</a>
-          <button class="btn-add" onclick="abrirModalNovo()">Novo cofrinho</button>
+        <div class="cf-acoes">
+          <a href="cofrinhos-juros-compostos.html" class="btn-cancel">Calcular juros compostos</a>
+          <button class="btn-add" onclick="abrirModalNovo()">+ Novo cofrinho</button>
         </div>
       </div>
 
       <div id="conviteBanner" class="convite-banner" hidden></div>
 
-      <div class="section-card">
+      <div>
         <div class="stat-row">
           <div class="stat-tile positive">
             <span class="stat-tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 8a5 5 0 0 0-5-3H9a5 5 0 0 0 0 10h1v3h4v-3h1a4 4 0 0 0 4-4Z"/><path d="M19 10h2M6 9h.01"/></svg></span>
@@ -525,21 +523,22 @@
     <section id="detailView" hidden>
       <div class="page-header-row">
         <div class="page-header">
+          <button type="button" class="cf-voltar" onclick="voltarLista()">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            Cofrinhos
+          </button>
           <h1 id="detNome">Cofrinho</h1>
         </div>
-        <button class="btn-cancel" onclick="voltarLista()">Voltar</button>
       </div>
 
       <div class="cofre-hero" id="detHero">
-        <div class="cofre-hero-top">
-          <span class="cofre-hero-badge" id="detBadge">Ativo</span>
-        </div>
         <div class="cofre-hero-body">
           <div class="cofre-ring-wrap">
             <canvas id="chartCofreAnel" aria-hidden="true"></canvas>
             <span class="cofre-ring-pct" id="detRingPct">0%</span>
           </div>
           <div class="cofre-hero-values">
+            <div class="cofre-hero-top"><small>Guardado até agora</small><span class="cofre-hero-badge" id="detBadge">ativo</span></div>
             <span class="saldo" id="detSaldo">R$ 0,00</span>
             <span class="alvo" id="detAlvo">de R$ 0,00</span>
             <div class="cofre-hero-meta" id="detSub">0/0 pagas</div>
@@ -577,8 +576,8 @@
       </div>
 
       <div class="section-card" id="detParticipantesCard" hidden>
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-          <h3 class="section-card-title" style="margin:0;">Participantes</h3>
+        <div class="cf-card-topo">
+          <h3 class="section-card-title">Participantes</h3>
           <button class="btn-add" id="detBtnAddPessoa" onclick="abrirModalAddPessoa()" hidden>Adicionar pessoa</button>
         </div>
         <p class="info-text" style="margin:8px 0 0;">Cada participante guarda o próprio valor por mês; as parcelas de todos somam no total.</p>
@@ -603,7 +602,7 @@
   <!-- Modal: novo cofrinho -->
   <div id="modalNovo" class="modal-overlay">
     <div class="modal-content">
-      <h3>Novo cofrinho</h3>
+      <div class="cf-modal-head"><h3>Novo cofrinho</h3><button type="button" class="fin-entry-x" onclick="fecharModal('modalNovo')" aria-label="Fechar">&times;</button></div>
       <div class="campo"><label for="novoNome">Nome</label><input id="novoNome" placeholder="Ex: Viagem, Reserva de emergência"></div>
 
       <div class="modo-toggle">
@@ -635,9 +634,9 @@
       <div class="campo extras-cofrinho-block">
         <label>Aporte extra em um mês</label>
         <div class="form-row extras-cofrinho-add">
-          <select id="novoExtraMes" style="flex:1; min-width:0; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);"></select>
-          <select id="novoExtraAno" style="min-width:88px; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);"></select>
-          <input id="novoExtraValor" type="number" step="0.01" min="0" placeholder="R$" style="flex:1; min-width:0; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);">
+          <select id="novoExtraMes"></select>
+          <select id="novoExtraAno" class="cf-ano"></select>
+          <input id="novoExtraValor" type="number" step="0.01" min="0" placeholder="R$">
           <button type="button" class="btn-inline" onclick="adicionarExtraNovo()">Adicionar</button>
         </div>
         <ul id="novoExtrasLista" class="extras-cofrinho-list"></ul>
@@ -653,7 +652,7 @@
   <!-- Modal: editar cofrinho -->
   <div id="modalEditar" class="modal-overlay">
     <div class="modal-content modal-edit-cofrinho">
-      <h3>Editar cofrinho</h3>
+      <div class="cf-modal-head"><h3>Editar cofrinho</h3><button type="button" class="fin-entry-x" onclick="fecharModal('modalEditar')" aria-label="Fechar">&times;</button></div>
       <div class="edit-cofrinho-grid">
         <div class="edit-cofrinho-form">
           <div class="campo"><label for="edNome">Nome</label><input id="edNome"></div>
@@ -670,9 +669,9 @@
           <div class="campo extras-cofrinho-block">
             <label>Aporte extra em um mês</label>
             <div class="form-row extras-cofrinho-add">
-              <select id="edExtraMes" style="flex:1; min-width:0; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);"></select>
-              <select id="edExtraAno" style="min-width:88px; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);"></select>
-              <input id="edExtraValor" type="number" step="0.01" min="0" placeholder="R$" style="flex:1; min-width:0; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);">
+              <select id="edExtraMes"></select>
+              <select id="edExtraAno" class="cf-ano"></select>
+              <input id="edExtraValor" type="number" step="0.01" min="0" placeholder="R$">
               <button type="button" class="btn-inline" onclick="adicionarExtraEdicao()">Adicionar</button>
             </div>
             <ul id="edExtrasLista" class="extras-cofrinho-list"></ul>
@@ -685,9 +684,9 @@
           <div class="campo extras-cofrinho-block">
             <label>Nova taxa a partir de um mês</label>
             <div class="form-row extras-cofrinho-add">
-              <select id="edTaxaAltMes" style="flex:1; min-width:0; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);"></select>
-              <select id="edTaxaAltAno" style="min-width:88px; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);"></select>
-              <input id="edTaxaAltValor" type="number" step="0.01" min="0" max="100" placeholder="% a.m." style="flex:1; min-width:0; padding:11px 13px; border-radius:10px; border:1.5px solid var(--border-color);">
+              <select id="edTaxaAltMes"></select>
+              <select id="edTaxaAltAno" class="cf-ano"></select>
+              <input id="edTaxaAltValor" type="number" step="0.01" min="0" max="100" placeholder="% a.m.">
               <button type="button" class="btn-inline" onclick="adicionarTaxaEdicao()">Adicionar</button>
             </div>
             <ul id="edTaxasLista" class="extras-cofrinho-list"></ul>
@@ -726,7 +725,7 @@
   <!-- Modal: parcela -->
   <div id="modalParcela" class="modal-overlay">
     <div class="modal-content">
-      <h3 id="mpTitulo">Parcela</h3>
+      <div class="cf-modal-head"><h3 id="mpTitulo">Parcela</h3><button type="button" class="fin-entry-x" onclick="fecharModal('modalParcela')" aria-label="Fechar">&times;</button></div>
       <div class="campo"><label for="mpValor">Valor (R$)</label><input id="mpValor" type="number" step="0.01" min="0"></div>
       <div class="campo">
         <label>Status</label>
@@ -745,7 +744,7 @@
   <!-- Modal: adicionar pessoa -->
   <div id="modalAddPessoa" class="modal-overlay">
     <div class="modal-content">
-      <h3>Adicionar pessoa à caixinha</h3>
+      <div class="cf-modal-head"><h3>Adicionar pessoa à caixinha</h3><button type="button" class="fin-entry-x" onclick="fecharModal('modalAddPessoa')" aria-label="Fechar">&times;</button></div>
       <div class="campo"><label for="buscaPessoa">Buscar por nome ou e-mail</label><input id="buscaPessoa" autocomplete="off" placeholder="Digite ao menos 3 letras"></div>
       <div id="buscaResultado" class="user-result"></div>
       <p class="info-text" style="margin:0;">A pessoa recebe um convite e escolhe quanto vai guardar por mês.</p>
@@ -759,7 +758,7 @@
   <!-- Modal: aceitar convite de caixinha -->
   <div id="modalConvite" class="modal-overlay">
     <div class="modal-content">
-      <h3 id="mcTitulo">Convite de caixinha</h3>
+      <div class="cf-modal-head"><h3 id="mcTitulo">Convite de caixinha</h3><button type="button" class="fin-entry-x" onclick="fecharModal('modalConvite')" aria-label="Fechar">&times;</button></div>
       <p class="info-text" id="mcInfo" style="margin:0;"></p>
       <div class="campo"><label for="mcAporte">Vou guardar por mês (R$)</label><input id="mcAporte" type="number" step="0.01" min="0" placeholder="500"></div>
       <div class="modal-actions">
@@ -772,7 +771,7 @@
   <!-- Modal: alterar meu aporte -->
   <div id="modalMeuAporte" class="modal-overlay">
     <div class="modal-content">
-      <h3>Meu aporte mensal</h3>
+      <div class="cf-modal-head"><h3>Meu aporte mensal</h3><button type="button" class="fin-entry-x" onclick="fecharModal('modalMeuAporte')" aria-label="Fechar">&times;</button></div>
       <div class="campo"><label for="maValor">Vou guardar por mês (R$)</label><input id="maValor" type="number" step="0.01" min="0"></div>
       <p class="info-text" style="margin:0;">As parcelas ainda não pagas são recriadas com o novo valor.</p>
       <div class="modal-actions">
@@ -1551,7 +1550,9 @@
           data: {
             datasets: [{
               data: fatia > 0 ? [fatia, 100 - fatia] : [1],
-              backgroundColor: fatia > 0 ? ['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.22)'] : ['rgba(255,255,255,0.25)'],
+              backgroundColor: fatia > 0
+                ? [c.situacao === 'concluido' ? '#16a34a' : '#2563eb', '#eef2f7']
+                : ['#eef2f7'],
               borderWidth: 0,
             }],
           },
@@ -1792,14 +1793,14 @@
       lista.innerHTML = cofres.map((c) => {
         const pct = c.progresso != null ? Math.round(c.progresso * 100) : 0;
         return `
-          <div class="cofre-card ${c.situacao}" onclick="abrirDetalhe('${c.id}')">
+          <div class="cofre-card ${c.situacao}" role="button" tabindex="0" onclick="abrirDetalhe('${c.id}')" onkeydown="if(event.key==='Enter'){abrirDetalhe('${c.id}')}">
             <div class="cofre-card-top">
               <span class="cofre-nome">${esc(c.nome)}</span>
               <span class="cofre-badge ${c.situacao}">${c.situacao}</span>
             </div>
             <div class="cofre-valores"><strong>${money(c.saldo)}</strong> <span class="cofre-sub">de ${money(c.alvo)}</span></div>
-            <div class="cofre-bar"><span style="width:${pct}%"></span></div>
-            <span class="cofre-sub">${linhaResumo(c)}</span>
+            <div class="cofre-bar"><span style="width:${Math.min(pct, 100)}%"></span></div>
+            <div class="cofre-rodape"><span class="cofre-sub">${linhaResumo(c)}</span><span class="cofre-pct">${pct}%</span></div>
           </div>`;
       }).join('');
     }

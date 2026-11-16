@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Controle de Veículos</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#FFFFFF" />
+  <meta name="color-scheme" content="light" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="Fin" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Fin" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
+  <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
   <link rel="stylesheet" href="css/theme.css?v=10">
   <link rel="stylesheet" href="css/mobile-shell.css?v=8">
@@ -34,50 +44,119 @@
       max-width: 1200px;
     }
 
-    .header {
+    .page-content,
+    .vc-detalhes {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 16px;
     }
 
-    .header h1 { margin: 0; }
-    .content > h1 { margin: 0; }
+    .vc-acoes { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
-    .header .controls {
-      display: flex;
-      gap: 10px;
+    .vc-voltar {
+      display: inline-flex;
       align-items: center;
+      gap: 6px;
+      border: 0;
+      background: none;
+      padding: 0;
+      margin-bottom: 6px;
+      font: 600 12px var(--font-family);
+      color: var(--text-secondary);
+      cursor: pointer;
     }
 
-    .page-content {
+    .vc-voltar:hover { color: var(--accent); }
+
+    .vc-card-topo {
       display: flex;
-      flex-direction: column;
-      gap: 24px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 4px;
     }
 
-    .modal-body-details p {
-      margin: 8px 0;
-      font-size: 15px;
+    .vc-card-topo h3 { margin: 0; font-size: 14px; font-weight: 600; }
+    .vc-card-topo small { font-size: 12px; color: var(--text-secondary); }
+
+    .vc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+    .vc-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+    .vc-form .vc-largo { grid-column: 1 / -1; }
+
+    .vc-campo { display: grid; gap: 6px; }
+    .vc-campo > span { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+
+    .vc-campo input,
+    .vc-campo select {
+      width: 100%;
+      font: 500 14px var(--font-family);
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #e2e6ec;
+      background: #fff;
+      color: var(--text-primary);
+    }
+
+    .vc-campo input:focus,
+    .vc-campo select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
+
+    .vc-form-acoes { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
+
+    .vc-modal-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .vc-modal-head h3 { margin: 0; }
+
+    .vc-modal-campos { display: grid; gap: 12px; margin: 16px 0 4px; }
+
+    .vc-resumo-linha {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .vc-resumo-linha div {
+      background: #f8fafc;
+      border: 1px solid #eef0f3;
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+
+    .vc-resumo-linha small { display: block; font-size: 11px; color: var(--text-secondary); }
+    .vc-resumo-linha b { font-size: 14px; font-variant-numeric: tabular-nums; }
+
+    .modal-actions .btn-danger { margin-right: auto; }
+
+    @media (max-width: 860px) {
+      .vc-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 768px), (max-height: 500px) {
       .content { max-width: 100%; }
+      .vc-form { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
   <main class="content">
-    <h1>Controle de Veículos</h1>
+    <div class="page-content">
+      <div class="page-header-row">
+        <div class="page-header">
+          <h1>Veículos</h1>
+          <p>Combustível, consumo e manutenção · <span id="geral-stats-month-year"></span></p>
+        </div>
+        <div class="vc-acoes">
+          <select id="selectAno" aria-label="Ano"></select>
+          <select id="selectMes" aria-label="Mês"></select>
+          <button class="btn-add" onclick="abrirModalAddVeiculo()">+ Novo veículo</button>
+        </div>
+      </div>
 
-    <div id="general-stats-section" class="section-card">
-      <h4>Estatísticas Gerais (<span id="geral-stats-month-year"></span>)</h4>
-      <div class="stat-row">
+      <div id="general-stats-section" class="stat-row">
         <div class="stat-tile negative">
           <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
-          <span class="stat-tile-body"><span class="stat-tile-label">Custo Total</span><span class="stat-tile-value" id="geral-stat-custo-total">R$ 0,00</span></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">Custo total</span><span class="stat-tile-value" id="geral-stat-custo-total">R$ 0,00</span></span>
         </div>
         <div class="stat-tile warning">
           <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22h12M6 22V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v18M6 10h8M16 8l3 2v8a1.5 1.5 0 0 0 3 0v-6l-3-4"/></svg></span>
@@ -85,107 +164,110 @@
         </div>
         <div class="stat-tile">
           <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17h.01M17 17h.01M5 11l1.5-4h11L19 11M5 11h14v6H5z"/></svg></span>
-          <span class="stat-tile-body"><span class="stat-tile-label">KM Rodados</span><span class="stat-tile-value" id="geral-stat-km-total">0 km</span></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">KM rodados</span><span class="stat-tile-value" id="geral-stat-km-total">0 km</span></span>
         </div>
         <div class="stat-tile positive">
           <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M21 7v6h-6"/></svg></span>
-          <span class="stat-tile-body"><span class="stat-tile-label">Média KM/L</span><span class="stat-tile-value" id="geral-stat-kml-media">0.0</span></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">Média km/l</span><span class="stat-tile-value" id="geral-stat-kml-media">0.0</span></span>
         </div>
       </div>
+
+      <section id="vehicle-list-view" class="section-card">
+        <div class="vc-card-topo">
+          <h3>Meus veículos</h3>
+          <small>Selecione um veículo para registrar abastecimentos e manutenções</small>
+        </div>
+        <div id="listaVeiculos" class="statement-list" style="margin-top: 8px;">
+          <div class="statement-empty">Carregando veículos…</div>
+        </div>
+      </section>
     </div>
 
-    <div class="page-content">
-      <!-- Tela de Listagem de Veículos (Padrão) -->
-      <div id="vehicle-list-view" class="section-card">
-        <h3>Meus Veículos</h3>
-        <div class="header">
-          <div class="controls form-row">
-            <select id="selectAno"></select>
-            <select id="selectMes"></select>
-            <button class="btn-add" onclick="abrirModalAddVeiculo()">Adicionar</button>
-          </div>
+    <div id="vehicle-details-view" class="vc-detalhes" style="display: none;">
+      <div class="page-header-row">
+        <div class="page-header">
+          <button type="button" class="vc-voltar" onclick="voltarParaListaVeiculos()">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            Veículos
+          </button>
+          <h1 id="stats-vehicle-name"></h1>
+          <p>Consumo e gastos do mês selecionado</p>
         </div>
-        <div id="listaVeiculos" class="statement-list" style="margin-top: 16px;">
-          <p class="info-text">Carregando veículos...</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tela de Detalhes do Veículo (Oculta por padrão) -->
-    <div id="vehicle-details-view" style="display: none; flex-direction: column; gap: 24px;">
-      <div class="section-card">
-        <h4>Estatísticas do mês (<span id="stats-vehicle-name"></span>)</h4>
-        <div class="stat-row">
-          <div class="stat-tile negative">
-            <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
-            <span class="stat-tile-body"><span class="stat-tile-label">Custo Total</span><span class="stat-tile-value" id="stat-custo-total">R$ 0,00</span></span>
-          </div>
-          <div class="stat-tile warning">
-            <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22h12M6 22V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v18M6 10h8M16 8l3 2v8a1.5 1.5 0 0 0 3 0v-6l-3-4"/></svg></span>
-            <span class="stat-tile-body"><span class="stat-tile-label">Combustível</span><span class="stat-tile-value" id="stat-combustivel-total">R$ 0,00</span></span>
-          </div>
-          <div class="stat-tile">
-            <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17h.01M17 17h.01M5 11l1.5-4h11L19 11M5 11h14v6H5z"/></svg></span>
-            <span class="stat-tile-body"><span class="stat-tile-label">KM Rodados</span><span class="stat-tile-value" id="stat-km-total">0 km</span></span>
-          </div>
-          <div class="stat-tile positive">
-            <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M21 7v6h-6"/></svg></span>
-            <span class="stat-tile-body"><span class="stat-tile-label">Média KM/L</span><span class="stat-tile-value" id="stat-kml-media">0.0</span></span>
-          </div>
+        <div class="vc-acoes">
+          <select id="selectAnoDetalhes" aria-label="Ano"></select>
+          <select id="selectMesDetalhes" aria-label="Mês"></select>
         </div>
       </div>
 
-      <div class="section-card">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-              <h3 id="vehicle-name-details">Abastecimentos</h3>
-              <button class="btn-cancel" onclick="voltarParaListaVeiculos()">Voltar</button>
-          </div>
-          <div class="header" style="flex-wrap: nowrap;">
-              <div class="controls form-row">
-                <select id="selectAnoDetalhes"></select>
-                <select id="selectMesDetalhes"></select>
-              </div>
-          </div>
-          
-          <div class="form-row">
-              <input id="veiculoKmAtual" type="number" placeholder="KM Atual">
-              <input id="veiculoLitros" type="number" placeholder="Litros">
-              <input id="veiculoValor" type="number" placeholder="Valor Total (R$)">
-              <button class="btn-confirm" onclick="finRunOnce(event, () => registrarAbastecimento())">Registrar</button>
-          </div>
-      </div>
-
-      <div class="section-card">
-        <h4>Histórico de Abastecimentos do Mês</h4>
-        <div id="tabelaHistoricoAbastecimento" class="statement-list"></div>
-      </div>
-
-      <div class="section-card">
-        <h3>Manutenção do Veículo</h3>
-        <div class="form-row">
-            <input id="manutencaoDescricao" type="text" placeholder="Descrição (ex: Troca de óleo)">
-            <input id="manutencaoValor" type="number" placeholder="Valor Gasto (R$)">
-            <select id="manutencaoTipo">
-              <option value="Preventiva">Manutenção Preventiva</option>
-              <option value="Conserto">Conserto</option>
-            </select>
-            <button class="btn-confirm" onclick="finRunOnce(event, () => registrarManutencao())">Registrar</button>
+      <div class="stat-row">
+        <div class="stat-tile negative">
+          <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">Custo total</span><span class="stat-tile-value" id="stat-custo-total">R$ 0,00</span></span>
+        </div>
+        <div class="stat-tile warning">
+          <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22h12M6 22V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v18M6 10h8M16 8l3 2v8a1.5 1.5 0 0 0 3 0v-6l-3-4"/></svg></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">Combustível</span><span class="stat-tile-value" id="stat-combustivel-total">R$ 0,00</span></span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17h.01M17 17h.01M5 11l1.5-4h11L19 11M5 11h14v6H5z"/></svg></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">KM rodados</span><span class="stat-tile-value" id="stat-km-total">0 km</span></span>
+        </div>
+        <div class="stat-tile positive">
+          <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M21 7v6h-6"/></svg></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">Média km/l</span><span class="stat-tile-value" id="stat-kml-media">0.0</span></span>
         </div>
       </div>
 
-      <div class="section-card">
-        <h4>Histórico de Manutenções do Mês</h4>
-        <div id="tabelaHistoricoManutencao" class="statement-list"></div>
+      <div class="vc-grid">
+        <section class="section-card">
+          <div class="vc-card-topo"><h3 id="vehicle-name-details">Novo abastecimento</h3></div>
+          <div class="vc-form">
+            <label class="vc-campo vc-largo"><span>Quilometragem atual</span><input id="veiculoKmAtual" type="number" inputmode="numeric" placeholder="Ex.: 45200"></label>
+            <label class="vc-campo"><span>Litros</span><input id="veiculoLitros" type="number" inputmode="decimal" step="0.01" placeholder="0,00"></label>
+            <label class="vc-campo"><span>Valor total (R$)</span><input id="veiculoValor" type="number" inputmode="decimal" step="0.01" placeholder="0,00"></label>
+            <div class="vc-form-acoes"><button class="btn-confirm" onclick="finRunOnce(event, () => registrarAbastecimento())">Registrar abastecimento</button></div>
+          </div>
+        </section>
+
+        <section class="section-card">
+          <div class="vc-card-topo"><h3>Nova manutenção</h3></div>
+          <div class="vc-form">
+            <label class="vc-campo vc-largo"><span>Descrição</span><input id="manutencaoDescricao" type="text" placeholder="Ex.: Troca de óleo"></label>
+            <label class="vc-campo"><span>Valor (R$)</span><input id="manutencaoValor" type="number" inputmode="decimal" step="0.01" placeholder="0,00"></label>
+            <label class="vc-campo"><span>Tipo</span>
+              <select id="manutencaoTipo">
+                <option value="Preventiva">Preventiva</option>
+                <option value="Conserto">Conserto</option>
+              </select>
+            </label>
+            <div class="vc-form-acoes"><button class="btn-confirm" onclick="finRunOnce(event, () => registrarManutencao())">Registrar manutenção</button></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="vc-grid">
+        <section class="section-card">
+          <div class="vc-card-topo"><h3>Abastecimentos do mês</h3></div>
+          <div id="tabelaHistoricoAbastecimento" class="statement-list"></div>
+        </section>
+        <section class="section-card">
+          <div class="vc-card-topo"><h3>Manutenções do mês</h3></div>
+          <div id="tabelaHistoricoManutencao" class="statement-list"></div>
+        </section>
       </div>
     </div>
   </main>
 
-  <!-- Modal para Adicionar Veículo -->
   <div id="addVeiculoModal" class="modal-overlay">
     <div class="modal-content">
-      <h3>Adicionar Novo Veículo</h3>
-      <input id="addVeiculoNome" placeholder="Nome/Modelo (ex: Gol G5)">
-      <input id="addVeiculoKmInicial" type="number" placeholder="Quilometragem Inicial">
+      <div class="vc-modal-head">
+        <h3>Novo veículo</h3>
+        <button type="button" class="fin-entry-x" onclick="fecharModalAddVeiculo()" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="vc-modal-campos">
+        <label class="vc-campo"><span>Nome ou modelo</span><input id="addVeiculoNome" placeholder="Ex.: Gol G5"></label>
+        <label class="vc-campo"><span>Quilometragem inicial</span><input id="addVeiculoKmInicial" type="number" inputmode="numeric" placeholder="Ex.: 45000"></label>
+      </div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="fecharModalAddVeiculo()">Cancelar</button>
         <button class="btn-confirm" onclick="finRunOnce(event, () => salvarNovoVeiculo())">Salvar</button>
@@ -193,53 +275,47 @@
     </div>
   </div>
 
-  <!-- Modal para Editar Abastecimento -->
   <div id="editAbastecimentoModal" class="modal-overlay">
     <div class="modal-content">
-      <h3>Editar Abastecimento</h3>
-      <div id="editModalBodyDetails" class="modal-body-details"></div>
-      <div class="form-row" style="flex-direction: column; gap: 4px;">
-        <label for="editVeiculoData" style="font-size: 14px; color: var(--text-secondary);">Data</label>
-        <input id="editVeiculoData" type="date">
-
-        <label for="editVeiculoKmAtual" style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">Quilometragem</label>
-        <input id="editVeiculoKmAtual" type="number" placeholder="KM Atual">
-
-        <label for="editVeiculoLitros" style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">Litros</label>
-        <input id="editVeiculoLitros" type="number" placeholder="Litros">
-
-        <label for="editVeiculoValor" style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">Valor</label>
-        <input id="editVeiculoValor" type="number" placeholder="Valor Total (R$)">
+      <div class="vc-modal-head">
+        <h3>Editar abastecimento</h3>
+        <button type="button" class="fin-entry-x" onclick="fecharModalEditarAbastecimento()" aria-label="Fechar">&times;</button>
+      </div>
+      <div id="editModalBodyDetails" class="vc-resumo-linha"></div>
+      <div class="vc-modal-campos">
+        <label class="vc-campo"><span>Data</span><input id="editVeiculoData" type="date"></label>
+        <label class="vc-campo"><span>Quilometragem</span><input id="editVeiculoKmAtual" type="number" placeholder="KM atual"></label>
+        <label class="vc-campo"><span>Litros</span><input id="editVeiculoLitros" type="number" step="0.01" placeholder="Litros"></label>
+        <label class="vc-campo"><span>Valor (R$)</span><input id="editVeiculoValor" type="number" step="0.01" placeholder="Valor total"></label>
       </div>
       <div class="modal-actions">
         <button class="btn-danger" onclick="finRunOnce(event, () => removerAbastecimento())">Excluir</button>
+        <button class="btn-cancel" onclick="fecharModalEditarAbastecimento()">Cancelar</button>
         <button class="btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoAbastecimento())">Salvar</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal para Editar Manutenção -->
   <div id="editManutencaoModal" class="modal-overlay">
     <div class="modal-content">
-      <h3>Editar Manutenção</h3>
-      <div class="form-row" style="flex-direction: column; gap: 4px;">
-        <label for="editManutencaoData">Data</label>
-        <input id="editManutencaoData" type="date">
-
-        <label for="editManutencaoDescricao">Descrição</label>
-        <input id="editManutencaoDescricao" type="text" placeholder="Descrição da manutenção">
-
-        <label for="editManutencaoTipo">Tipo</label>
-        <select id="editManutencaoTipo" style="width: 100%; color: var(--text-primary);">
-          <option value="Preventiva">Manutenção Preventiva</option>
-          <option value="Conserto">Conserto</option>
-        </select>
-
-        <label for="editManutencaoValor">Valor</label>
-        <input id="editManutencaoValor" type="number" placeholder="Valor Gasto (R$)">
+      <div class="vc-modal-head">
+        <h3>Editar manutenção</h3>
+        <button type="button" class="fin-entry-x" onclick="fecharModalEditarManutencao()" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="vc-modal-campos">
+        <label class="vc-campo"><span>Data</span><input id="editManutencaoData" type="date"></label>
+        <label class="vc-campo"><span>Descrição</span><input id="editManutencaoDescricao" type="text" placeholder="Descrição da manutenção"></label>
+        <label class="vc-campo"><span>Tipo</span>
+          <select id="editManutencaoTipo">
+            <option value="Preventiva">Preventiva</option>
+            <option value="Conserto">Conserto</option>
+          </select>
+        </label>
+        <label class="vc-campo"><span>Valor (R$)</span><input id="editManutencaoValor" type="number" step="0.01" placeholder="Valor gasto"></label>
       </div>
       <div class="modal-actions">
         <button class="btn-danger" onclick="finRunOnce(event, () => removerManutencao())">Excluir</button>
+        <button class="btn-cancel" onclick="fecharModalEditarManutencao()">Cancelar</button>
         <button class="btn-confirm" onclick="finRunOnce(event, () => salvarEdicaoManutencao())">Salvar</button>
       </div>
     </div>
@@ -255,6 +331,7 @@
 
     const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
     const formatar = valor => moeda.format(Number(valor) || 0);
+    const escHtml = (valor) => String(valor ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
     let currentUser = null;
     let anoAtual = "";
@@ -369,7 +446,7 @@
     async function calcularEstatisticasGerais() {
       if (!currentUser) return;
 
-      document.getElementById('geral-stats-month-year').textContent = `${mesAtual}/${anoAtual}`;
+      document.getElementById('geral-stats-month-year').textContent = `${mesAtual} de ${anoAtual}`;
 
       let custoTotalGeral = 0;
       let kmTotalGeral = 0;
@@ -449,7 +526,8 @@
           row.innerHTML = `
             <span class="statement-row-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17h.01M17 17h.01M5 11l1.5-4h11L19 11M5 11h14v6H5z"/></svg></span>
             <span class="statement-row-body">
-              <span class="statement-row-title">${veiculo.nome}</span>
+              <span class="statement-row-title">${escHtml(veiculo.nome)}</span>
+              <span class="statement-row-subtitle">KM inicial ${Number(veiculo.kmInicial || 0).toLocaleString('pt-BR')} km</span>
             </span>
             <span class="statement-row-end">
               <span class="statement-row-value" style="color: var(--slate-400); font-weight: 400;">›</span>
@@ -466,7 +544,6 @@
 
     async function renderizarDetalhesVeiculo(veiculoId, veiculoNome) {
       veiculoSelecionadoId = veiculoId;
-      document.getElementById('vehicle-name-details').textContent = `Abastecimentos - ${veiculoNome}`;
       document.getElementById('stats-vehicle-name').textContent = veiculoNome;
 
       // Limpa campos e estatísticas
@@ -557,7 +634,7 @@
             row.innerHTML = `
                 <span class="statement-row-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 1 1-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 1 1 5.4-5.4l-3 3-2-2 3-3z"/></svg></span>
                 <span class="statement-row-body">
-                  <span class="statement-row-title">${manutencao.descricao}</span>
+                  <span class="statement-row-title">${escHtml(manutencao.descricao)}</span>
                   <span class="statement-row-subtitle">${dataFormatada} · ${manutencao.tipo}</span>
                 </span>
                 <span class="statement-row-end">
@@ -670,8 +747,8 @@
       veiculoSelecionadoId = null;
       ultimoAbastecimentoCache = null;
       document.getElementById('vehicle-details-view').style.display = 'none'; // Esconde detalhes
-      document.getElementById('general-stats-section').style.display = 'flex'; // Mostra as estatísticas gerais
-      document.querySelector('.page-content').style.display = 'flex'; // Mostra a lista de veículos
+      document.getElementById('general-stats-section').style.display = '';
+      document.querySelector('.page-content').style.display = '';
     }
 
     async function salvarNovoVeiculo() {
@@ -713,9 +790,9 @@
 
         const modalBodyDetails = document.getElementById('editModalBodyDetails');
         modalBodyDetails.innerHTML = `
-          <p><strong>Litros:</strong> ${abastecimento.litros.toFixed(2)} L</p>
-          <p><strong>KM Rodado:</strong> ${Math.round(abastecimento.kmRodado || 0)} km</p>
-          <p><strong>Média:</strong> ${(abastecimento.kmPorLitro || 0).toFixed(2)} km/L</p>
+          <div><small>Litros</small><b>${Number(abastecimento.litros || 0).toFixed(2)} L</b></div>
+          <div><small>KM rodados</small><b>${Math.round(abastecimento.kmRodado || 0)} km</b></div>
+          <div><small>Consumo</small><b>${(abastecimento.kmPorLitro || 0).toFixed(2)} km/l</b></div>
         `;
 
         const data = abastecimento.data.toDate();

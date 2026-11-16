@@ -3,15 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Resumo Anual | Controle</title>
+  <title>Resumo anual | Fin</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#FFFFFF" />
+  <meta name="color-scheme" content="light" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="Fin" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Fin" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
+  <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
   <link rel="stylesheet" href="css/theme.css?v=10">
   <link rel="stylesheet" href="css/mobile-shell.css?v=8">
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
   <script src="sidebar.js?v=9"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <style>
     * { box-sizing: border-box; }
 
@@ -34,62 +43,186 @@
       max-width: 1200px;
     }
 
-    .chart-box {
-      position: relative;
-      height: 320px;
+    #selectAnoResumo { min-width: 100px; }
+
+    .ra-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 400px);
+      gap: 28px;
+      align-items: center;
+      padding: 26px 28px;
     }
 
-    @media (max-width: 768px), (max-height: 500px) {
-      .content { max-width: 100%; }
-      .chart-box { height: 260px; }
+    .ra-rot { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+
+    .ra-saldo {
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 6px 0 10px;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ra-saldo.neg { color: var(--negative); }
+
+    .ra-selo {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: #e8f7ee;
+      color: #15803d;
+    }
+
+    .ra-selo.neg { background: #fdecec; color: var(--negative); }
+
+    .ra-medidor-topo { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+    .ra-trilho { height: 10px; background: #f1f5f9; border-radius: 99px; overflow: hidden; }
+    .ra-trilho div { height: 100%; width: 0; background: #15803d; border-radius: 99px; transition: width 0.3s ease; }
+    .ra-medidor-nota { font-size: 12px; color: var(--text-secondary); margin: 10px 0 0; }
+
+    .ra-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .ra-kpi small { font-size: 12px; color: var(--text-secondary); }
+    .ra-kpi-valor { font-size: 22px; font-weight: 700; margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
+
+    .ra-legenda { display: flex; gap: 16px; font-size: 12px; color: var(--text-secondary); }
+    .ra-legenda span { display: inline-flex; align-items: center; gap: 6px; }
+    .ra-legenda i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+    .ra-cab { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .ra-cab h2 { margin: 0; font-size: 14px; font-weight: 600; }
+
+    .ra-grafico svg { width: 100%; height: auto; display: block; }
+
+    .ra-tabela-wrap { overflow-x: auto; }
+
+    .ra-tabela {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      min-width: 680px;
+    }
+
+    .ra-tabela th {
+      text-align: right;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      padding: 0 10px 10px;
+      border-bottom: 1px solid #eef0f3;
+    }
+
+    .ra-tabela th:first-child,
+    .ra-tabela td:first-child { text-align: left; }
+
+    .ra-tabela td {
+      text-align: right;
+      padding: 11px 10px;
+      border-bottom: 1px solid #eef0f3;
+    }
+
+    .ra-tabela tbody tr { cursor: pointer; transition: background 0.15s ease; }
+    .ra-tabela tbody tr:hover { background: #f8fafc; }
+    .ra-tabela tbody tr.atual td:first-child { box-shadow: inset 3px 0 0 var(--accent); font-weight: 600; }
+    .ra-tabela tbody tr.vazio { color: #94a3b8; }
+    .ra-tabela tfoot td { font-weight: 700; border-bottom: 0; padding-top: 14px; }
+    .ra-pos { color: #15803d; font-weight: 600; }
+    .ra-neg { color: var(--negative); font-weight: 600; }
+
+    .ra-status { font-size: 12px; color: var(--text-secondary); }
+
+    @media (max-width: 860px) {
+      .ra-hero { grid-template-columns: 1fr; }
+      .ra-kpis { grid-template-columns: 1fr; }
+      .ra-saldo { font-size: 32px; }
     }
   </style>
 </head>
 <body>
 
   <main class="content">
-    <div class="page-header-row" style="margin-bottom: 8px;">
+    <div class="page-header-row">
       <div class="page-header">
-        <h1>Resumo financeiro anual</h1>
-        <p id="infoUsuario">Carregando usuário...</p>
+        <h1>Resumo anual</h1>
+        <p id="infoUsuario">Carregando…</p>
       </div>
-      <div class="period-controls form-row">
-        <select id="selectAnoResumo"></select>
-        <button class="btn-cancel" onclick="window.location.href='index.html'">Voltar</button>
+      <div class="header-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <select id="selectAnoResumo" aria-label="Ano"></select>
+        <a class="btn-cancel" href="relatorio.html">Relatórios</a>
       </div>
     </div>
 
+    <section class="section-card ra-hero" aria-label="Saldo do ano">
+      <div>
+        <div class="ra-rot">Saldo do ano <span id="tituloAnoResumo"></span></div>
+        <div class="ra-saldo" id="anualSaldoDisponivel">R$ 0,00</div>
+        <span class="ra-selo" id="anualSelo">—</span>
+      </div>
+      <div>
+        <div class="ra-medidor-topo">
+          <span>Receita comprometida</span>
+          <b id="anualPct">0%</b>
+        </div>
+        <div class="ra-trilho"><div id="anualBarra"></div></div>
+        <p class="ra-medidor-nota" id="statusCarregamento">Carregando dados do ano…</p>
+      </div>
+    </section>
+
+    <div class="ra-kpis">
+      <section class="section-card ra-kpi">
+        <small>Receitas</small>
+        <div class="ra-kpi-valor" style="color:#15803d;" id="anualTotalEntradas">R$ 0,00</div>
+        <small id="mediaEntradas">—</small>
+      </section>
+      <section class="section-card ra-kpi">
+        <small>Despesas (contas, cartão e débito)</small>
+        <div class="ra-kpi-valor" id="anualTotalContas">R$ 0,00</div>
+        <small id="mediaContas">—</small>
+      </section>
+      <section class="section-card ra-kpi">
+        <small>Reservado</small>
+        <div class="ra-kpi-valor" id="anualTotalReservado">R$ 0,00</div>
+        <small id="mediaReservado">—</small>
+      </section>
+    </div>
+
     <section class="section-card">
-      <h3 class="section-card-title">Totais do ano <span id="tituloAnoResumo"></span></h3>
-      <div class="stat-row">
-        <div class="stat-tile negative">
-          <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
-          <span class="stat-tile-body"><span class="stat-tile-label">Contas (c/ cartão e débito)</span><span class="stat-tile-value" id="anualTotalContas">R$ 0,00</span></span>
-        </div>
-        <div class="stat-tile positive">
-          <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
-          <span class="stat-tile-body"><span class="stat-tile-label">Total entradas</span><span class="stat-tile-value" id="anualTotalEntradas">R$ 0,00</span></span>
-        </div>
-        <div class="stat-tile">
-          <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg></span>
-          <span class="stat-tile-body"><span class="stat-tile-label">Saldo disponível</span><span class="stat-tile-value" id="anualSaldoDisponivel">R$ 0,00</span></span>
-        </div>
-        <div class="stat-tile warning">
-          <span class="stat-tile-icon"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
-          <span class="stat-tile-body"><span class="stat-tile-label">Total reservado</span><span class="stat-tile-value" id="anualTotalReservado">R$ 0,00</span></span>
+      <div class="ra-cab">
+        <h2>Receitas e despesas por mês</h2>
+        <div class="ra-legenda">
+          <span><i style="background:#2563eb"></i>Receitas</span>
+          <span><i style="background:#cbd5e1"></i>Despesas</span>
+          <span><i style="background:#0f172a;border-radius:50%"></i>Saldo</span>
         </div>
       </div>
-      <p class="info-text" id="statusCarregamento" style="margin-top: 16px;">Carregando dados do ano...</p>
+      <div class="ra-grafico" id="graficoAnual"></div>
     </section>
 
     <section class="section-card">
-      <h3 class="section-card-title">Saldo por mês</h3>
-      <div class="chart-box"><canvas id="chartSaldoMensal"></canvas></div>
-    </section>
-
-    <section class="section-card">
-      <h3 class="section-card-title">Detalhamento por mês</h3>
-      <div id="tabelaResumoAnual" class="statement-list"></div>
+      <div class="ra-cab">
+        <h2>Detalhamento por mês</h2>
+        <span class="ra-status">Clique em um mês para abrir na Home</span>
+      </div>
+      <div class="ra-tabela-wrap">
+        <table class="ra-tabela">
+          <thead>
+            <tr>
+              <th>Mês</th>
+              <th>Receitas</th>
+              <th>Contas</th>
+              <th>Cartão</th>
+              <th>Débito</th>
+              <th>Reservado</th>
+              <th>Saldo</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaResumoAnual"></tbody>
+          <tfoot id="rodapeResumoAnual"></tfoot>
+        </table>
+      </div>
     </section>
   </main>
 
@@ -98,28 +231,29 @@
     const db = firebase.firestore();
 
     const MESES = [
-      "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-      "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
     ];
     const ANO_BASE = 2025;
     const ANO_LIMITE = ANO_BASE + 10;
 
-    const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-    const formatar = valor => moeda.format(Number(valor) || 0);
+    const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+    const formatar = (valor) => moeda.format(Number(valor) || 0);
+    const compacto = new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 });
 
     let currentUser = null;
-    let anoAtualResumo = "";
+    let anoAtualResumo = '';
+    let carregamentoSeq = 0;
 
-    function toggleMobileMenu() {
-      const menu = document.getElementById('mobileNavMenu');
-      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    function soma(itens) {
+      return (itens || []).reduce((acc, item) => acc + Number(item.valor || 0), 0);
     }
 
     function popularListaAnosResumo() {
-      const select = document.getElementById("selectAnoResumo");
-      select.innerHTML = "";
+      const select = document.getElementById('selectAnoResumo');
+      select.innerHTML = '';
       for (let ano = ANO_BASE; ano <= ANO_LIMITE; ano++) {
-        const option = document.createElement("option");
+        const option = document.createElement('option');
         option.value = String(ano);
         option.textContent = String(ano);
         select.appendChild(option);
@@ -128,158 +262,214 @@
 
     function obterAnoInicial() {
       const params = new URLSearchParams(window.location.search);
-      const anoParam = params.get("ano");
-      let ano = Number(anoParam) || new Date().getFullYear();
+      let ano = Number(params.get('ano')) || new Date().getFullYear();
       if (ano < ANO_BASE) ano = ANO_BASE;
       if (ano > ANO_LIMITE) ano = ANO_LIMITE;
       return String(ano);
     }
 
-    async function carregarResumoAnual(ano) {
-      const statusEl = document.getElementById('statusCarregamento');
-      const tituloAnoEl = document.getElementById('tituloAnoResumo');
-      const tbody = document.getElementById('tabelaResumoAnual');
-
-      if (tituloAnoEl) tituloAnoEl.textContent = ano;
-      if (statusEl) statusEl.textContent = "Carregando dados do ano...";
-
-      if (!currentUser) {
-        if (statusEl) statusEl.textContent = "Usuário não autenticado.";
-        return;
-      }
-
-      // Ano inteiro numa única requisição (antes eram 12 chamadas em série).
-      const resumo = await window.finApi.request(`/api/financeiro/anos/${ano}/resumo`);
-      const mesesDoAno = resumo.meses || {};
-
-      let totalAnoContas = 0;
-      let totalAnoEntradas = 0;
-      let totalAnoReservado = 0;
-
-      const linhasMensais = [];
-
-      for (const mesNome of MESES) {
-        const data = mesesDoAno[mesNome]
-          || { contas: [], adicionais: [], cartao: [], reservado: [], debito: [] };
-
-        const contas = data.contas || [];
-        const adicionais = data.adicionais || [];
-        const cartao = data.cartao || [];
-        const reservado = data.reservado || [];
-        const debito = data.debito || [];
-
-        const totalContasManuais = contas.reduce((acc, item) => acc + Number(item.valor || 0), 0);
-        const totalCartao = cartao.reduce((acc, item) => acc + Number(item.valor || 0), 0);
-        const totalDebitoMes = debito.reduce((acc, item) => acc + Number(item.valor || 0), 0);
-
-        const totalContasMes = totalContasManuais + totalCartao + totalDebitoMes;
-        const totalEntradasMes = adicionais.reduce((acc, item) => acc + Number(item.valor || 0), 0);
-        const totalReservadoMes = reservado.reduce((acc, item) => acc + Number(item.valor || 0), 0);
-        const saldoMes = totalEntradasMes - totalContasMes - totalReservadoMes;
-
-        linhasMensais.push({
-          mes: mesNome,
-          totalContas: totalContasMes,
-          totalCartao: totalCartao,
-          totalEntradas: totalEntradasMes,
-          saldo: saldoMes,
-          totalReservado: totalReservadoMes
-        });
-
-        totalAnoContas += totalContasMes;
-        totalAnoEntradas += totalEntradasMes;
-        totalAnoReservado += totalReservadoMes;
-      }
-
-      const saldoAno = totalAnoEntradas - totalAnoContas - totalAnoReservado;
-
-      document.getElementById('anualTotalContas').innerText = formatar(totalAnoContas);
-      document.getElementById('anualTotalEntradas').innerText = formatar(totalAnoEntradas);
-      document.getElementById('anualSaldoDisponivel').innerText = formatar(saldoAno);
-      document.getElementById('anualTotalReservado').innerText = formatar(totalAnoReservado);
-
-      if (tbody) {
-        tbody.innerHTML = '';
-        linhasMensais.forEach(linha => {
-          const mesAbreviado = linha.mes ? linha.mes.substring(0, 3) : '-';
-          const row = document.createElement('div');
-          row.className = 'statement-row';
-          row.style.cursor = 'default';
-          row.innerHTML = `
-            <span class="statement-row-icon">${mesAbreviado}</span>
-            <span class="statement-row-body">
-              <span class="statement-row-title">${linha.mes}</span>
-              <span class="statement-row-subtitle">Contas ${formatar(linha.totalContas)} · Cartão ${formatar(linha.totalCartao)} · Entradas ${formatar(linha.totalEntradas)} · Reservado ${formatar(linha.totalReservado)}</span>
-            </span>
-            <span class="statement-row-end">
-              <span class="statement-row-value ${linha.saldo < 0 ? 'negative' : 'positive'}">${formatar(linha.saldo)}</span>
-            </span>
-          `;
-          tbody.appendChild(row);
-        });
-      }
-
-      atualizarChartSaldoMensal(linhasMensais);
-
-      if (statusEl) statusEl.textContent = "Dados carregados com sucesso.";
+    function classeValor(v) {
+      if (v > 0) return 'ra-pos';
+      if (v < 0) return 'ra-neg';
+      return '';
     }
 
-    let chartSaldoMensal = null;
-    function atualizarChartSaldoMensal(linhasMensais) {
-      const canvas = document.getElementById('chartSaldoMensal');
-      if (!canvas || typeof Chart === 'undefined') return;
-      if (chartSaldoMensal) { chartSaldoMensal.destroy(); chartSaldoMensal = null; }
+    async function carregarResumoAnual(ano) {
+      const seq = ++carregamentoSeq;
+      const statusEl = document.getElementById('statusCarregamento');
+      document.getElementById('tituloAnoResumo').textContent = ano;
+      statusEl.textContent = 'Carregando dados do ano…';
 
-      const labels = linhasMensais.map((l) => l.mes.slice(0, 3));
-      const valores = linhasMensais.map((l) => l.saldo);
-      const cores = valores.map((v) => (v < 0 ? '#B91C1C' : '#2563EB'));
+      let resumo;
+      try {
+        resumo = await window.finApi.request(`/api/financeiro/anos/${ano}/resumo`);
+      } catch (err) {
+        if (seq === carregamentoSeq) statusEl.textContent = 'Não foi possível carregar o ano.';
+        return;
+      }
+      if (seq !== carregamentoSeq) return;
+      const mesesDoAno = resumo.meses || {};
 
-      chartSaldoMensal = new Chart(canvas.getContext('2d'), {
-        type: 'bar',
-        data: { labels, datasets: [{ data: valores, backgroundColor: cores, borderRadius: 6, maxBarThickness: 40 }] },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => ` ${formatar(c.parsed.y)}` } } },
-          scales: {
-            y: { ticks: { callback: (v) => formatar(v), font: { size: 11 } }, grid: { color: 'rgba(148,163,184,0.15)' } },
-            x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-          },
-        },
+      const linhas = MESES.map((mes) => {
+        const data = mesesDoAno[mes] || {};
+        const contas = soma(data.contas);
+        const cartao = soma(data.cartao);
+        const debito = soma(data.debito);
+        const entradas = soma(data.adicionais);
+        const reservado = soma(data.reservado);
+        const despesas = contas + cartao + debito;
+        return {
+          mes,
+          contas,
+          cartao,
+          debito,
+          entradas,
+          reservado,
+          despesas,
+          saldo: entradas - despesas - reservado,
+          temDados: entradas + despesas + reservado > 0,
+        };
       });
+
+      const total = linhas.reduce((acc, l) => ({
+        contas: acc.contas + l.contas,
+        cartao: acc.cartao + l.cartao,
+        debito: acc.debito + l.debito,
+        entradas: acc.entradas + l.entradas,
+        reservado: acc.reservado + l.reservado,
+        despesas: acc.despesas + l.despesas,
+        saldo: acc.saldo + l.saldo,
+      }), { contas: 0, cartao: 0, debito: 0, entradas: 0, reservado: 0, despesas: 0, saldo: 0 });
+      const mesesComDados = linhas.filter((l) => l.temDados).length || 1;
+
+      const saldoEl = document.getElementById('anualSaldoDisponivel');
+      saldoEl.textContent = formatar(total.saldo);
+      saldoEl.classList.toggle('neg', total.saldo < 0);
+
+      const selo = document.getElementById('anualSelo');
+      const taxa = total.entradas > 0 ? Math.round((total.saldo / total.entradas) * 100) : 0;
+      selo.classList.toggle('neg', total.saldo < 0);
+      selo.textContent = total.entradas > 0
+        ? (total.saldo >= 0 ? `Sobrou ${taxa}% das receitas` : `Gastou ${Math.abs(taxa)}% além das receitas`)
+        : 'Sem receitas lançadas';
+
+      const comprometido = total.entradas > 0
+        ? Math.round(((total.despesas + total.reservado) / total.entradas) * 100)
+        : 0;
+      document.getElementById('anualPct').textContent = `${comprometido}%`;
+      const barra = document.getElementById('anualBarra');
+      barra.style.width = `${Math.min(100, comprometido)}%`;
+      barra.style.background = comprometido > 100 ? 'var(--negative)' : comprometido > 85 ? '#d97706' : '#15803d';
+      statusEl.textContent = `Despesas e reservas somam ${comprometido}% do que entrou no ano.`;
+
+      document.getElementById('anualTotalEntradas').textContent = formatar(total.entradas);
+      document.getElementById('anualTotalContas').textContent = formatar(total.despesas);
+      document.getElementById('anualTotalReservado').textContent = formatar(total.reservado);
+      document.getElementById('mediaEntradas').textContent = `Média de ${formatar(total.entradas / mesesComDados)} por mês`;
+      document.getElementById('mediaContas').textContent = `Média de ${formatar(total.despesas / mesesComDados)} por mês`;
+      document.getElementById('mediaReservado').textContent = `Média de ${formatar(total.reservado / mesesComDados)} por mês`;
+
+      renderizarTabela(ano, linhas, total);
+      desenharGrafico(linhas);
+    }
+
+    function renderizarTabela(ano, linhas, total) {
+      const hoje = new Date();
+      const mesAtual = String(hoje.getFullYear()) === String(ano) ? MESES[hoje.getMonth()] : '';
+      const corpo = document.getElementById('tabelaResumoAnual');
+      corpo.innerHTML = '';
+      linhas.forEach((l) => {
+        const tr = document.createElement('tr');
+        tr.className = `${l.mes === mesAtual ? 'atual' : ''}${l.temDados ? '' : ' vazio'}`;
+        tr.tabIndex = 0;
+        tr.innerHTML = `
+          <td>${l.mes}</td>
+          <td>${formatar(l.entradas)}</td>
+          <td>${formatar(l.contas)}</td>
+          <td>${formatar(l.cartao)}</td>
+          <td>${formatar(l.debito)}</td>
+          <td>${formatar(l.reservado)}</td>
+          <td class="${l.temDados ? classeValor(l.saldo) : ''}">${formatar(l.saldo)}</td>
+        `;
+        const abrir = () => {
+          window.location.href = `index.html?ano=${encodeURIComponent(ano)}&mes=${encodeURIComponent(l.mes)}`;
+        };
+        tr.addEventListener('click', abrir);
+        tr.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') abrir(); });
+        corpo.appendChild(tr);
+      });
+      document.getElementById('rodapeResumoAnual').innerHTML = `
+        <tr>
+          <td>Total</td>
+          <td>${formatar(total.entradas)}</td>
+          <td>${formatar(total.contas)}</td>
+          <td>${formatar(total.cartao)}</td>
+          <td>${formatar(total.debito)}</td>
+          <td>${formatar(total.reservado)}</td>
+          <td class="${classeValor(total.saldo)}">${formatar(total.saldo)}</td>
+        </tr>
+      `;
+    }
+
+    function desenharGrafico(linhas) {
+      const W = 980;
+      const H = 260;
+      const topo = 20;
+      const base = 220;
+      const esquerda = 56;
+      const largura = W - esquerda - 16;
+      const passo = largura / 12;
+      const maximo = Math.max(1, ...linhas.map((l) => Math.max(l.entradas, l.despesas)));
+      const minimoSaldo = Math.min(0, ...linhas.map((l) => l.saldo));
+      const escalaMax = maximo;
+      const escalaMin = minimoSaldo;
+      const y = (v) => base - ((v - escalaMin) / (escalaMax - escalaMin || 1)) * (base - topo);
+      const zero = y(0);
+
+      let g = '';
+      for (let i = 0; i <= 4; i++) {
+        const valor = escalaMin + ((escalaMax - escalaMin) * i) / 4;
+        const py = y(valor);
+        g += `<line x1="${esquerda}" x2="${W - 16}" y1="${py}" y2="${py}" stroke="#eef0f3"/>`;
+        g += `<text x="${esquerda - 8}" y="${py + 4}" text-anchor="end" font-size="11" fill="#94a3b8" font-family="Montserrat, sans-serif">${compacto.format(valor)}</text>`;
+      }
+      if (escalaMin < 0) {
+        g += `<line x1="${esquerda}" x2="${W - 16}" y1="${zero}" y2="${zero}" stroke="#cbd5e1"/>`;
+      }
+
+      const barra = Math.min(16, passo / 3.2);
+      const pontos = [];
+      linhas.forEach((l, i) => {
+        const cx = esquerda + passo * i + passo / 2;
+        const yr = y(l.entradas);
+        const yd = y(l.despesas);
+        g += `<rect x="${cx - barra - 2}" y="${yr}" width="${barra}" height="${Math.max(0, zero - yr)}" rx="4" fill="#2563eb"><title>${l.mes}: receitas ${formatar(l.entradas)}</title></rect>`;
+        g += `<rect x="${cx + 2}" y="${yd}" width="${barra}" height="${Math.max(0, zero - yd)}" rx="4" fill="#cbd5e1"><title>${l.mes}: despesas ${formatar(l.despesas)}</title></rect>`;
+        g += `<text x="${cx}" y="${H - 14}" text-anchor="middle" font-size="12" fill="#64748b" font-family="Montserrat, sans-serif">${l.mes.slice(0, 3)}</text>`;
+        pontos.push([cx, y(l.saldo), l]);
+      });
+
+      const caminho = pontos.map(([px, py], i) => `${i ? 'L' : 'M'}${px},${py}`).join(' ');
+      g += `<path d="${caminho}" fill="none" stroke="#0f172a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>`;
+      pontos.forEach(([px, py, l]) => {
+        g += `<circle cx="${px}" cy="${py}" r="3.5" fill="#fff" stroke="${l.saldo < 0 ? '#b91c1c' : '#0f172a'}" stroke-width="2"><title>${l.mes}: saldo ${formatar(l.saldo)}</title></circle>`;
+      });
+
+      document.getElementById('graficoAnual').innerHTML =
+        `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Receitas, despesas e saldo de cada mês">${g}</svg>`;
     }
 
     async function inicializarResumo() {
       popularListaAnosResumo();
       anoAtualResumo = obterAnoInicial();
-
-      const selectAnoResumo = document.getElementById("selectAnoResumo");
-      selectAnoResumo.value = anoAtualResumo;
-
-      selectAnoResumo.addEventListener("change", async (e) => {
+      const select = document.getElementById('selectAnoResumo');
+      select.value = anoAtualResumo;
+      select.addEventListener('change', async (e) => {
         anoAtualResumo = e.target.value;
+        const url = new URL(window.location.href);
+        url.searchParams.set('ano', anoAtualResumo);
+        window.history.replaceState(null, '', url);
         await carregarResumoAnual(anoAtualResumo);
       });
-
       await carregarResumoAnual(anoAtualResumo);
     }
 
-    auth.onAuthStateChanged(async user => {
-      if (user) {
-        currentUser = user;
-        const infoUsuario = document.getElementById('infoUsuario');
-        try {
-          const doc = await db.collection('users').doc(user.uid).get();
-          const dados = doc.exists ? doc.data() : {};
-          const nome = dados.name || user.displayName || user.email || 'Usuário';
-          if (infoUsuario) infoUsuario.textContent = `Resumo de: ${nome}`;
-        } catch (e) {
-          if (infoUsuario) infoUsuario.textContent = `Resumo de: ${user.email || 'Usuário'}`;
-        }
-        inicializarResumo();
-      } else {
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
         window.location.href = 'login.html';
+        return;
       }
+      currentUser = user;
+      const infoUsuario = document.getElementById('infoUsuario');
+      try {
+        const doc = await db.collection('users').doc(user.uid).get();
+        const dados = doc.exists ? doc.data() : {};
+        const nome = dados.name || user.displayName || user.email || 'Usuário';
+        infoUsuario.textContent = `Visão do ano inteiro de ${nome}`;
+      } catch (e) {
+        infoUsuario.textContent = 'Visão do ano inteiro';
+      }
+      inicializarResumo();
     });
   </script>
   <script src="js/mobile-nav.js?v=13"></script>

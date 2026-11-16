@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Saúde - Peso e Medidas</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#FFFFFF" />
+  <meta name="color-scheme" content="light" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="Fin" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Fin" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
+  <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
   <link rel="stylesheet" href="css/theme.css?v=10">
   <link rel="stylesheet" href="css/mobile-shell.css?v=8">
@@ -38,12 +48,12 @@
 
     .content > h1 { margin: 0; }
 
-    /* Abas Peso / Medidas */
     .saude-tabs {
       display: flex;
-      gap: 8px;
-      background: var(--slate-100);
-      padding: 6px;
+      gap: 4px;
+      background: #fff;
+      border: 1px solid #e8eaee;
+      padding: 4px;
       border-radius: 12px;
       width: fit-content;
     }
@@ -53,50 +63,93 @@
       background: transparent;
       color: var(--text-secondary);
       font-weight: 600;
-      font-size: 14px;
-      padding: 10px 22px;
+      font-size: 13px;
+      padding: 8px 18px;
       border-radius: 9px;
       cursor: pointer;
       font-family: var(--font-family);
+      display: inline-flex;
+      align-items: center;
       transition: background 0.15s ease, color 0.15s ease;
     }
 
+    .saude-tab:hover { color: var(--text-primary); }
+
     .saude-tab.active {
-      background: var(--bg-section);
-      color: var(--accent);
-      box-shadow: var(--shadow-sm);
+      background: #0f172a;
+      color: #fff;
     }
 
-    .tab-panel { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
-    #grupoListView, #grupoDetailView { min-width: 0; }
+    .tab-panel { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+    #grupoListView, #grupoDetailView { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 
-    /* Toggle de período do gráfico */
-    .periodo-toggle { display: flex; gap: 8px; flex-wrap: wrap; }
+    .section-card-title { margin: 0; }
+
+    .sd-card-topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .sd-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .sd-coluna { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+    .sd-form { display: grid; gap: 12px; margin-top: 14px; }
+
+    .sd-range {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .sd-range .campo { flex: 1 1 140px; }
+
+    .sd-modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sd-modal-head h3 { margin: 0; }
+    .modal-actions .btn-danger { margin-right: auto; }
+
+    .periodo-toggle { display: flex; gap: 6px; flex-wrap: wrap; }
 
     .periodo-opt {
-      flex: 1;
-      min-width: 90px;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1.5px solid var(--border-color);
-      background: var(--bg-section);
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid #e8eaee;
+      background: #fff;
       color: var(--text-secondary);
       font-weight: 600;
-      font-size: 13px;
+      font-size: 12px;
       cursor: pointer;
       font-family: var(--font-family);
       transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
 
+    .periodo-opt:hover { border-color: #cbd5e1; color: var(--text-primary); }
+
     .periodo-opt.active {
-      background: var(--accent-soft);
-      border-color: var(--accent);
-      color: var(--accent);
+      background: #0f172a;
+      border-color: #0f172a;
+      color: #fff;
     }
 
     .chart-container {
-      margin-top: 8px;
-      height: 360px;
+      margin-top: 14px;
+      height: 340px;
       position: relative;
     }
 
@@ -146,18 +199,16 @@
 
     .campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
     .campo > label {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      font-size: 12px;
+      font-weight: 500;
       color: var(--text-secondary);
     }
     .campo > input {
       width: 100%;
       min-width: 0;
-      padding: 11px 13px;
+      padding: 10px 12px;
       border-radius: 10px;
-      border: 1.5px solid var(--border-color);
+      border: 1px solid #e2e6ec;
       background: var(--bg-section);
       color: var(--text-primary);
       font-size: 14px;
@@ -180,12 +231,10 @@
     .medidas-bloco:first-child { border-top: none; padding-top: 0; }
 
     .medidas-bloco-titulo {
-      margin: 0 0 14px;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-secondary);
+      margin: 0 0 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
     }
 
     .membros-grid {
@@ -199,9 +248,9 @@
     .membros-grid input {
       width: 100%;
       min-width: 0;
-      padding: 11px 13px;
+      padding: 10px 12px;
       border-radius: 10px;
-      border: 1.5px solid var(--border-color);
+      border: 1px solid #e2e6ec;
       background: var(--bg-section);
       color: var(--text-primary);
       font-size: 14px;
@@ -339,9 +388,9 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      transition: border-color 0.15s ease, transform 0.15s ease;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    .grupo-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .grupo-card:hover { border-color: #cbd5e1; box-shadow: 0 4px 14px -8px rgba(15, 23, 42, 0.18); }
     .grupo-card .g-nome { font-size: 15px; font-weight: 700; }
     .grupo-card .g-sub { font-size: 12.5px; color: var(--text-secondary); }
 
@@ -416,6 +465,10 @@
     .user-result .u-nome { font-weight: 600; font-size: 13.5px; }
     .user-result .u-email { font-size: 12px; color: var(--text-secondary); }
 
+    @media (max-width: 960px) {
+      .sd-grid { grid-template-columns: 1fr; }
+    }
+
     @media (max-width: 768px), (max-height: 500px) {
       .rank-cols { grid-template-columns: 1fr; }
       .grupo-cartoes { grid-template-columns: 1fr; }
@@ -455,79 +508,88 @@
 <body>
 
   <main class="content">
-    <h1>Saúde</h1>
-
-    <div class="saude-tabs">
-      <button type="button" class="saude-tab" data-tab="peso">Peso</button>
-      <button type="button" class="saude-tab" data-tab="medidas">Medidas</button>
-      <button type="button" class="saude-tab" data-tab="grupo">Grupo<span id="grupoBadge" class="tab-badge" hidden>0</span></button>
+    <div class="page-header-row">
+      <div class="page-header">
+        <h1>Saúde</h1>
+        <p>Acompanhe peso, medidas e a evolução do seu grupo</p>
+      </div>
+      <div class="saude-tabs" role="tablist">
+        <button type="button" class="saude-tab" data-tab="peso">Peso</button>
+        <button type="button" class="saude-tab" data-tab="medidas">Medidas</button>
+        <button type="button" class="saude-tab" data-tab="grupo">Grupo<span id="grupoBadge" class="tab-badge" hidden>0</span></button>
+      </div>
     </div>
 
     <!-- ================= ABA PESO ================= -->
     <section id="tabPeso" class="tab-panel">
-      <div class="section-card">
-        <h3 class="section-card-title">Evolução do peso</h3>
+      <div class="stat-row" id="pesoStats">
+        <div class="stat-tile">
+          <span class="stat-tile-icon"><svg viewBox="0 0 24 24"><path d="M12 3a4 4 0 0 1 4 4H8a4 4 0 0 1 4-4Z"/><path d="M5 7h14l1.6 11.2A2 2 0 0 1 18.6 21H5.4a2 2 0 0 1-2-2.8L5 7Z"/></svg></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">Peso atual</span><span class="stat-tile-value" id="statPesoAtual">—</span></span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-tile-icon"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M21 7v6h-6"/></svg></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">Variação total</span><span class="stat-tile-value" id="statPesoTotal">—</span></span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-tile-icon"><svg viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">No período</span><span class="stat-tile-value" id="statPesoPeriodo">—</span></span>
+        </div>
+        <div class="stat-tile" id="statMetaTile" hidden>
+          <span class="stat-tile-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></span>
+          <span class="stat-tile-body"><span class="stat-tile-label">Para a meta</span><span class="stat-tile-value" id="statMeta">—</span></span>
+        </div>
+      </div>
 
-        <div class="stat-row" id="pesoStats">
-          <div class="stat-tile">
-            <span class="stat-tile-icon"><svg viewBox="0 0 24 24"><path d="M12 3a4 4 0 0 1 4 4H8a4 4 0 0 1 4-4Z"/><path d="M5 7h14l1.6 11.2A2 2 0 0 1 18.6 21H5.4a2 2 0 0 1-2-2.8L5 7Z"/></svg></span>
-            <span class="stat-tile-body"><span class="stat-tile-label">Peso atual</span><span class="stat-tile-value" id="statPesoAtual">—</span></span>
+      <div class="sd-grid">
+        <div class="section-card sd-grafico">
+          <div class="sd-card-topo">
+            <h3 class="section-card-title">Evolução do peso</h3>
+            <div class="periodo-toggle">
+              <button type="button" class="periodo-opt" data-dias="7">Semana</button>
+              <button type="button" class="periodo-opt" data-dias="30">Mês</button>
+              <button type="button" class="periodo-opt" data-dias="365">Ano</button>
+            </div>
           </div>
-          <div class="stat-tile">
-            <span class="stat-tile-icon"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M21 7v6h-6"/></svg></span>
-            <span class="stat-tile-body"><span class="stat-tile-label">Variação total</span><span class="stat-tile-value" id="statPesoTotal">—</span></span>
+
+          <div class="sd-range">
+            <div class="campo"><label for="rangeInicio">De</label><input id="rangeInicio" type="date" title="Data inicial"></div>
+            <div class="campo"><label for="rangeFim">Até</label><input id="rangeFim" type="date" title="Data final"></div>
+            <button type="button" class="btn-cancel" onclick="aplicarRange()">Filtrar</button>
+            <button type="button" class="btn-inline" id="btnLimparRange" onclick="limparRange()" hidden>Limpar</button>
           </div>
-          <div class="stat-tile">
-            <span class="stat-tile-icon"><svg viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg></span>
-            <span class="stat-tile-body"><span class="stat-tile-label">No período</span><span class="stat-tile-value" id="statPesoPeriodo">—</span></span>
-          </div>
-          <div class="stat-tile" id="statMetaTile" hidden>
-            <span class="stat-tile-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></span>
-            <span class="stat-tile-body"><span class="stat-tile-label">Para a meta</span><span class="stat-tile-value" id="statMeta">—</span></span>
+          <p class="info-text" id="rangeResumo" hidden></p>
+
+          <div class="chart-container">
+            <canvas id="graficoPeso"></canvas>
           </div>
         </div>
 
-        <div class="periodo-toggle" style="margin-top:16px;">
-          <button type="button" class="periodo-opt" data-dias="7">Semanal</button>
-          <button type="button" class="periodo-opt" data-dias="30">Mensal</button>
-          <button type="button" class="periodo-opt" data-dias="365">Anual</button>
-        </div>
+        <div class="sd-coluna">
+          <div class="section-card">
+            <h3 class="section-card-title">Registrar peso</h3>
+            <div class="sd-form">
+              <div class="campo"><label for="pesoValor">Peso (kg)</label><input id="pesoValor" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00"></div>
+              <div class="campo"><label for="pesoData">Data</label><input id="pesoData" type="date"></div>
+              <button class="btn-confirm" onclick="finRunOnce(event, () => registrarPeso())">Registrar peso</button>
+            </div>
+          </div>
 
-        <div class="form-row range-row" style="margin-top:12px; align-items:center;">
-          <input id="rangeInicio" type="date" title="Data inicial" aria-label="Data inicial">
-          <input id="rangeFim" type="date" title="Data final" aria-label="Data final">
-          <button type="button" class="btn-cancel" onclick="aplicarRange()">Filtrar intervalo</button>
-          <button type="button" class="btn-inline" id="btnLimparRange" onclick="limparRange()" hidden>Limpar</button>
-        </div>
-        <p class="info-text" id="rangeResumo" hidden></p>
-
-        <div class="chart-container">
-          <canvas id="graficoPeso"></canvas>
+          <div class="section-card">
+            <h3 class="section-card-title">Metas de peso</h3>
+            <div class="sd-form">
+              <div class="campo"><label for="metaValor">Peso alvo (kg)</label><input id="metaValor" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00"></div>
+              <div class="campo"><label for="metaData">Prazo (opcional)</label><input id="metaData" type="date"></div>
+              <button class="btn-cancel" onclick="finRunOnce(event, () => adicionarMeta())">Adicionar meta</button>
+            </div>
+            <p class="info-text" id="metaHint" style="margin:8px 0 0;"></p>
+            <div id="listaMetas" class="meta-list"></div>
+          </div>
         </div>
       </div>
 
       <div class="section-card">
-        <h3 class="section-card-title">Registrar peso</h3>
-        <div class="form-row">
-          <input id="pesoValor" type="number" step="0.01" min="0" placeholder="Peso (kg)">
-          <input id="pesoData" type="date">
-          <button class="btn-confirm" onclick="finRunOnce(event, () => registrarPeso())">Registrar</button>
-        </div>
-      </div>
-
-      <div class="section-card">
-        <h3 class="section-card-title">Metas de peso</h3>
-        <div class="form-row">
-          <input id="metaValor" type="number" step="0.01" min="0" placeholder="Peso alvo (kg)">
-          <input id="metaData" type="date" title="Prazo (opcional)">
-          <button class="btn-cancel" onclick="finRunOnce(event, () => adicionarMeta())">Adicionar meta</button>
-        </div>
-        <p class="info-text" id="metaHint" style="margin:8px 0 0;"></p>
-        <div id="listaMetas" class="meta-list"></div>
-      </div>
-
-      <div class="section-card">
-        <h4 id="listaPesoTitulo">Histórico do período</h4>
+        <h3 class="section-card-title" id="listaPesoTitulo">Histórico do período</h3>
         <div id="listaPeso" class="statement-list"></div>
       </div>
     </section>
@@ -586,8 +648,8 @@
       </div>
 
       <div class="section-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-          <h4 style="margin:0;">Registros salvos</h4>
+        <div class="sd-card-topo">
+          <h3 class="section-card-title">Registros salvos</h3>
           <button class="btn-add" id="btnComparar" onclick="compararSelecionadas()" disabled>Comparar (0)</button>
         </div>
         <p class="info-text" style="margin:8px 0 0;">Marque dois ou mais registros para comparar lado a lado.</p>
@@ -595,8 +657,8 @@
       </div>
 
       <div id="comparacaoResultado" class="section-card" hidden>
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-          <h3 class="section-card-title" style="margin:0;">Comparação</h3>
+        <div class="sd-card-topo">
+          <h3 class="section-card-title">Comparação</h3>
           <button class="btn-inline" onclick="fecharComparacao()">Fechar</button>
         </div>
         <p class="compare-hint">Gire o celular na horizontal e use o gesto de pinça para dar zoom na comparação.</p>
@@ -614,8 +676,8 @@
         </div>
 
         <div class="section-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-            <h3 class="section-card-title" style="margin:0;">Meus grupos</h3>
+          <div class="sd-card-topo">
+            <h3 class="section-card-title">Meus grupos</h3>
             <button class="btn-add" onclick="abrirModalNovoGrupo()">Criar grupo</button>
           </div>
           <p class="info-text" style="margin:8px 0 0;">Crie um grupo e convide outras pessoas para comparar a evolução de peso e medidas.</p>
@@ -626,9 +688,9 @@
       <!-- DETALHE -->
       <div id="grupoDetailView" hidden>
         <div class="section-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-            <h3 class="section-card-title" style="margin:0;" id="grupoDetNome">Grupo</h3>
-            <button class="btn-inline" onclick="voltarListaGrupos()">Voltar</button>
+          <div class="sd-card-topo">
+            <h3 class="section-card-title" id="grupoDetNome">Grupo</h3>
+            <button class="btn-cancel" onclick="voltarListaGrupos()">Voltar</button>
           </div>
           <div class="membros-lista" id="grupoMembros" style="margin-top:12px;"></div>
           <div class="modal-actions" style="margin-top:14px;">
@@ -658,7 +720,7 @@
   <!-- Modal editar peso -->
   <div id="editPesoModal" class="modal-overlay">
     <div class="modal-content">
-      <h3>Editar registro de peso</h3>
+      <div class="sd-modal-head"><h3>Editar registro de peso</h3><button type="button" class="fin-entry-x" onclick="fecharModal('editPesoModal')" aria-label="Fechar">&times;</button></div>
       <div class="campo"><label for="editPesoData">Data</label><input id="editPesoData" type="date"></div>
       <div class="campo"><label for="editPesoValor">Peso (kg)</label><input id="editPesoValor" type="number" step="0.01" min="0"></div>
       <div class="modal-actions">
@@ -671,7 +733,7 @@
   <!-- Modal ver medidas (boneco + tabela) -->
   <div id="verMedidasModal" class="modal-overlay">
     <div class="modal-content" style="max-width: 460px;">
-      <h3 id="verMedidasTitulo">Medidas</h3>
+      <div class="sd-modal-head"><h3 id="verMedidasTitulo">Medidas</h3><button type="button" class="fin-entry-x" onclick="fecharModal('verMedidasModal')" aria-label="Fechar">&times;</button></div>
       <div class="silhueta-wrap" style="width:100%;max-width:220px;margin:0 auto;" id="verMedidasSilhueta"></div>
       <table class="compare-table"><tbody id="verMedidasTabela"></tbody></table>
       <div class="modal-actions">
@@ -684,7 +746,7 @@
   <!-- Modal editar medidas -->
   <div id="editMedidasModal" class="modal-overlay">
     <div class="modal-content">
-      <h3>Editar registro de medidas</h3>
+      <div class="sd-modal-head"><h3>Editar registro de medidas</h3><button type="button" class="fin-entry-x" onclick="fecharModal('editMedidasModal')" aria-label="Fechar">&times;</button></div>
       <div class="campo"><label for="editMedidasData">Data</label><input id="editMedidasData" type="date"></div>
       <div class="medidas-centrais" id="editMedidasCampos"></div>
       <div class="modal-actions">
@@ -697,7 +759,7 @@
   <!-- Modal criar grupo -->
   <div id="novoGrupoModal" class="modal-overlay">
     <div class="modal-content">
-      <h3>Criar grupo</h3>
+      <div class="sd-modal-head"><h3>Criar grupo</h3><button type="button" class="fin-entry-x" onclick="fecharModal('novoGrupoModal')" aria-label="Fechar">&times;</button></div>
       <div class="campo"><label for="novoGrupoNome">Nome do grupo</label><input id="novoGrupoNome" maxlength="120" placeholder="Ex: Foco 2026"></div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="fecharModal('novoGrupoModal')">Cancelar</button>
@@ -709,7 +771,7 @@
   <!-- Modal adicionar pessoa -->
   <div id="addPessoaModal" class="modal-overlay">
     <div class="modal-content">
-      <h3>Adicionar pessoa ao grupo</h3>
+      <div class="sd-modal-head"><h3>Adicionar pessoa ao grupo</h3><button type="button" class="fin-entry-x" onclick="fecharModal('addPessoaModal')" aria-label="Fechar">&times;</button></div>
       <div class="campo"><label for="buscaPessoa">Buscar por nome ou e-mail</label><input id="buscaPessoa" autocomplete="off" placeholder="Digite ao menos 3 letras"></div>
       <div id="buscaResultado" class="user-result"></div>
       <div class="modal-actions">

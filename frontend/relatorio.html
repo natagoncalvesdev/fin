@@ -16,8 +16,8 @@
   <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
   <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
-  <link rel="stylesheet" href="css/theme.css?v=10">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=8">
+  <link rel="stylesheet" href="css/theme.css?v=11">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=9">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=7"></script>
@@ -141,6 +141,26 @@
       .rl-kpis { grid-template-columns: 1fr; }
       .rl-barra-linha { grid-template-columns: minmax(0, 1fr) auto; }
       .rl-barra-linha .rl-trilho { grid-column: 1 / -1; grid-row: 2; }
+    }
+
+    @media (max-width: 768px), (max-height: 500px) {
+      .rl-filtros { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 14px; }
+      .rl-filtros label:last-child { grid-column: 1 / -1; }
+      .rl-filtros select { min-height: 42px; }
+      .rl-kpis { gap: 10px; }
+      .rl-kpi {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: baseline;
+        gap: 2px 12px;
+        padding: 14px 16px;
+      }
+      .rl-kpi-valor { font-size: 17px; margin: 0; text-align: right; }
+      .rl-kpi small:last-child { grid-column: 1 / -1; }
+      .rl-barra-linha { padding: 10px 4px; gap: 6px 12px; }
+      .rl-dica { display: block; margin: 4px 0 0; }
+      .content .categoria-cards { grid-template-columns: 1fr; gap: 10px; }
+      .content .categoria-card { padding: 16px; }
     }
 
     .modal-categorias {

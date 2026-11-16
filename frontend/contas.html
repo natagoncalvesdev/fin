@@ -16,8 +16,8 @@
   <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
   <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
-  <link rel="stylesheet" href="css/theme.css?v=10">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=8">
+  <link rel="stylesheet" href="css/theme.css?v=11">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=9">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
@@ -284,6 +284,22 @@
       .ct-resumo { grid-template-columns: 1fr; }
       .ct-kpis { grid-template-columns: 1fr; }
       .ct-total { font-size: 32px; }
+    }
+
+    @media (max-width: 768px), (max-height: 500px) {
+      .ct-resumo { gap: 18px; padding: 18px 16px; }
+      .ct-total { font-size: 30px; margin: 4px 0 8px; }
+      .ct-kpis { gap: 10px; }
+      .ct-kpi { padding: 14px 16px; gap: 12px; }
+      .ct-kpi-ic { width: 36px; height: 36px; border-radius: 10px; }
+      .ct-kpi-valor { font-size: 17px; }
+      .ct-grid { gap: 12px; }
+      .ct-cab { margin-bottom: 4px; }
+      .ct-chips { width: 100%; }
+      .ct-chip { flex: 1 1 auto; padding: 8px 10px; }
+      .ct-item { grid-template-columns: 36px minmax(0, 1fr) auto; gap: 10px; }
+      .ct-ic { width: 36px; height: 36px; }
+      .ct-status { padding: 5px 10px; }
     }
   </style>
 </head>

@@ -15,7 +15,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
   <script src="/js/fin-pwa.js" defer></script>
-  <link rel="stylesheet" href="css/theme.css?v=10" />
+  <link rel="stylesheet" href="css/theme.css?v=11" />
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
@@ -91,6 +91,15 @@
       color: var(--negative);
       margin-top: 15px;
       display: none;
+    }
+    @media (max-width: 480px) {
+      body { align-items: flex-start; padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom)); box-sizing: border-box; }
+      .admin-container { width: 100%; padding: 24px 18px; gap: 16px; border-radius: 18px; }
+      h1 { font-size: 1.3rem; }
+      select { font-size: 16px; min-height: 46px; }
+      .button-group .btn-add,
+      .button-group .btn-cancel,
+      .btn-back { min-height: 46px; flex-basis: 100%; }
     }
   </style>
 </head>

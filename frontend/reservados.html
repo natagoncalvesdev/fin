@@ -16,8 +16,8 @@
   <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
   <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
-  <link rel="stylesheet" href="css/theme.css?v=10">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=8">
+  <link rel="stylesheet" href="css/theme.css?v=11">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=9">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
@@ -118,6 +118,22 @@
     @media (max-width: 860px) {
       .rs-resumo { grid-template-columns: 1fr; }
       .rs-total { font-size: 32px; }
+    }
+
+    @media (max-width: 768px), (max-height: 500px) {
+      .rs-resumo { gap: 18px; padding: 18px 16px; }
+      .rs-total { font-size: 30px; margin: 4px 0 8px; }
+      .rs-comp div { grid-template-columns: 10px minmax(0, 1fr) auto 36px; gap: 8px; }
+      .rs-chips {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        width: calc(100% + 32px);
+        margin: 0 -16px;
+        padding: 2px 16px;
+        scrollbar-width: none;
+      }
+      .rs-chips::-webkit-scrollbar { display: none; }
+      .rs-chip { flex: none; padding: 8px 12px; }
     }
   </style>
 </head>

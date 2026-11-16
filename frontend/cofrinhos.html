@@ -16,8 +16,8 @@
   <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
   <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
-  <link rel="stylesheet" href="css/theme.css?v=10">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=8">
+  <link rel="stylesheet" href="css/theme.css?v=11">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=9">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
@@ -193,7 +193,43 @@
 
     body.mobile-shell .content #listView,
     body.mobile-shell .content #detailView {
-      gap: 20px;
+      gap: 12px;
+    }
+
+    @media (max-width: 768px), (max-height: 500px) {
+      .cofre-grid { gap: 10px; }
+      .cofre-card { padding: 16px; }
+      .cofre-valores strong { font-size: 20px; }
+      .convite-banner { flex-direction: column; align-items: stretch; }
+
+      body.mobile-shell .cofre-hero { padding: 18px 16px; gap: 16px; }
+      body.mobile-shell .cofre-hero-body {
+        grid-template-columns: auto minmax(0, 1fr);
+        justify-items: start;
+        text-align: left;
+        gap: 16px;
+        width: 100%;
+      }
+      body.mobile-shell .cofre-ring-wrap,
+      body.mobile-shell .cofre-ring-wrap canvas { width: 84px !important; height: 84px !important; }
+      body.mobile-shell .cofre-ring-pct { font-size: 17px; }
+      body.mobile-shell .cofre-hero-values .saldo { font-size: 28px; }
+      body.mobile-shell .cofre-hero-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%;
+      }
+      body.mobile-shell .cofre-hero-actions > * { min-height: 42px; justify-content: center; padding-left: 6px; padding-right: 6px; }
+
+      body.mobile-shell .cofre-dash-grid { gap: 12px; }
+      body.mobile-shell .cofre-chart-box.tall { height: 220px; }
+      body.mobile-shell .det-projecao-head .modo-toggle { min-width: 0; max-width: none; width: 100%; }
+      body.mobile-shell .calc-tabela th,
+      body.mobile-shell .calc-tabela td { padding: 9px 10px; }
+      body.mobile-shell .campo > input,
+      body.mobile-shell .campo > select,
+      body.mobile-shell .extras-cofrinho-add select,
+      body.mobile-shell .extras-cofrinho-add input { font-size: 16px; min-height: 44px; }
     }
 
     /* —— Detalhe / painel do cofrinho —— */
@@ -415,13 +451,13 @@
     }
     @media (max-width: 768px) {
       #modalEditar.modal-overlay {
-        padding: 10px;
+        padding: 0;
         overflow-x: hidden;
-        align-items: flex-start;
+        align-items: flex-end;
       }
       .modal-edit-cofrinho {
-        padding: 20px 16px;
-        max-height: calc(100dvh - 16px);
+        padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+        max-height: 94dvh;
       }
       .edit-cofrinho-grid { grid-template-columns: 1fr; }
       .modal-edit-cofrinho .form-row {

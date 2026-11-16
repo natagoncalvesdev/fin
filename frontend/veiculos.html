@@ -16,8 +16,8 @@
   <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
   <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
-  <link rel="stylesheet" href="css/theme.css?v=10">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=8">
+  <link rel="stylesheet" href="css/theme.css?v=11">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=9">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
@@ -133,7 +133,13 @@
 
     @media (max-width: 768px), (max-height: 500px) {
       .content { max-width: 100%; }
-      .vc-form { grid-template-columns: 1fr; }
+      .page-content, .vc-detalhes, .vc-grid { gap: 12px; }
+      .vc-card-topo { flex-direction: column; align-items: flex-start; gap: 2px; }
+      .vc-form { gap: 10px; margin-top: 10px; }
+      .vc-campo input, .vc-campo select { font-size: 16px; min-height: 44px; }
+      .vc-form-acoes .btn-confirm { width: 100%; min-height: 44px; }
+      .vc-resumo-linha { gap: 6px; }
+      .vc-resumo-linha div { padding: 8px; }
     }
   </style>
 </head>

@@ -16,8 +16,8 @@
   <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
   <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
-  <link rel="stylesheet" href="css/theme.css?v=10">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=8">
+  <link rel="stylesheet" href="css/theme.css?v=11">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=9">
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
   <script src="sidebar.js?v=9"></script>
@@ -134,10 +134,73 @@
 
     .ra-status { font-size: 12px; color: var(--text-secondary); }
 
+    .ra-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .ra-lista-mobile { display: flex; flex-direction: column; }
+
+    .ra-mes {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 2px 12px;
+      align-items: center;
+      width: 100%;
+      padding: 12px 2px;
+      border: 0;
+      border-top: 1px solid #eef0f3;
+      background: none;
+      font: inherit;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .ra-mes:first-child { border-top: 0; }
+    .ra-mes:active { background: #f8fafc; }
+    .ra-mes-nome { font-size: 14px; font-weight: 600; }
+    .ra-mes.atual .ra-mes-nome::after {
+      content: 'mês atual';
+      margin-left: 8px;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--accent);
+      background: #eef4ff;
+      padding: 2px 7px;
+      border-radius: 99px;
+      vertical-align: 1px;
+    }
+    .ra-mes.vazio .ra-mes-nome,
+    .ra-mes.vazio .ra-mes-saldo { color: #94a3b8; }
+    .ra-mes-saldo { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+    .ra-mes-det { grid-column: 1 / -1; font-size: 12px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+
+    .ra-mes.total {
+      cursor: default;
+      margin-top: 4px;
+      padding-top: 14px;
+      border-top: 1px solid #e2e6ec;
+    }
+
     @media (max-width: 860px) {
       .ra-hero { grid-template-columns: 1fr; }
       .ra-kpis { grid-template-columns: 1fr; }
       .ra-saldo { font-size: 32px; }
+    }
+
+    @media (max-width: 768px), (max-height: 500px) {
+      .ra-hero { gap: 18px; padding: 18px 16px; }
+      .ra-saldo { font-size: 30px; margin: 4px 0 8px; }
+      .ra-kpis { gap: 10px; }
+      .ra-kpi {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: baseline;
+        gap: 2px 12px;
+        padding: 14px 16px;
+      }
+      .ra-kpi-valor { font-size: 17px; margin: 0; text-align: right; }
+      .ra-kpi small:last-child { grid-column: 1 / -1; }
+      .ra-cab { flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+      .ra-legenda { gap: 12px; flex-wrap: wrap; }
     }
   </style>
 </head>
@@ -149,7 +212,7 @@
         <h1>Resumo anual</h1>
         <p id="infoUsuario">Carregando…</p>
       </div>
-      <div class="header-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+      <div class="header-actions ra-acoes">
         <select id="selectAnoResumo" aria-label="Ano"></select>
         <a class="btn-cancel" href="relatorio.html">Relatórios</a>
       </div>
@@ -204,9 +267,11 @@
     <section class="section-card">
       <div class="ra-cab">
         <h2>Detalhamento por mês</h2>
-        <span class="ra-status">Clique em um mês para abrir na Home</span>
+        <span class="ra-status desktop-only">Clique em um mês para abrir na Home</span>
+        <span class="ra-status mobile-only">Toque em um mês para abrir na Home</span>
       </div>
-      <div class="ra-tabela-wrap">
+      <div class="ra-lista-mobile mobile-only" id="listaMesesMobile"></div>
+      <div class="ra-tabela-wrap desktop-only">
         <table class="ra-tabela">
           <thead>
             <tr>
@@ -244,6 +309,9 @@
     let currentUser = null;
     let anoAtualResumo = '';
     let carregamentoSeq = 0;
+    let ultimasLinhas = null;
+    const mqMobile = window.matchMedia('(max-width: 768px), (max-height: 500px)');
+    mqMobile.addEventListener('change', () => { if (ultimasLinhas) desenharGrafico(ultimasLinhas); });
 
     function soma(itens) {
       return (itens || []).reduce((acc, item) => acc + Number(item.valor || 0), 0);
@@ -389,15 +457,54 @@
           <td class="${classeValor(total.saldo)}">${formatar(total.saldo)}</td>
         </tr>
       `;
+      renderizarListaMobile(ano, linhas, total, mesAtual);
+    }
+
+    function detalheMes(l) {
+      const partes = [`Receitas ${formatar(l.entradas)}`, `Despesas ${formatar(l.despesas)}`];
+      if (l.reservado > 0) partes.push(`Reservado ${formatar(l.reservado)}`);
+      return partes.join(' · ');
+    }
+
+    function renderizarListaMobile(ano, linhas, total, mesAtual) {
+      const lista = document.getElementById('listaMesesMobile');
+      lista.innerHTML = '';
+      linhas.forEach((l) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `ra-mes${l.mes === mesAtual ? ' atual' : ''}${l.temDados ? '' : ' vazio'}`;
+        btn.innerHTML = `
+          <span class="ra-mes-nome">${l.mes}</span>
+          <span class="ra-mes-saldo ${l.temDados ? classeValor(l.saldo) : ''}">${formatar(l.saldo)}</span>
+          <span class="ra-mes-det">${l.temDados ? detalheMes(l) : 'Sem lançamentos'}</span>
+        `;
+        btn.addEventListener('click', () => {
+          window.location.href = `index.html?ano=${encodeURIComponent(ano)}&mes=${encodeURIComponent(l.mes)}`;
+        });
+        lista.appendChild(btn);
+      });
+      const totalEl = document.createElement('div');
+      totalEl.className = 'ra-mes total';
+      totalEl.innerHTML = `
+        <span class="ra-mes-nome">Total do ano</span>
+        <span class="ra-mes-saldo ${classeValor(total.saldo)}">${formatar(total.saldo)}</span>
+        <span class="ra-mes-det">${detalheMes(total)}</span>
+      `;
+      lista.appendChild(totalEl);
     }
 
     function desenharGrafico(linhas) {
-      const W = 980;
-      const H = 260;
-      const topo = 20;
-      const base = 220;
-      const esquerda = 56;
-      const largura = W - esquerda - 16;
+      ultimasLinhas = linhas;
+      const mobile = mqMobile.matches;
+      const W = mobile ? 360 : 980;
+      const H = mobile ? 230 : 260;
+      const topo = mobile ? 14 : 20;
+      const base = mobile ? 196 : 220;
+      const esquerda = mobile ? 38 : 56;
+      const direita = mobile ? 6 : 16;
+      const fonteEixo = mobile ? 9.5 : 11;
+      const fonteMes = mobile ? 9.5 : 12;
+      const largura = W - esquerda - direita;
       const passo = largura / 12;
       const maximo = Math.max(1, ...linhas.map((l) => Math.max(l.entradas, l.despesas)));
       const minimoSaldo = Math.min(0, ...linhas.map((l) => l.saldo));
@@ -410,29 +517,31 @@
       for (let i = 0; i <= 4; i++) {
         const valor = escalaMin + ((escalaMax - escalaMin) * i) / 4;
         const py = y(valor);
-        g += `<line x1="${esquerda}" x2="${W - 16}" y1="${py}" y2="${py}" stroke="#eef0f3"/>`;
-        g += `<text x="${esquerda - 8}" y="${py + 4}" text-anchor="end" font-size="11" fill="#94a3b8" font-family="Montserrat, sans-serif">${compacto.format(valor)}</text>`;
+        g += `<line x1="${esquerda}" x2="${W - direita}" y1="${py}" y2="${py}" stroke="#eef0f3"/>`;
+        g += `<text x="${esquerda - 6}" y="${py + 3.5}" text-anchor="end" font-size="${fonteEixo}" fill="#94a3b8" font-family="Montserrat, sans-serif">${compacto.format(valor)}</text>`;
       }
       if (escalaMin < 0) {
-        g += `<line x1="${esquerda}" x2="${W - 16}" y1="${zero}" y2="${zero}" stroke="#cbd5e1"/>`;
+        g += `<line x1="${esquerda}" x2="${W - direita}" y1="${zero}" y2="${zero}" stroke="#cbd5e1"/>`;
       }
 
-      const barra = Math.min(16, passo / 3.2);
+      const barra = Math.min(16, passo / (mobile ? 2.8 : 3.2));
+      const vao = mobile ? 1 : 2;
       const pontos = [];
       linhas.forEach((l, i) => {
         const cx = esquerda + passo * i + passo / 2;
         const yr = y(l.entradas);
         const yd = y(l.despesas);
-        g += `<rect x="${cx - barra - 2}" y="${yr}" width="${barra}" height="${Math.max(0, zero - yr)}" rx="4" fill="#2563eb"><title>${l.mes}: receitas ${formatar(l.entradas)}</title></rect>`;
-        g += `<rect x="${cx + 2}" y="${yd}" width="${barra}" height="${Math.max(0, zero - yd)}" rx="4" fill="#cbd5e1"><title>${l.mes}: despesas ${formatar(l.despesas)}</title></rect>`;
-        g += `<text x="${cx}" y="${H - 14}" text-anchor="middle" font-size="12" fill="#64748b" font-family="Montserrat, sans-serif">${l.mes.slice(0, 3)}</text>`;
+        const raio = mobile ? 2.5 : 4;
+        g += `<rect x="${cx - barra - vao}" y="${yr}" width="${barra}" height="${Math.max(0, zero - yr)}" rx="${raio}" fill="#2563eb"><title>${l.mes}: receitas ${formatar(l.entradas)}</title></rect>`;
+        g += `<rect x="${cx + vao}" y="${yd}" width="${barra}" height="${Math.max(0, zero - yd)}" rx="${raio}" fill="#cbd5e1"><title>${l.mes}: despesas ${formatar(l.despesas)}</title></rect>`;
+        g += `<text x="${cx}" y="${H - (mobile ? 12 : 14)}" text-anchor="middle" font-size="${fonteMes}" fill="#64748b" font-family="Montserrat, sans-serif">${l.mes.slice(0, 3)}</text>`;
         pontos.push([cx, y(l.saldo), l]);
       });
 
       const caminho = pontos.map(([px, py], i) => `${i ? 'L' : 'M'}${px},${py}`).join(' ');
-      g += `<path d="${caminho}" fill="none" stroke="#0f172a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>`;
+      g += `<path d="${caminho}" fill="none" stroke="#0f172a" stroke-width="${mobile ? 1.5 : 2}" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>`;
       pontos.forEach(([px, py, l]) => {
-        g += `<circle cx="${px}" cy="${py}" r="3.5" fill="#fff" stroke="${l.saldo < 0 ? '#b91c1c' : '#0f172a'}" stroke-width="2"><title>${l.mes}: saldo ${formatar(l.saldo)}</title></circle>`;
+        g += `<circle cx="${px}" cy="${py}" r="${mobile ? 2.6 : 3.5}" fill="#fff" stroke="${l.saldo < 0 ? '#b91c1c' : '#0f172a'}" stroke-width="${mobile ? 1.5 : 2}"><title>${l.mes}: saldo ${formatar(l.saldo)}</title></circle>`;
       });
 
       document.getElementById('graficoAnual').innerHTML =

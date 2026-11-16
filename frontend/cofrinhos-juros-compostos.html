@@ -16,8 +16,8 @@
   <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
   <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
-  <link rel="stylesheet" href="css/theme.css?v=10">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=8">
+  <link rel="stylesheet" href="css/theme.css?v=11">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=9">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
@@ -48,16 +48,14 @@
 
     .campo { display: flex; flex-direction: column; gap: 6px; }
     .campo > label {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      font-size: 12px;
+      font-weight: 500;
       color: var(--text-secondary);
     }
     .campo > input {
-      padding: 11px 13px;
+      padding: 10px 12px;
       border-radius: 10px;
-      border: 1.5px solid var(--border-color);
+      border: 1px solid #e2e6ec;
       background: var(--bg-section);
       color: var(--text-primary);
       font-size: 14px;
@@ -69,23 +67,23 @@
       box-shadow: 0 0 0 3px var(--accent-soft);
     }
 
-    .modo-toggle { display: flex; gap: 8px; }
+    .modo-toggle { display: flex; gap: 4px; padding: 4px; border: 1px solid #e8eaee; border-radius: 12px; background: #fff; }
     .modo-opt {
       flex: 1;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1.5px solid var(--border-color);
-      background: var(--bg-section);
+      padding: 8px 10px;
+      border-radius: 9px;
+      border: 0;
+      background: transparent;
       color: var(--text-secondary);
       font-weight: 600;
       font-size: 12.5px;
       cursor: pointer;
       font-family: var(--font-family);
     }
+    .modo-opt:hover { color: var(--text-primary); }
     .modo-opt.active {
-      background: var(--accent-soft);
-      border-color: var(--accent);
-      color: var(--accent);
+      background: #0f172a;
+      color: #fff;
     }
 
     .calc-form-grid {
@@ -140,20 +138,16 @@
       width: 56px;
     }
     .calc-tabela thead th {
-      background: var(--bg-main);
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      background: #f8fafc;
+      font-size: 12px;
+      font-weight: 600;
       color: var(--text-secondary);
     }
+    .calc-tabela th, .calc-tabela td { border-bottom-color: #eef0f3; }
     .calc-tabela tbody tr:last-child td {
       border-bottom: none;
     }
-    .calc-tabela tbody tr:nth-child(even) {
-      background: var(--slate-100);
-    }
-    .calc-tabela tbody tr:nth-child(odd) {
+    .calc-tabela tbody tr {
       background: var(--bg-section);
     }
     .calc-leia-mais-wrap {
@@ -168,6 +162,11 @@
 
     @media (max-width: 768px), (max-height: 500px) {
       .content { max-width: 100%; padding: 20px 16px 40px; margin-left: 0; }
+      .calc-form-grid { gap: 12px; }
+      .campo > input { font-size: 16px; min-height: 44px; }
+      .chart-box { height: 220px; margin-top: 12px; }
+      .calc-tabela th, .calc-tabela td { padding: 9px 10px; }
+      .calc-leia-mais-wrap .btn-inline { width: 100%; justify-content: center; min-height: 42px; }
     }
   </style>
 </head>

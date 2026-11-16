@@ -340,11 +340,41 @@ button.btn-secondary {
 
 @media (max-width: 480px) {
   .auth-page {
-    padding: 20px 16px;
+    padding: calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
+  }
+
+  .auth-shell {
+    width: 100%;
+    gap: 20px;
+  }
+
+  .auth-logo {
+    width: min(180px, 60vw);
   }
 
   .auth-container {
-    padding: 32px 24px;
+    padding: 28px 20px;
+    border-radius: 18px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    border: 1px solid #e8eaee;
+  }
+
+  .auth-container h1 {
+    margin-bottom: 20px;
+    font-size: 1.35rem;
+  }
+
+  .auth-container .form-group {
+    margin-bottom: 16px;
+  }
+
+  .auth-container input {
+    font-size: 16px;
+    min-height: 46px;
+  }
+
+  .auth-container button[type="submit"] {
+    min-height: 46px;
   }
 }
 

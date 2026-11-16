@@ -16,8 +16,8 @@
   <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
   <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
-  <link rel="stylesheet" href="css/theme.css?v=10">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=8">
+  <link rel="stylesheet" href="css/theme.css?v=11">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=9">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
@@ -330,6 +330,60 @@
     .home-tag.pago { background: #e8f7ee; color: #15803d; }
     .home-tag.neutro { background: #f1f5f9; color: var(--text-secondary); }
 
+    .en-modal { max-width: 460px; }
+    .en-vista { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+    .en-vista[hidden] { display: none; }
+
+    .en-resumo {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 2px 12px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: #f0fdf4;
+      border: 1px solid #dcfce7;
+    }
+    .en-resumo-rot { font-size: 12px; font-weight: 500; color: #166534; }
+    .en-resumo-valor {
+      grid-column: 1;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #15803d;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.15;
+    }
+    .en-resumo-qtd {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #166534;
+      background: #fff;
+      border: 1px solid #dcfce7;
+      padding: 4px 10px;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+
+    .en-lista { max-height: min(46vh, 340px); overflow-y: auto; margin: -4px 0; }
+    .en-lista .statement-empty { padding: 22px 0; text-align: center; }
+
+    .en-voltar {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 0;
+      background: none;
+      padding: 0;
+      font: 600 15px var(--font-family);
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .en-voltar:hover { color: var(--text-primary); }
+
     .home-vazio {
       margin: 0;
       font-size: 13px;
@@ -339,6 +393,52 @@
     @media (max-width: 960px) {
       .home-g3, .home-g2 { grid-template-columns: 1fr; }
       .home-saldo-valor { font-size: 32px; }
+    }
+
+    @media (max-width: 768px), (max-height: 500px) {
+      #logout-button-home { display: none; }
+      #btnResumoAnual { grid-column: 1 / -1; }
+
+      .home-grid { gap: 12px; }
+      .home-g3 { gap: 10px; }
+
+      .home-saldo { padding: 18px 16px; gap: 18px; }
+      .home-saldo-valor { font-size: 30px; }
+      .home-medidor { min-width: 0; flex: 1 1 100%; }
+
+      .home-kpi {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 2px 12px;
+        padding: 14px 16px 14px 20px;
+      }
+      .home-barra {
+        position: absolute;
+        left: 0;
+        top: 14px;
+        bottom: 14px;
+        width: 4px;
+        height: auto;
+        margin: 0;
+        border-radius: 0 4px 4px 0;
+      }
+      .home-kpi .home-rot { grid-column: 1; grid-row: 1; }
+      .home-kpi .home-delta { grid-column: 1; grid-row: 2; }
+      .home-kpi-valor {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        margin: 0;
+        font-size: 18px;
+        text-align: right;
+      }
+
+      .home-rosca { justify-content: center; gap: 18px; }
+      .home-rosca svg { width: 150px; height: 150px; }
+      .home-leg { min-width: 0; width: 100%; flex: 1 1 100%; }
+
+      .home-item b { white-space: normal; }
     }
   </style>
 </head>
@@ -424,19 +524,58 @@
   </main>
 
   <!-- Modal: entradas do mês -->
-  <div id="entradasModal" class="modal-overlay">
-    <div class="modal-content" style="max-width: 520px;">
-      <h3>Entradas do mês</h3>
-      <div class="form-row" style="flex-direction: column; gap: 10px; align-items: stretch;">
-        <input id="entradaNomeModal" placeholder="Título" />
-        <input id="entradaDescricaoModal" type="text" placeholder="Descrição (opcional)" />
-        <div class="form-row" style="margin:0;">
-          <input id="entradaValorModal" type="number" step="0.01" placeholder="Valor em R$" />
-          <button class="btn-add" id="btnAddEntrada" style="flex:0 0 auto;">Adicionar</button>
+  <div id="entradasModal" class="modal-overlay fin-entry-overlay">
+    <div class="modal-content fin-entry-modal en-modal">
+      <div class="en-vista" id="entradasVistaLista">
+        <div class="fin-entry-head">
+          <h3 id="entradasTitulo">Entradas do mês</h3>
+          <button type="button" class="fin-entry-x" id="btnFecharEntradasX" aria-label="Fechar">&times;</button>
+        </div>
+
+        <div class="en-resumo">
+          <span class="en-resumo-rot">Total recebido</span>
+          <strong class="en-resumo-valor" id="entradasTotal">R$ 0,00</strong>
+          <span class="en-resumo-qtd" id="entradasQtd">Nenhuma entrada</span>
+        </div>
+
+        <div id="listaEntradas" class="statement-list en-lista"></div>
+
+        <div class="fin-entry-acoes">
+          <button type="button" class="fin-entry-btn fin-entry-btn-sec" id="btnFecharEntradas">Fechar</button>
+          <button type="button" class="fin-entry-btn fin-entry-btn-pri" id="btnNovaEntrada">+ Nova entrada</button>
         </div>
       </div>
-      <div id="listaEntradas" class="statement-list" style="margin-top:12px;"></div>
-      <div class="modal-actions"><button class="btn-cancel" id="btnFecharEntradas">Fechar</button></div>
+
+      <div class="en-vista" id="entradasVistaNova" hidden>
+        <div class="fin-entry-head">
+          <button type="button" class="en-voltar" id="btnVoltarEntradas">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+            Nova entrada
+          </button>
+          <button type="button" class="fin-entry-x" id="btnFecharEntradasX2" aria-label="Fechar">&times;</button>
+        </div>
+
+        <div class="fin-entry-valor">
+          <label for="entradaValorModal">Valor recebido</label>
+          <div class="fin-entry-valor-linha">
+            <span class="fin-entry-moeda">R$</span>
+            <input id="entradaValorModal" class="fin-entry-valor-input" inputmode="numeric" autocomplete="off" placeholder="0,00" />
+          </div>
+        </div>
+        <div class="fin-entry-campo">
+          <label for="entradaNomeModal">Título</label>
+          <input class="fin-entry-input" id="entradaNomeModal" autocomplete="off" placeholder="Ex.: Salário, Freelance, Reembolso" />
+        </div>
+        <div class="fin-entry-campo">
+          <label for="entradaDescricaoModal">Observação <small>(opcional)</small></label>
+          <textarea class="fin-entry-input" id="entradaDescricaoModal" placeholder="Algum detalhe sobre essa entrada?"></textarea>
+        </div>
+        <p class="fin-entry-erro" id="entradaErro" role="alert"></p>
+        <div class="fin-entry-acoes">
+          <button type="button" class="fin-entry-btn fin-entry-btn-sec" id="btnCancelarEntrada">Cancelar</button>
+          <button type="button" class="fin-entry-btn fin-entry-btn-pri" id="btnAddEntrada">Adicionar entrada</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -609,12 +748,13 @@
       const topo = 18;
       const escada = (base - topo) / maxValor;
       const gw = (W - 64) / pontos.length;
+      const k = window.matchMedia('(max-width: 768px), (max-height: 500px)').matches ? 1.45 : 1;
       let b = '';
       [0, 0.5, 1].forEach((f) => {
         const v = maxValor * f;
         const y = base - v * escada;
         b += '<line x1="58" x2="' + W + '" y1="' + y + '" y2="' + y + '" stroke="#eef0f3"/>';
-        b += '<text x="52" y="' + (y + 4) + '" text-anchor="end" font-size="10" fill="#94a3b8" font-family="Montserrat">' + esc(rotuloEixo(v)) + '</text>';
+        b += '<text x="52" y="' + (y + 4) + '" text-anchor="end" font-size="' + (10 * k) + '" fill="#94a3b8" font-family="Montserrat">' + esc(rotuloEixo(v)) + '</text>';
       });
       pontos.forEach((p, i) => {
         const x = 70 + i * gw;
@@ -622,7 +762,7 @@
         const altD = p.despesas * escada;
         b += '<rect x="' + x + '" y="' + (base - altR) + '" width="16" height="' + altR + '" rx="4" fill="#2563eb"><title>' + esc(p.label + ' – receitas ' + F.formatar(p.receitas)) + '</title></rect>';
         b += '<rect x="' + (x + 20) + '" y="' + (base - altD) + '" width="16" height="' + altD + '" rx="4" fill="#94a3b8"><title>' + esc(p.label + ' – despesas ' + F.formatar(p.despesas)) + '</title></rect>';
-        b += '<text x="' + (x + 18) + '" y="208" text-anchor="middle" font-size="11" fill="#64748b" font-family="Montserrat">' + esc(p.label) + '</text>';
+        b += '<text x="' + (x + 18) + '" y="' + (204 + 4 * k) + '" text-anchor="middle" font-size="' + (11 * k) + '" fill="#64748b" font-family="Montserrat">' + esc(p.label) + '</text>';
       });
       host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Receitas e despesas dos últimos 6 meses">' + b + '</svg>';
     }
@@ -696,22 +836,70 @@
 
     // --- Entradas (modal) ---
     const entradasModal = document.getElementById('entradasModal');
+    const vistaListaEntradas = document.getElementById('entradasVistaLista');
+    const vistaNovaEntrada = document.getElementById('entradasVistaNova');
+    const entradaValorInput = document.getElementById('entradaValorModal');
+    const entradaNomeInput = document.getElementById('entradaNomeModal');
+    const entradaDescricaoInput = document.getElementById('entradaDescricaoModal');
+    const entradaErro = document.getElementById('entradaErro');
+    F.ligarMascaraMoeda(entradaValorInput);
+
+    function mostrarListaEntradas() {
+      vistaNovaEntrada.hidden = true;
+      vistaListaEntradas.hidden = false;
+    }
+
+    function mostrarNovaEntrada() {
+      F.definirMoeda(entradaValorInput, 0);
+      entradaNomeInput.value = '';
+      entradaDescricaoInput.value = '';
+      entradaErro.textContent = '';
+      entradaValorInput.classList.remove('erro');
+      entradaNomeInput.classList.remove('erro');
+      vistaListaEntradas.hidden = true;
+      vistaNovaEntrada.hidden = false;
+      setTimeout(() => entradaValorInput.focus(), 50);
+    }
+
+    function fecharEntradas() {
+      entradasModal.classList.remove('visible');
+      mostrarListaEntradas();
+    }
+
     document.getElementById('btnReceitas').addEventListener('click', async () => {
+      mostrarListaEntradas();
+      document.getElementById('entradasTitulo').textContent = `Entradas de ${periodo.mes.toLowerCase()} de ${periodo.ano}`;
       entradasModal.classList.add('visible');
       await renderizarEntradas();
     });
     document.getElementById('btnDespesas').addEventListener('click', () => window.finMobileNav?.irContas());
     document.getElementById('btnReservado').addEventListener('click', () => window.finMobileNav?.irReservas());
-    document.getElementById('btnFecharEntradas').addEventListener('click', () => entradasModal.classList.remove('visible'));
-    entradasModal.addEventListener('click', (ev) => { if (ev.target === entradasModal) entradasModal.classList.remove('visible'); });
+    ['btnFecharEntradas', 'btnFecharEntradasX', 'btnFecharEntradasX2'].forEach((id) => {
+      document.getElementById(id).addEventListener('click', fecharEntradas);
+    });
+    document.getElementById('btnNovaEntrada').addEventListener('click', mostrarNovaEntrada);
+    document.getElementById('btnVoltarEntradas').addEventListener('click', mostrarListaEntradas);
+    document.getElementById('btnCancelarEntrada').addEventListener('click', mostrarListaEntradas);
+    entradasModal.addEventListener('click', (ev) => { if (ev.target === entradasModal) fecharEntradas(); });
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && entradasModal.classList.contains('visible')) fecharEntradas();
+    });
+    entradaNomeInput.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') document.getElementById('btnAddEntrada').click();
+    });
 
     async function renderizarEntradas() {
       const data = await F.carregarMes(periodo.ano, periodo.mes);
       const lista = document.getElementById('listaEntradas');
       lista.innerHTML = '';
       const itens = data.adicionais || [];
+      const total = itens.reduce((s, item) => s + Number(item.valor || 0), 0);
+      document.getElementById('entradasTotal').textContent = F.formatar(total);
+      document.getElementById('entradasQtd').textContent = itens.length
+        ? `${itens.length} ${itens.length === 1 ? 'entrada' : 'entradas'}`
+        : 'Nenhuma entrada';
       if (!itens.length) {
-        lista.innerHTML = '<div class="statement-empty">Nenhuma entrada registrada.</div>';
+        lista.innerHTML = '<div class="statement-empty">Nenhuma entrada registrada neste mês.</div>';
         return;
       }
       itens.forEach((item) => {
@@ -732,28 +920,33 @@
     }
 
     async function adicionarEntrada() {
-      const nomeInput = document.getElementById('entradaNomeModal');
-      const descricaoInput = document.getElementById('entradaDescricaoModal');
-      const valorInput = document.getElementById('entradaValorModal');
-      const nome = nomeInput.value.trim();
-      const descricao = descricaoInput.value.trim();
-      const valor = Number(valorInput.value);
-      if (!nome || !valor || valor <= 0) {
-        window.finToast?.('Preencha título e valor.', { type: 'error' });
+      const nome = entradaNomeInput.value.trim();
+      const descricao = entradaDescricaoInput.value.trim();
+      const valor = F.lerMoeda(entradaValorInput);
+      entradaValorInput.classList.toggle('erro', !(valor > 0));
+      entradaNomeInput.classList.toggle('erro', !nome);
+      if (!(valor > 0)) {
+        entradaErro.textContent = 'Informe o valor recebido.';
+        entradaValorInput.focus();
         return;
       }
+      if (!nome) {
+        entradaErro.textContent = 'Dê um título para a entrada.';
+        entradaNomeInput.focus();
+        return;
+      }
+      entradaErro.textContent = '';
       try {
         await F.api('/api/financeiro/entradas', {
           method: 'POST',
           body: JSON.stringify({ ano: Number(periodo.ano), mes: periodo.mes, nome, valor, descricao }),
         });
-        nomeInput.value = '';
-        descricaoInput.value = '';
-        valorInput.value = '';
+        mostrarListaEntradas();
         await renderizarEntradas();
         observador && observador.forcar();
+        window.finToast?.('Entrada adicionada.', { type: 'success' });
       } catch (err) {
-        window.finToast?.(err.message || 'Não foi possível adicionar.', { type: 'error' });
+        entradaErro.textContent = err.message || 'Não foi possível adicionar a entrada.';
       }
     }
     document.getElementById('btnAddEntrada').addEventListener('click', (e) => finRunOnce(e, adicionarEntrada));

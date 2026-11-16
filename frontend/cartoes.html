@@ -16,8 +16,8 @@
   <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
   <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
-  <link rel="stylesheet" href="css/theme.css?v=10">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=8">
+  <link rel="stylesheet" href="css/theme.css?v=11">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=9">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
@@ -224,6 +224,33 @@
     @media (max-width: 960px) {
       .cartao-area { grid-template-columns: 1fr; }
       .fatura-valor { font-size: 30px; }
+    }
+
+    @media (max-width: 768px), (max-height: 500px) {
+      .cartao-area { gap: 12px; }
+      .cartao-col { gap: 12px; }
+      .cartao-switcher {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding-bottom: 2px;
+      }
+      .cartao-switcher::-webkit-scrollbar { display: none; }
+      .cartao-switcher button { flex: none; padding: 8px 14px; }
+      .cartao-visual { width: 100%; max-width: 380px; justify-self: center; padding: 18px; border-radius: 18px; }
+      .cartao-visual .num { left: 18px; bottom: 44px; font-size: 15px; }
+      .cartao-visual .venc { left: 18px; bottom: 18px; }
+      .cartao-visual .bandeira { right: 18px; top: 18px; font-size: 16px; }
+      .fatura-topo { margin-bottom: 16px; gap: 12px; }
+      .fatura-topo > div:first-child { flex: 1 1 100%; }
+      .fatura-valor { font-size: 28px; }
+      .cartao-seg { display: grid; width: 100%; }
+      .cartao-seg .fin-status-opt { padding: 10px 14px; }
+      .fatura-comp div { grid-template-columns: 10px minmax(0, 1fr) auto 38px; gap: 8px; }
+      .chips-filtro { width: 100%; }
+      .chip-f { flex: 1 1 auto; padding: 8px 10px; }
+      .compra-row { gap: 10px; }
+      .compra-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     }
 
     .cartao-gerenciar-item {

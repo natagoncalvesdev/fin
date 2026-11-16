@@ -16,8 +16,8 @@
   <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
   <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
-  <link rel="stylesheet" href="css/theme.css?v=10">
-  <link rel="stylesheet" href="css/mobile-shell.css?v=8">
+  <link rel="stylesheet" href="css/theme.css?v=11">
+  <link rel="stylesheet" href="css/mobile-shell.css?v=9">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
@@ -473,9 +473,22 @@
       .rank-cols { grid-template-columns: 1fr; }
       .grupo-cartoes { grid-template-columns: 1fr; }
       .content { max-width: 100%; padding: 20px 16px 40px; margin-left: 0; }
-      .chart-container { height: 280px; }
+      .chart-container { height: 260px; margin-top: 10px; }
       .saude-tabs { width: 100%; }
-      .saude-tab { flex: 1; padding: 10px 8px; }
+      .saude-tab { flex: 1; justify-content: center; padding: 10px 8px; }
+
+      .tab-panel, #grupoListView, #grupoDetailView, .sd-grid, .sd-coluna { gap: 12px; }
+      .sd-card-topo { gap: 10px; }
+      .sd-grafico .sd-card-topo { flex-direction: column; align-items: stretch; }
+      .periodo-toggle { display: grid; grid-template-columns: repeat(3, 1fr); }
+      .periodo-opt { padding: 8px 10px; }
+      .sd-range { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .sd-range .btn-cancel, .sd-range .btn-inline { min-height: 42px; }
+      .sd-range .btn-cancel:has(+ [hidden]) { grid-column: 1 / -1; }
+      .sd-form { gap: 10px; margin-top: 10px; }
+      .sd-form .btn-confirm, .sd-form .btn-cancel { width: 100%; min-height: 44px; }
+      .campo > input { font-size: 16px; min-height: 44px; }
+      .grupo-grid { grid-template-columns: 1fr; gap: 10px; }
 
       .membros-grid { grid-template-columns: 68px minmax(0, 1fr) minmax(0, 1fr); gap: 8px 10px; }
       .membros-row-label { font-size: 12px; }

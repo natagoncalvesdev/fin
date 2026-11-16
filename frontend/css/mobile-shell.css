@@ -16,10 +16,88 @@
   body.mobile-shell .content {
     margin-left: 0 !important;
     margin-top: var(--mobile-top-clearance) !important;
-    padding: 0 12px 24px !important;
+    padding: 14px 14px calc(28px + env(safe-area-inset-bottom)) !important;
+    gap: 12px !important;
+    width: 100%;
+    max-width: 100% !important;
+    min-height: auto;
+  }
+
+  /* Cabeçalho das páginas: título em cima, período e ações numa grade
+     de duas colunas logo abaixo (o último botão sozinho ocupa a linha). */
+  body.mobile-shell :is(.page-header-row, .home-topo, .ct-topo, .cartao-topo) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  body.mobile-shell :is(.page-header h1, .content > h1, .home-topo h1, .ct-topo h1, .cartao-topo h1, .config-header h1) {
+    font-size: 20px;
+    line-height: 1.25;
+  }
+
+  body.mobile-shell :is(.page-header p, .home-sub, .ct-sub, .cartao-topo p, .config-header p) {
+    font-size: 12.5px;
+    margin-top: 2px;
+  }
+
+  body.mobile-shell :is(.home-acoes, .ct-acoes, .cartao-acoes-topo, .period-controls, .header-actions, .vc-acoes, .cf-acoes, .section-actions) {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px !important;
     width: 100%;
-    min-height: auto;
+  }
+
+  body.mobile-shell :is(.home-acoes, .ct-acoes, .cartao-acoes-topo, .period-controls, .header-actions, .vc-acoes, .cf-acoes, .section-actions) > * {
+    width: 100%;
+    min-width: 0 !important;
+    min-height: 42px;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.2;
+  }
+
+  body.mobile-shell :is(.home-acoes, .ct-acoes, .cartao-acoes-topo, .period-controls, .header-actions, .vc-acoes, .cf-acoes, .section-actions) > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  /* Cartões de conteúdo mais compactos */
+  body.mobile-shell :is(.section-card, .home-card, .ct-card) {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  body.mobile-shell .section-card-title {
+    margin-bottom: 12px;
+  }
+
+  /* Modais viram painel que sobe da base da tela */
+  body.mobile-shell .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  body.mobile-shell .modal-overlay > .modal-content {
+    width: 100%;
+    max-width: none !important;
+    max-height: 92dvh;
+    border-radius: 20px 20px 0 0;
+    border-bottom: 0;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+    gap: 14px;
+    animation: finMobileSheet 0.24s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  body.mobile-shell .modal-actions {
+    flex-wrap: wrap;
+  }
+
+  body.mobile-shell .modal-actions > button,
+  body.mobile-shell .modal-actions > a {
+    flex: 1 1 0;
+    min-height: 44px;
+    min-width: 0;
   }
 
   body.mobile-shell .financeiro-tab-panel {
@@ -29,10 +107,28 @@
   /* Nas telas de KPI (ex.: veículos, resumo anual), o valor não pode ser
      cortado com "…" num tile estreito — deixa quebrar linha em vez disso. */
   body.mobile-shell .stat-row {
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  body.mobile-shell .stat-row > .stat-tile:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  body.mobile-shell .stat-tile {
+    padding: 14px;
+    gap: 10px;
+    border-radius: 14px;
+  }
+
+  body.mobile-shell .stat-tile-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
   }
 
   body.mobile-shell .stat-tile-value {
+    font-size: 16px;
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
@@ -54,6 +150,15 @@
   .mobile-settings-backdrop {
     display: none !important;
   }
+}
+
+@keyframes finMobileSheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.mobile-shell .modal-overlay > .modal-content { animation: none; }
 }
 
 /* Top bar mobile — logo + hambúrguer */

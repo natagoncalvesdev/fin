@@ -314,7 +314,6 @@
       <div class="ct-acoes">
         <select id="selectAno" aria-label="Ano"></select>
         <select id="selectMes" aria-label="Mês"></select>
-        <button type="button" class="ct-btn" id="btnAddDebito">+ Débito</button>
         <button type="button" class="ct-btn pri" id="btnAddConta">+ Nova conta</button>
       </div>
     </div>
@@ -796,7 +795,6 @@
       debitoValorInput.focus();
     }
     function fecharModalDebito() { debitoModal.classList.remove('visible'); }
-    document.getElementById('btnAddDebito').addEventListener('click', abrirModalDebito);
     document.getElementById('btnAddDebito2').addEventListener('click', abrirModalDebito);
     document.getElementById('debitoModalCancelar').addEventListener('click', fecharModalDebito);
     document.getElementById('debitoModalFechar').addEventListener('click', fecharModalDebito);

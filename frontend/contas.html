@@ -27,57 +27,333 @@
 
     .content {
       flex: 1;
-      padding: 40px;
+      padding: 28px 36px 48px;
       margin-left: 240px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
-      max-width: 1180px;
+      gap: 16px;
+      max-width: 1200px;
     }
 
-    .contas-grid {
+    .ct-topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .ct-topo h1 { margin: 0; font-size: 22px; font-weight: 700; }
+    .ct-sub { margin: 4px 0 0; font-size: 13px; color: var(--text-secondary); }
+
+    .ct-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .ct-acoes select,
+    .ct-btn {
+      font: 500 13px var(--font-family);
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #e8eaee;
+      background: #fff;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    #selectAno { min-width: 92px; }
+    #selectMes { min-width: 140px; }
+
+    .ct-btn.pri { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+    .ct-btn.pri:hover { background: #1d4ed8; }
+    .ct-acoes select:hover,
+    .ct-btn:hover { border-color: #cbd5e1; }
+
+    .ct-card {
+      background: #fff;
+      border: 1px solid #e8eaee;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .ct-card h2 { margin: 0; font-size: 14px; font-weight: 600; }
+    .ct-card h2 small { font-weight: 500; color: var(--text-secondary); margin-left: 6px; }
+
+    .ct-resumo {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
+      grid-template-columns: 1fr minmax(260px, 380px);
+      gap: 28px;
+      align-items: center;
+      padding: 26px 28px;
+    }
+
+    .ct-rot { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+
+    .ct-total {
+      font-size: 38px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 6px 0 10px;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ct-selo {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: #fff4e5;
+      color: #b45309;
+    }
+
+    .ct-selo.ok { background: #e8f7ee; color: #15803d; }
+
+    .ct-medidor-topo {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .ct-medidor-topo b { font-weight: 700; }
+
+    .ct-trilho { height: 10px; background: #f1f5f9; border-radius: 99px; overflow: hidden; }
+    .ct-trilho div { height: 100%; width: 0; background: #15803d; border-radius: 99px; transition: width 0.3s ease; }
+
+    .ct-medidor-base {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .ct-medidor-base small { display: block; font-size: 12px; color: var(--text-secondary); }
+    .ct-medidor-base b { font-size: 15px; font-variant-numeric: tabular-nums; }
+    .ct-medidor-base .pago { color: #15803d; }
+    .ct-medidor-base .falta { color: #b45309; }
+
+    .ct-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+    .ct-kpi { display: flex; gap: 14px; align-items: center; }
+
+    .ct-kpi-ic {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      flex: none;
+    }
+
+    .ct-kpi-ic svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .ct-kpi-valor { font-size: 20px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .ct-kpi small { font-size: 12px; color: var(--text-secondary); }
+
+    .ct-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+      gap: 16px;
       align-items: start;
     }
 
-    @media (min-width: 960px) {
-      .contas-grid {
-        grid-template-columns: 1.3fr 1fr;
-      }
+    .ct-cab {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .ct-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .ct-chip {
+      font: 500 12px var(--font-family);
+      padding: 7px 12px;
+      border-radius: 99px;
+      border: 1px solid #e8eaee;
+      background: #fff;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .ct-chip.on { background: var(--text-primary); border-color: var(--text-primary); color: #fff; }
+
+    .ct-item {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 0;
+      border-top: 1px solid #eef0f3;
+      cursor: pointer;
+    }
+
+    .ct-item:first-child { border-top: 0; }
+    .ct-item:hover .ct-item-titulo { color: var(--accent); }
+
+    .ct-ic {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #f1f5f9;
+      color: #475569;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .ct-ic svg { width: 18px; height: 18px; }
+    .ct-ic.cartao { background: #eaf0ff; color: var(--accent); }
+
+    .ct-item-titulo {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: color 0.15s ease;
+    }
+
+    .ct-item-sub {
+      display: block;
+      font-size: 12px;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ct-item-fim { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+    .ct-item-valor { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    .ct-status {
+      font: 600 11px var(--font-family);
+      padding: 3px 9px;
+      border-radius: 99px;
+      border: 0;
+      cursor: pointer;
+      background: #fff4e5;
+      color: #b45309;
+    }
+
+    .ct-status.pago { background: #e8f7ee; color: #15803d; }
+    .ct-status:hover { filter: brightness(0.96); }
+
+    .ct-vazio { padding: 28px 0; text-align: center; color: var(--text-secondary); font-size: 13px; }
+
+    .ct-btn-mini {
+      font: 600 12px var(--font-family);
+      padding: 7px 12px;
+      border-radius: 9px;
+      border: 1px solid #e8eaee;
+      background: #fff;
+      color: var(--accent);
+      cursor: pointer;
+    }
+
+    .ct-btn-mini:hover { border-color: #cbd5e1; }
+
+    .ct-acoes select:focus-visible,
+    .ct-btn:focus-visible,
+    .ct-chip:focus-visible,
+    .ct-status:focus-visible,
+    .ct-item:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 1080px) {
+      .ct-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 860px) {
+      .ct-resumo { grid-template-columns: 1fr; }
+      .ct-kpis { grid-template-columns: 1fr; }
+      .ct-total { font-size: 32px; }
     }
   </style>
 </head>
 <body>
 
   <main class="content">
-    <div class="page-header-row">
-      <div class="page-header">
+    <div class="ct-topo">
+      <div>
         <h1>Contas</h1>
-        <p id="tituloPeriodo">Carregando…</p>
+        <p class="ct-sub" id="tituloPeriodo">Carregando…</p>
       </div>
-      <div class="period-controls" style="display:flex; gap:10px;">
-        <select id="selectAno" style="min-width:110px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--border-color); background:var(--bg-section); color:var(--text-primary);"></select>
-        <select id="selectMes" style="min-width:140px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--border-color); background:var(--bg-section); color:var(--text-primary);"></select>
+      <div class="ct-acoes">
+        <select id="selectAno" aria-label="Ano"></select>
+        <select id="selectMes" aria-label="Mês"></select>
+        <button type="button" class="ct-btn" id="btnAddDebito">+ Débito</button>
+        <button type="button" class="ct-btn pri" id="btnAddConta">+ Nova conta</button>
       </div>
     </div>
 
-    <div class="contas-grid">
-      <section class="section-card">
-        <div class="page-header-row" style="margin-bottom:16px;">
-          <h2 class="section-card-title" style="margin:0;">Contas do mês</h2>
-          <button class="btn-add" id="btnAddConta">+ Adicionar</button>
+    <section class="ct-card ct-resumo" aria-label="Resumo do mês">
+      <div>
+        <div class="ct-rot">Total a pagar no mês</div>
+        <div class="ct-total" id="resumoTotal">R$ 0,00</div>
+        <span class="ct-selo" id="resumoSelo">—</span>
+      </div>
+      <div>
+        <div class="ct-medidor-topo">
+          <span>Pago até agora</span>
+          <b id="resumoPct">0%</b>
         </div>
-        <div id="listaContas" class="statement-list"></div>
+        <div class="ct-trilho"><div id="resumoBarra"></div></div>
+        <div class="ct-medidor-base">
+          <div><small>Pago</small><b class="pago" id="resumoPago">R$ 0,00</b></div>
+          <div><small>Falta pagar</small><b class="falta" id="resumoFalta">R$ 0,00</b></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="ct-kpis">
+      <section class="ct-card ct-kpi">
+        <div class="ct-kpi-ic" style="background:#f1f5f9;color:#475569;"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
+        <div>
+          <small>Contas</small>
+          <div class="ct-kpi-valor" id="kpiContas">R$ 0,00</div>
+          <small id="kpiContasSub">—</small>
+        </div>
+      </section>
+      <section class="ct-card ct-kpi">
+        <div class="ct-kpi-ic" style="background:#eaf0ff;color:var(--accent);"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+        <div>
+          <small>Fatura do cartão</small>
+          <div class="ct-kpi-valor" id="kpiCartao">R$ 0,00</div>
+          <small id="kpiCartaoSub">—</small>
+        </div>
+      </section>
+      <section class="ct-card ct-kpi">
+        <div class="ct-kpi-ic" style="background:#f3edff;color:#7c3aed;"><svg viewBox="0 0 24 24"><path d="M3 7h18v10H3z"/><path d="M7 12h.01M17 12h.01"/><circle cx="12" cy="12" r="2"/></svg></div>
+        <div>
+          <small>Débito</small>
+          <div class="ct-kpi-valor" id="kpiDebito">R$ 0,00</div>
+          <small id="kpiDebitoSub">—</small>
+        </div>
+      </section>
+    </div>
+
+    <div class="ct-grid">
+      <section class="ct-card">
+        <div class="ct-cab">
+          <h2>Contas do mês</h2>
+          <div class="ct-chips" id="chipsContas" role="tablist" aria-label="Filtrar contas"></div>
+        </div>
+        <div id="listaContas"></div>
       </section>
 
-      <section class="section-card">
-        <div class="page-header-row" style="margin-bottom:16px;">
-          <h2 class="section-card-title" style="margin:0;">Débito</h2>
-          <button class="btn-add" id="btnAddDebito">+ Adicionar</button>
+      <section class="ct-card">
+        <div class="ct-cab">
+          <h2>Débito <small id="debitoQtd"></small></h2>
+          <button type="button" class="ct-btn-mini" id="btnAddDebito2">+ Adicionar</button>
         </div>
-        <div id="listaDebito" class="statement-list"></div>
+        <div id="listaDebito"></div>
       </section>
     </div>
   </main>
@@ -174,76 +450,210 @@
       });
     }
 
-    function renderizarContas(data) {
+    let filtroContas = 'todas';
+    const FILTROS_CONTAS = [['todas', 'Todas'], ['pendente', 'Pendentes'], ['pago', 'Pagas']];
+
+    function esc(valor) {
+      return String(valor ?? '').replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[c]));
+    }
+
+    function soma(itens) {
+      return (itens || []).reduce((s, i) => s + Number(i.valor || 0), 0);
+    }
+
+    function plural(n, um, varios) {
+      return `${n} ${n === 1 ? um : varios}`;
+    }
+
+    function montarItem({ icone, inicial, classeIcone, titulo, subtitulo, valor, status, onClick, onStatus }) {
+      const row = document.createElement('div');
+      row.className = 'ct-item';
+      row.tabIndex = 0;
+      row.setAttribute('role', 'button');
+      const statusHtml = status
+        ? `<button type="button" class="ct-status${status === 'pago' ? ' pago' : ''}" title="Alternar status">${status === 'pago' ? 'Pago' : 'Pendente'}</button>`
+        : '';
+      row.innerHTML = `
+        <span class="ct-ic${classeIcone ? ` ${classeIcone}` : ''}">${icone || esc(inicial)}</span>
+        <span>
+          <span class="ct-item-titulo">${esc(titulo)}</span>
+          <span class="ct-item-sub">${esc(subtitulo || 'Sem categoria')}</span>
+        </span>
+        <span class="ct-item-fim">
+          <span class="ct-item-valor">${F.formatar(valor)}</span>
+          ${statusHtml}
+        </span>
+      `;
+      row.addEventListener('click', onClick);
+      row.addEventListener('keydown', (ev) => {
+        if (ev.target === row && (ev.key === 'Enter' || ev.key === ' ')) {
+          ev.preventDefault();
+          onClick();
+        }
+      });
+      const pill = row.querySelector('.ct-status');
+      if (pill && onStatus) {
+        pill.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          finRunOnce(pill, () => onStatus(pill));
+        });
+      }
+      return row;
+    }
+
+    function marcarPill(pill, novo) {
+      pill.textContent = novo === 'pago' ? 'Pago' : 'Pendente';
+      pill.classList.toggle('pago', novo === 'pago');
+    }
+
+    function renderizarResumo(data) {
       const contas = data.contas || [];
-      const totalCartao = (data.cartao || []).reduce((s, i) => s + Number(i.valor || 0), 0);
+      const totalContas = soma(contas);
+      const pagoContas = soma(contas.filter((c) => c.status === 'pago'));
+      const totalCartao = soma(data.cartao);
+      const cartaoPago = (data.cartaoStatus || 'pendente') === 'pago';
+      const totalDebito = soma(data.debito);
+
+      const total = totalContas + totalCartao;
+      const pago = pagoContas + (cartaoPago ? totalCartao : 0);
+      const falta = Math.max(0, total - pago);
+      const pct = total > 0 ? Math.round((pago / total) * 100) : 0;
+      const pendentes = contas.filter((c) => c.status !== 'pago').length + (totalCartao > 0 && !cartaoPago ? 1 : 0);
+
+      document.getElementById('resumoTotal').textContent = F.formatar(total);
+      const selo = document.getElementById('resumoSelo');
+      if (total <= 0) {
+        selo.textContent = 'Nada lançado neste mês';
+        selo.classList.add('ok');
+      } else if (pendentes === 0) {
+        selo.textContent = 'Tudo pago';
+        selo.classList.add('ok');
+      } else {
+        selo.textContent = `${plural(pendentes, 'conta pendente', 'contas pendentes')}`;
+        selo.classList.remove('ok');
+      }
+      document.getElementById('resumoPct').textContent = `${pct}%`;
+      document.getElementById('resumoBarra').style.width = `${pct}%`;
+      document.getElementById('resumoPago').textContent = F.formatar(pago);
+      document.getElementById('resumoFalta').textContent = F.formatar(falta);
+
+      const contasPagas = contas.filter((c) => c.status === 'pago').length;
+      document.getElementById('kpiContas').textContent = F.formatar(totalContas);
+      document.getElementById('kpiContasSub').textContent = contas.length
+        ? `${contasPagas} de ${contas.length} pagas`
+        : 'Nenhuma conta';
+      document.getElementById('kpiCartao').textContent = F.formatar(totalCartao);
+      document.getElementById('kpiCartaoSub').textContent = totalCartao > 0
+        ? (cartaoPago ? 'Fatura paga' : 'Fatura pendente')
+        : 'Sem compras no mês';
+      const debitos = data.debito || [];
+      document.getElementById('kpiDebito').textContent = F.formatar(totalDebito);
+      document.getElementById('kpiDebitoSub').textContent = debitos.length
+        ? `${plural(debitos.length, 'lançamento', 'lançamentos')} · já descontado`
+        : 'Nenhum lançamento';
+    }
+
+    function montarChipsContas() {
+      const contas = dadosMes.contas || [];
+      const contagem = {
+        todas: contas.length,
+        pendente: contas.filter((c) => c.status !== 'pago').length,
+        pago: contas.filter((c) => c.status === 'pago').length,
+      };
+      document.getElementById('chipsContas').innerHTML = FILTROS_CONTAS.map(([k, nome]) => (
+        `<button type="button" role="tab" aria-selected="${k === filtroContas}" class="ct-chip${k === filtroContas ? ' on' : ''}" data-f="${k}">${nome} · ${contagem[k]}</button>`
+      )).join('');
+    }
+
+    function renderizarContas(data) {
+      montarChipsContas();
+      const contas = data.contas || [];
+      const totalCartao = soma(data.cartao);
+      const cartaoStatus = data.cartaoStatus || 'pendente';
       const lista = document.getElementById('listaContas');
       lista.innerHTML = '';
 
-      if (!contas.length && totalCartao <= 0) {
-        lista.innerHTML = '<div class="statement-empty">Nenhuma conta cadastrada neste mês.</div>';
+      const mostrarCartao = totalCartao > 0 && (filtroContas === 'todas' || filtroContas === cartaoStatus);
+      const filtradas = contas
+        .filter((c) => filtroContas === 'todas' || (filtroContas === 'pago' ? c.status === 'pago' : c.status !== 'pago'))
+        .sort((a, b) => {
+          const pa = a.status === 'pago' ? 1 : 0;
+          const pb = b.status === 'pago' ? 1 : 0;
+          return pa - pb || a.nome.localeCompare(b.nome, 'pt-BR');
+        });
+
+      if (!mostrarCartao && !filtradas.length) {
+        const msg = contas.length || totalCartao > 0
+          ? 'Nenhuma conta neste filtro.'
+          : 'Nenhuma conta cadastrada neste mês.';
+        lista.innerHTML = `<div class="ct-vazio">${msg}</div>`;
         return;
       }
 
-      if (totalCartao > 0) {
-        const cartaoStatus = data.cartaoStatus || 'pendente';
-        const rowCartao = F.renderStatementRow({
+      if (mostrarCartao) {
+        const qtd = (data.cartao || []).length;
+        lista.appendChild(montarItem({
           icone: ICONE_CARTAO,
-          titulo: 'Cartão de crédito',
-          subtitulo: 'Fatura do mês · gerencie as compras em Cartões',
+          classeIcone: 'cartao',
+          titulo: 'Fatura do cartão',
+          subtitulo: `${plural(qtd, 'compra', 'compras')} · ver em Cartões`,
           valor: totalCartao,
           status: cartaoStatus,
-          onClick: () => window.finMobileNav.irCartoes(),
-          onToggleStatus: async (pillEl) => {
+          onClick: () => { window.location.href = 'cartoes.html'; },
+          onStatus: async (pill) => {
             const novo = cartaoStatus === 'pago' ? 'pendente' : 'pago';
-            pillEl.textContent = novo === 'pago' ? 'Pago' : 'Pendente';
-            pillEl.classList.toggle('pago', novo === 'pago');
-            pillEl.classList.toggle('pendente', novo !== 'pago');
+            marcarPill(pill, novo);
             await F.atualizarStatusFatura(periodo.ano, periodo.mes, novo);
             observador && observador.forcar();
           },
-        });
-        lista.appendChild(rowCartao);
+        }));
       }
 
-      [...contas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).forEach((item) => {
-        const row = F.renderStatementRow({
+      filtradas.forEach((item) => {
+        lista.appendChild(montarItem({
           icone: F.svgDaCategoria(item.categoria),
+          inicial: (item.nome || '?').trim().charAt(0).toUpperCase(),
           titulo: item.nome,
           subtitulo: F.subtituloFinanceiro(item),
           valor: item.valor,
           status: item.status || 'pendente',
           onClick: () => abrirEdicaoConta(item),
-          onToggleStatus: async (pillEl) => {
-            const novo = item.status === 'pago' ? 'pendente' : 'pago';
-            pillEl.textContent = novo === 'pago' ? 'Pago' : 'Pendente';
-            pillEl.classList.toggle('pago', novo === 'pago');
-            pillEl.classList.toggle('pendente', novo !== 'pago');
+          onStatus: async (pill) => {
+            marcarPill(pill, item.status === 'pago' ? 'pendente' : 'pago');
             await F.alternarStatusConta(item, () => observador && observador.forcar());
           },
-        });
-        lista.appendChild(row);
+        }));
       });
     }
 
     function renderizarDebito(itens) {
       const lista = document.getElementById('listaDebito');
       lista.innerHTML = '';
+      document.getElementById('debitoQtd').textContent = itens.length ? plural(itens.length, 'lançamento', 'lançamentos') : '';
       if (!itens.length) {
-        lista.innerHTML = '<div class="statement-empty">Nenhuma compra no débito.</div>';
+        lista.innerHTML = '<div class="ct-vazio">Nenhuma compra no débito.</div>';
         return;
       }
       itens.forEach((item) => {
-        const row = F.renderStatementRow({
+        lista.appendChild(montarItem({
           icone: F.svgDaCategoria(item.categoria),
+          inicial: (item.nome || '?').trim().charAt(0).toUpperCase(),
           titulo: item.nome,
           subtitulo: F.subtituloFinanceiro(item),
           valor: item.valor,
           onClick: () => abrirEdicaoDebito(item),
-        });
-        lista.appendChild(row);
+        }));
       });
     }
+
+    document.getElementById('chipsContas').addEventListener('click', (ev) => {
+      const chip = ev.target.closest('[data-f]');
+      if (!chip) return;
+      filtroContas = chip.dataset.f;
+      renderizarContas(dadosMes);
+    });
 
     function abrirEdicaoConta(item) {
       F.abrirModalItem({
@@ -265,6 +675,7 @@
 
     function renderizarTudo(data) {
       dadosMes = data;
+      renderizarResumo(data);
       renderizarContas(data);
       renderizarDebito(data.debito || []);
     }
@@ -364,6 +775,7 @@
     }
     function fecharModalDebito() { debitoModal.classList.remove('visible'); }
     document.getElementById('btnAddDebito').addEventListener('click', abrirModalDebito);
+    document.getElementById('btnAddDebito2').addEventListener('click', abrirModalDebito);
     document.getElementById('debitoModalCancelar').addEventListener('click', fecharModalDebito);
     document.getElementById('debitoModalFechar').addEventListener('click', fecharModalDebito);
     debitoModal.addEventListener('click', (ev) => { if (ev.target === debitoModal) fecharModalDebito(); });
@@ -408,7 +820,7 @@
         selectAno: document.getElementById('selectAno'),
         selectMes: document.getElementById('selectMes'),
         onChange: (ano, mes) => {
-          document.getElementById('tituloPeriodo').textContent = `${mes} / ${ano}`;
+          document.getElementById('tituloPeriodo').textContent = `${mes} de ${ano} · contas fixas, fatura do cartão e débito`;
           if (observador) observador.parar();
           observador = F.observarMes(() => ({ ano, mes }), renderizarTudo);
         },

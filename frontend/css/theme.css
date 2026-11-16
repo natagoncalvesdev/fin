@@ -1,6 +1,6 @@
 /* Identidade visual — Montserrat + paleta da marca */
 
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* Neutros — base sóbria estilo fintech */
@@ -853,4 +853,269 @@ button {
 
 .status-pill-clickable:active {
   transform: scale(0.96);
+}
+
+/* Modal de lançamento: valor em destaque, depois título, categoria, observação e status */
+.modal-content.fin-entry-modal {
+  max-width: 440px;
+  padding: 20px 24px 24px;
+  gap: 16px;
+  border: 0;
+  border-radius: 24px;
+  box-shadow: 0 30px 80px -20px rgba(15, 23, 42, 0.45);
+}
+
+.modal-content .fin-entry-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-content .fin-entry-head h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0;
+}
+
+.fin-entry-x {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: #f8fafc;
+  color: var(--text-secondary);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.fin-entry-x:hover { background: var(--border-color); }
+
+.fin-entry-valor {
+  text-align: center;
+  padding: 4px 0 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.fin-entry-valor label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.fin-entry-valor-linha {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.fin-entry-moeda {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: color 0.15s ease;
+}
+
+.fin-entry-valor-linha:focus-within .fin-entry-moeda { color: var(--accent); }
+
+.fin-entry-valor-input {
+  width: 100%;
+  max-width: 280px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 48px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  text-align: left;
+  padding: 0;
+  caret-color: var(--accent);
+}
+
+.fin-entry-valor-input::placeholder { color: #cbd5e1; }
+.fin-entry-valor-input[data-largo="1"] { font-size: 38px; }
+.fin-entry-valor-input[data-largo="2"] { font-size: 30px; }
+
+.fin-entry-valor:has(input.erro) { border-bottom-color: #dc2626; }
+
+.fin-entry-campo { display: grid; gap: 6px; }
+
+.fin-entry-campo > label,
+.fin-entry-legend {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.fin-entry-campo small {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.fin-entry-input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 12px;
+  background: #f8fafc;
+  font: 500 14px/1.4 var(--font-family);
+  color: var(--text-primary);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.fin-entry-input::placeholder { color: #94a3b8; }
+
+.fin-entry-input:focus {
+  outline: 0;
+  background: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
+}
+
+.fin-entry-input.erro {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+}
+
+textarea.fin-entry-input {
+  resize: none;
+  min-height: 72px;
+}
+
+select.fin-entry-input {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='m1 1 5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 38px;
+}
+
+.fin-entry-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 4px;
+  background: #f8fafc;
+  border: 1.5px solid var(--border-color);
+  border-radius: 14px;
+}
+
+.fin-entry-seg-opt {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.fin-entry-seg-opt::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.fin-entry-seg-opt[data-status="pendente"].active {
+  background: #fff4e5;
+  color: #b45309;
+}
+
+.fin-entry-seg-opt[data-status="pago"].active {
+  background: #e8f7ee;
+  color: #15803d;
+}
+
+.fin-entry-seg-opt.active::before { opacity: 1; }
+
+.fin-entry-erro {
+  margin: 0;
+  min-height: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #dc2626;
+}
+
+.fin-entry-acoes {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 10px;
+}
+
+.fin-entry-acoes-edit {
+  grid-template-columns: auto auto 1fr 1.4fr;
+  align-items: center;
+}
+
+.fin-entry-btn {
+  padding: 14px;
+  border-radius: 14px;
+  border: 0;
+  font: 700 14px/1.2 var(--font-family);
+  cursor: pointer;
+}
+
+.fin-entry-btn:active { transform: scale(0.98); }
+
+.fin-entry-btn-sec {
+  background: #f8fafc;
+  color: var(--text-secondary);
+}
+
+.fin-entry-btn-sec:hover { background: var(--border-color); }
+
+.fin-entry-btn-pri {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 8px 20px -8px rgba(37, 99, 235, 0.7);
+}
+
+.fin-entry-btn-pri:hover { background: #1d4ed8; }
+.fin-entry-btn-pri:disabled { opacity: 0.6; cursor: wait; }
+
+@media (max-width: 520px) {
+  .modal-overlay.fin-entry-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-content.fin-entry-modal {
+    width: 100%;
+    max-width: none;
+    max-height: 94dvh;
+    border-radius: 24px 24px 0 0;
+    animation-name: finSheetUp;
+  }
+
+  .fin-entry-acoes-edit {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@keyframes finSheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-content.fin-entry-modal { animation: none; }
 }

@@ -6,12 +6,12 @@
   <title>Contas | Fin</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
   <link rel="stylesheet" href="sidebar.css?v=10">
-  <link rel="stylesheet" href="css/theme.css?v=7">
+  <link rel="stylesheet" href="css/theme.css?v=8">
   <link rel="stylesheet" href="css/mobile-shell.css?v=8">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
-  <script src="js/fin-financeiro-shared.js?v=5"></script>
+  <script src="js/fin-financeiro-shared.js?v=6"></script>
   <script src="sidebar.js?v=9"></script>
   <style>
     * { box-sizing: border-box; }
@@ -47,16 +47,6 @@
         grid-template-columns: 1.3fr 1fr;
       }
     }
-
-    .debito-form {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .debito-form .form-row {
-      flex-direction: column;
-    }
   </style>
 </head>
 <body>
@@ -83,57 +73,86 @@
       </section>
 
       <section class="section-card">
-        <h2 class="section-card-title">Débito</h2>
-        <div class="debito-form">
-          <div class="form-row">
-            <input id="debitoNome" placeholder="Título" />
-            <input id="debitoValor" type="number" step="0.01" placeholder="Valor em R$" />
-          </div>
-          <div class="form-row">
-            <input id="debitoDescricao" type="text" placeholder="Descrição (opcional)" />
-          </div>
-          <div class="form-row">
-            <select id="debitoCategoria"><option value="">Selecione uma categoria</option></select>
-            <button class="btn-add" id="btnAddDebito" style="flex:0 0 auto;">Registrar</button>
-          </div>
+        <div class="page-header-row" style="margin-bottom:16px;">
+          <h2 class="section-card-title" style="margin:0;">Débito</h2>
+          <button class="btn-add" id="btnAddDebito">+ Adicionar</button>
         </div>
-        <div id="listaDebito" class="statement-list" style="margin-top:16px;"></div>
+        <div id="listaDebito" class="statement-list"></div>
       </section>
     </div>
   </main>
 
   <!-- Modal: adicionar conta -->
-  <div id="contaModal" class="modal-overlay">
-    <div class="modal-content">
-      <h3>Adicionar Conta</h3>
-      <div class="form-row" style="flex-direction: column; gap: 14px;">
-        <div>
-          <label class="fin-field-label" for="contaNomeModal">Título</label>
-          <input id="contaNomeModal" placeholder="Título" />
-        </div>
-        <div>
-          <label class="fin-field-label" for="contaDescricaoModal">Descrição</label>
-          <input id="contaDescricaoModal" type="text" placeholder="Detalhes opcionais" />
-        </div>
-        <div>
-          <label class="fin-field-label" for="contaValorModal">Valor</label>
-          <input id="contaValorModal" type="number" step="0.01" placeholder="Valor em R$" />
-        </div>
-        <div>
-          <label class="fin-field-label" for="contaCategoriaModal">Categoria</label>
-          <select id="contaCategoriaModal"><option value="">Selecione uma categoria</option></select>
-        </div>
-        <div>
-          <label class="fin-field-label">Status</label>
-          <div class="fin-status-toggle" id="contaStatusToggle">
-            <button type="button" class="fin-status-opt active" data-status="pendente">Pendente</button>
-            <button type="button" class="fin-status-opt" data-status="pago">Pago</button>
-          </div>
+  <div id="contaModal" class="modal-overlay fin-entry-overlay">
+    <div class="modal-content fin-entry-modal">
+      <div class="fin-entry-head">
+        <h3>Nova conta</h3>
+        <button type="button" class="fin-entry-x" id="contaModalFechar" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="fin-entry-valor">
+        <label for="contaValorModal">Valor</label>
+        <div class="fin-entry-valor-linha">
+          <span class="fin-entry-moeda">R$</span>
+          <input id="contaValorModal" class="fin-entry-valor-input" inputmode="numeric" autocomplete="off" placeholder="0,00" />
         </div>
       </div>
-      <div class="modal-actions">
-        <button class="btn-cancel" id="contaModalCancelar">Cancelar</button>
-        <button class="btn-confirm" id="contaModalSalvar">Adicionar</button>
+      <div class="fin-entry-campo">
+        <label for="contaNomeModal">Título</label>
+        <input class="fin-entry-input" id="contaNomeModal" autocomplete="off" placeholder="Ex.: Conta de luz" />
+      </div>
+      <div class="fin-entry-campo">
+        <label for="contaCategoriaModal">Categoria</label>
+        <select class="fin-entry-input" id="contaCategoriaModal"><option value="">Selecione uma categoria</option></select>
+      </div>
+      <div class="fin-entry-campo">
+        <label for="contaDescricaoModal">Observação <small>(opcional)</small></label>
+        <textarea class="fin-entry-input" id="contaDescricaoModal" placeholder="Algum detalhe sobre essa conta?"></textarea>
+      </div>
+      <div class="fin-entry-campo">
+        <span class="fin-entry-legend">Status</span>
+        <div class="fin-entry-seg" id="contaStatusToggle">
+          <button type="button" class="fin-entry-seg-opt active" data-status="pendente">Pendente</button>
+          <button type="button" class="fin-entry-seg-opt" data-status="pago">Pago</button>
+        </div>
+      </div>
+      <p class="fin-entry-erro" id="contaErro" role="alert"></p>
+      <div class="fin-entry-acoes">
+        <button type="button" class="fin-entry-btn fin-entry-btn-sec" id="contaModalCancelar">Cancelar</button>
+        <button type="button" class="fin-entry-btn fin-entry-btn-pri" id="contaModalSalvar">Adicionar conta</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: adicionar débito -->
+  <div id="debitoModal" class="modal-overlay fin-entry-overlay">
+    <div class="modal-content fin-entry-modal">
+      <div class="fin-entry-head">
+        <h3>Novo débito</h3>
+        <button type="button" class="fin-entry-x" id="debitoModalFechar" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="fin-entry-valor">
+        <label for="debitoValor">Valor</label>
+        <div class="fin-entry-valor-linha">
+          <span class="fin-entry-moeda">R$</span>
+          <input id="debitoValor" class="fin-entry-valor-input" inputmode="numeric" autocomplete="off" placeholder="0,00" />
+        </div>
+      </div>
+      <div class="fin-entry-campo">
+        <label for="debitoNome">Título</label>
+        <input class="fin-entry-input" id="debitoNome" autocomplete="off" placeholder="Ex.: Mercado" />
+      </div>
+      <div class="fin-entry-campo">
+        <label for="debitoCategoria">Categoria</label>
+        <select class="fin-entry-input" id="debitoCategoria"><option value="">Selecione uma categoria</option></select>
+      </div>
+      <div class="fin-entry-campo">
+        <label for="debitoDescricao">Observação <small>(opcional)</small></label>
+        <textarea class="fin-entry-input" id="debitoDescricao" placeholder="Algum detalhe sobre esse débito?"></textarea>
+      </div>
+      <p class="fin-entry-erro" id="debitoErro" role="alert"></p>
+      <div class="fin-entry-acoes">
+        <button type="button" class="fin-entry-btn fin-entry-btn-sec" id="debitoModalCancelar">Cancelar</button>
+        <button type="button" class="fin-entry-btn fin-entry-btn-pri" id="debitoModalSalvar">Registrar débito</button>
       </div>
     </div>
   </div>
@@ -248,76 +267,138 @@
       renderizarDebito(data.debito || []);
     }
 
+    function limparErrosLancamento(ids, erroId) {
+      ids.forEach((id) => document.getElementById(id).classList.remove('erro'));
+      document.getElementById(erroId).textContent = '';
+    }
+
+    function validarLancamento(valorInput, tituloInput, erroEl) {
+      valorInput.classList.remove('erro');
+      tituloInput.classList.remove('erro');
+      const valor = F.lerMoeda(valorInput);
+      const titulo = tituloInput.value.trim();
+      if (!valor) {
+        valorInput.classList.add('erro');
+        erroEl.textContent = 'Informe um valor maior que zero.';
+        valorInput.focus();
+        return null;
+      }
+      if (!titulo) {
+        tituloInput.classList.add('erro');
+        erroEl.textContent = 'Dê um título para o lançamento.';
+        tituloInput.focus();
+        return null;
+      }
+      erroEl.textContent = '';
+      return { valor, titulo };
+    }
+
     // --- Adicionar conta (modal) ---
     const contaModal = document.getElementById('contaModal');
+    const contaValorInput = document.getElementById('contaValorModal');
+    F.ligarMascaraMoeda(contaValorInput);
+
     function abrirModalNovaConta() {
       document.getElementById('contaNomeModal').value = '';
       document.getElementById('contaDescricaoModal').value = '';
-      document.getElementById('contaValorModal').value = '';
+      F.definirMoeda(contaValorInput, 0);
       document.getElementById('contaCategoriaModal').value = '';
-      document.querySelectorAll('#contaStatusToggle .fin-status-opt').forEach((b) => b.classList.toggle('active', b.dataset.status === 'pendente'));
+      document.querySelectorAll('#contaStatusToggle .fin-entry-seg-opt').forEach((b) => b.classList.toggle('active', b.dataset.status === 'pendente'));
+      limparErrosLancamento(['contaValorModal', 'contaNomeModal', 'contaCategoriaModal'], 'contaErro');
       F.popularSelectsCategoria(['contaCategoriaModal']);
       contaModal.classList.add('visible');
+      contaValorInput.focus();
     }
     document.getElementById('btnAddConta').addEventListener('click', abrirModalNovaConta);
-    document.getElementById('contaModalCancelar').addEventListener('click', () => contaModal.classList.remove('visible'));
-    contaModal.addEventListener('click', (ev) => { if (ev.target === contaModal) contaModal.classList.remove('visible'); });
-    document.querySelectorAll('#contaStatusToggle .fin-status-opt').forEach((btn) => {
+    function fecharModalConta() { contaModal.classList.remove('visible'); }
+    document.getElementById('contaModalCancelar').addEventListener('click', fecharModalConta);
+    document.getElementById('contaModalFechar').addEventListener('click', fecharModalConta);
+    contaModal.addEventListener('click', (ev) => { if (ev.target === contaModal) fecharModalConta(); });
+    document.querySelectorAll('#contaStatusToggle .fin-entry-seg-opt').forEach((btn) => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('#contaStatusToggle .fin-status-opt').forEach((b) => b.classList.toggle('active', b === btn));
+        document.querySelectorAll('#contaStatusToggle .fin-entry-seg-opt').forEach((b) => b.classList.toggle('active', b === btn));
       });
     });
 
     async function salvarNovaConta() {
-      const nome = document.getElementById('contaNomeModal').value.trim();
+      const nomeInput = document.getElementById('contaNomeModal');
+      const erroEl = document.getElementById('contaErro');
+      const validado = validarLancamento(contaValorInput, nomeInput, erroEl);
+      if (!validado) return;
       const descricao = document.getElementById('contaDescricaoModal').value.trim();
-      const valor = Number(document.getElementById('contaValorModal').value);
       const categoria = document.getElementById('contaCategoriaModal').value.trim();
-      const status = document.querySelector('#contaStatusToggle .fin-status-opt.active').dataset.status;
-      if (!nome || !valor || valor <= 0) {
-        window.finToast?.('Preencha título e valor.', { type: 'error' });
-        return;
-      }
+      const status = document.querySelector('#contaStatusToggle .fin-entry-seg-opt.active').dataset.status;
+      const botao = document.getElementById('contaModalSalvar');
+      botao.disabled = true;
+      botao.textContent = 'Salvando...';
       try {
-        await iniciarConta(nome, valor, categoria, status, descricao);
-        contaModal.classList.remove('visible');
+        await iniciarConta(validado.titulo, validado.valor, categoria, status, descricao);
+        fecharModalConta();
         window.finToast?.('Conta adicionada.', { type: 'success' });
         observador && observador.forcar();
       } catch (err) {
-        window.finToast?.(err.message || 'Não foi possível adicionar.', { type: 'error' });
+        erroEl.textContent = err.message || 'Não foi possível salvar. Tente de novo.';
+      } finally {
+        botao.disabled = false;
+        botao.textContent = 'Adicionar conta';
       }
     }
     document.getElementById('contaModalSalvar').addEventListener('click', (e) => finRunOnce(e, salvarNovaConta));
 
-    // --- Débito (form inline) ---
+    // --- Débito (modal) ---
+    const debitoModal = document.getElementById('debitoModal');
+    const debitoValorInput = document.getElementById('debitoValor');
+    F.ligarMascaraMoeda(debitoValorInput);
+
+    function abrirModalDebito() {
+      document.getElementById('debitoNome').value = '';
+      document.getElementById('debitoDescricao').value = '';
+      F.definirMoeda(debitoValorInput, 0);
+      document.getElementById('debitoCategoria').value = '';
+      limparErrosLancamento(['debitoValor', 'debitoNome', 'debitoCategoria'], 'debitoErro');
+      F.popularSelectsCategoria(['debitoCategoria']);
+      debitoModal.classList.add('visible');
+      debitoValorInput.focus();
+    }
+    function fecharModalDebito() { debitoModal.classList.remove('visible'); }
+    document.getElementById('btnAddDebito').addEventListener('click', abrirModalDebito);
+    document.getElementById('debitoModalCancelar').addEventListener('click', fecharModalDebito);
+    document.getElementById('debitoModalFechar').addEventListener('click', fecharModalDebito);
+    debitoModal.addEventListener('click', (ev) => { if (ev.target === debitoModal) fecharModalDebito(); });
+
     async function registrarDebito() {
       const nomeInput = document.getElementById('debitoNome');
-      const descricaoInput = document.getElementById('debitoDescricao');
-      const valorInput = document.getElementById('debitoValor');
-      const categoriaInput = document.getElementById('debitoCategoria');
-      const nome = nomeInput.value.trim();
-      const descricao = descricaoInput.value.trim();
-      const valor = Number(valorInput.value);
-      if (!nome || !valor || valor <= 0) {
-        window.finToast?.('Preencha título e valor.', { type: 'error' });
-        return;
-      }
+      const erroEl = document.getElementById('debitoErro');
+      const validado = validarLancamento(debitoValorInput, nomeInput, erroEl);
+      if (!validado) return;
+      const descricao = document.getElementById('debitoDescricao').value.trim();
+      const categoria = document.getElementById('debitoCategoria').value.trim();
+      const botao = document.getElementById('debitoModalSalvar');
+      botao.disabled = true;
+      botao.textContent = 'Salvando...';
       try {
         await F.api('/api/financeiro/debitos', {
           method: 'POST',
-          body: JSON.stringify({ ano: Number(periodo.ano), mes: periodo.mes, nome, valor, categoria: categoriaInput.value.trim(), descricao }),
+          body: JSON.stringify({
+            ano: Number(periodo.ano),
+            mes: periodo.mes,
+            nome: validado.titulo,
+            valor: validado.valor,
+            categoria,
+            descricao,
+          }),
         });
-        nomeInput.value = '';
-        descricaoInput.value = '';
-        valorInput.value = '';
-        categoriaInput.value = '';
+        fecharModalDebito();
         window.finToast?.('Débito registrado.', { type: 'success' });
         observador && observador.forcar();
       } catch (err) {
-        window.finToast?.(err.message || 'Não foi possível registrar.', { type: 'error' });
+        erroEl.textContent = err.message || 'Não foi possível salvar. Tente de novo.';
+      } finally {
+        botao.disabled = false;
+        botao.textContent = 'Registrar débito';
       }
     }
-    document.getElementById('btnAddDebito').addEventListener('click', (e) => finRunOnce(e, registrarDebito));
+    document.getElementById('debitoModalSalvar').addEventListener('click', (e) => finRunOnce(e, registrarDebito));
 
     // --- Inicialização ---
     async function iniciar() {
@@ -331,7 +412,6 @@
         },
       });
       await F.carregarCategorias();
-      F.popularSelectsCategoria(['debitoCategoria']);
     }
 
     auth.onAuthStateChanged((user) => {

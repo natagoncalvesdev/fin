@@ -6,12 +6,12 @@
   <title>Cartões | Fin</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
   <link rel="stylesheet" href="sidebar.css?v=10">
-  <link rel="stylesheet" href="css/theme.css?v=7">
+  <link rel="stylesheet" href="css/theme.css?v=8">
   <link rel="stylesheet" href="css/mobile-shell.css?v=8">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
-  <script src="js/fin-financeiro-shared.js?v=5"></script>
+  <script src="js/fin-financeiro-shared.js?v=6"></script>
   <script src="sidebar.js?v=9"></script>
   <style>
     * { box-sizing: border-box; }
@@ -86,44 +86,133 @@
       border-radius: 12px;
     }
 
-    .anticipate-group {
+    .anticipate-hint {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--text-secondary);
+    }
+
+    .anticipate-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 10px;
+      max-height: 420px;
+      overflow-y: auto;
     }
 
-    .anticipate-group-header {
-      background: var(--accent-soft);
-      padding: 8px 10px;
-      border-radius: 8px;
+    .anticipate-card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 14px;
+      background: #fff;
     }
 
-    .anticipate-group-header label { line-height: 1.5; }
+    .anticipate-card-info {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .anticipate-card-info strong {
+      font-size: 14px;
+      font-weight: 700;
+    }
 
     .anticipate-group-sub {
       display: block;
       font-size: 12px;
-      font-weight: 400;
+      font-weight: 500;
       color: var(--text-secondary);
     }
 
-    .anticipate-sub-item { padding-left: 26px; }
-
-    .anticipate-sub-item label {
+    .anticipate-side {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
     }
 
-    .anticipate-parcela-info { min-width: 0; }
+    .anticipate-stepper {
+      display: flex;
+      align-items: center;
+      background: #f8fafc;
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+    }
 
-    .anticipate-parcela-valor {
+    .anticipate-stepper button {
+      width: 40px;
+      height: 40px;
+      border: 0;
+      background: transparent;
+      color: var(--accent);
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .anticipate-stepper button:disabled {
+      color: #cbd5e1;
+      cursor: default;
+    }
+
+    .anticipate-qtd {
+      min-width: 18px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .anticipate-qtd-max {
+      margin-right: 10px;
+      font-size: 12px;
       font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .anticipate-card-valor {
       font-size: 13px;
-      white-space: nowrap;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .anticipate-linhas {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-top: 4px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .anticipate-linha {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12.5px;
+      color: var(--text-secondary);
+    }
+
+    .anticipate-linha span:last-child {
+      font-weight: 600;
       color: var(--text-primary);
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .anticipate-vazio {
+      margin: 0;
+      font-size: 12px;
+      color: var(--text-secondary);
     }
 
     .anticipate-total {
@@ -233,49 +322,58 @@
   </div>
 
   <!-- Modal: adicionar compra -->
-  <div id="compraModal" class="modal-overlay">
-    <div class="modal-content" style="max-width: 480px;">
-      <h3>Adicionar compra</h3>
-      <div class="form-row" style="flex-direction: column; gap: 14px;">
-        <div>
-          <label class="fin-field-label" for="compraCartaoNome">Título</label>
-          <input id="compraCartaoNome" placeholder="Ex.: Óculos" />
-        </div>
-        <div>
-          <label class="fin-field-label" for="compraCartaoDescricao">Descrição</label>
-          <input id="compraCartaoDescricao" type="text" placeholder="Detalhes opcionais" />
-        </div>
-        <div>
-          <label class="fin-field-label" for="compraCartaoValor">Valor da parcela</label>
-          <input id="compraCartaoValor" type="number" step="0.01" placeholder="Valor em R$" />
-        </div>
-        <div>
-          <label class="fin-field-label" for="compraCartaoParcelas">Total de parcelas</label>
-          <input id="compraCartaoParcelas" type="number" min="1" placeholder="Ex.: 10" value="1" />
-        </div>
-        <label class="fin-checkbox-row">
-          <input type="checkbox" id="compraCartaoRecorrente" />
-          <span>Compra recorrente (repete todo mês)</span>
-        </label>
-        <div>
-          <label class="fin-field-label" for="compraCartaoCategoria">Categoria</label>
-          <select id="compraCartaoCategoria"><option value="">Selecione uma categoria</option></select>
+  <div id="compraModal" class="modal-overlay fin-entry-overlay">
+    <div class="modal-content fin-entry-modal">
+      <div class="fin-entry-head">
+        <h3>Nova compra</h3>
+        <button type="button" class="fin-entry-x" id="btnFecharCompra" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="fin-entry-valor">
+        <label for="compraCartaoValor">Valor da parcela</label>
+        <div class="fin-entry-valor-linha">
+          <span class="fin-entry-moeda">R$</span>
+          <input id="compraCartaoValor" class="fin-entry-valor-input" inputmode="numeric" autocomplete="off" placeholder="0,00" />
         </div>
       </div>
-      <div class="modal-actions">
-        <button class="btn-cancel" id="btnCancelarCompra">Cancelar</button>
-        <button class="btn-confirm" id="btnSalvarCompra">Adicionar</button>
+      <div class="fin-entry-campo">
+        <label for="compraCartaoNome">Título</label>
+        <input class="fin-entry-input" id="compraCartaoNome" autocomplete="off" placeholder="Ex.: Óculos" />
+      </div>
+      <div class="fin-entry-campo">
+        <label for="compraCartaoCategoria">Categoria</label>
+        <select class="fin-entry-input" id="compraCartaoCategoria"><option value="">Selecione uma categoria</option></select>
+      </div>
+      <div class="fin-entry-campo">
+        <label for="compraCartaoDescricao">Observação <small>(opcional)</small></label>
+        <textarea class="fin-entry-input" id="compraCartaoDescricao" placeholder="Algum detalhe sobre essa compra?"></textarea>
+      </div>
+      <div class="fin-entry-campo">
+        <label for="compraCartaoParcelas">Total de parcelas</label>
+        <input class="fin-entry-input" id="compraCartaoParcelas" type="number" min="1" max="48" inputmode="numeric" value="1" />
+      </div>
+      <label class="fin-checkbox-row">
+        <input type="checkbox" id="compraCartaoRecorrente" />
+        <span>Compra recorrente (repete todo mês)</span>
+      </label>
+      <p class="fin-entry-erro" id="compraErro" role="alert"></p>
+      <div class="fin-entry-acoes">
+        <button type="button" class="fin-entry-btn fin-entry-btn-sec" id="btnCancelarCompra">Cancelar</button>
+        <button type="button" class="fin-entry-btn fin-entry-btn-pri" id="btnSalvarCompra">Adicionar compra</button>
       </div>
     </div>
   </div>
 
   <!-- Modal: adiantar parcela -->
   <div id="anticipateModal" class="modal-overlay">
-    <div class="modal-content">
-      <h3>Adiantar parcelas para o mês atual</h3>
-      <div id="anticipateList" class="modal-month-list"><p class="info-text">Buscando parcelas futuras…</p></div>
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="fin-entry-head">
+        <h3>Adiantar parcelas</h3>
+        <button type="button" class="fin-entry-x" id="btnFecharAdiantar" aria-label="Fechar">&times;</button>
+      </div>
+      <p class="anticipate-hint">O banco adianta da última parcela para as anteriores. Use + e − para escolher quantas entram neste mês.</p>
+      <div id="anticipateList" class="anticipate-list"><p class="info-text">Buscando parcelas futuras…</p></div>
       <div id="anticipateTotal" class="anticipate-total">
-        <span class="anticipate-total-label">Total selecionado</span>
+        <span class="anticipate-total-label">Total a adiantar</span>
         <span id="anticipateTotalValor" class="anticipate-total-valor"></span>
       </div>
       <div class="modal-actions">
@@ -294,7 +392,7 @@
     let cartoesCache = [];
     let cartaoSelecionado = null;
     let dadosMesAtual = { cartao: [], cartaoStatus: 'pendente' };
-    let parcelasParaAdiantar = [];
+    let gruposAdiantar = [];
 
     function refCartao(cartao) {
       return String((cartao && cartao.data && cartao.data.numero) || '').trim();
@@ -417,31 +515,57 @@
 
     // --- Adicionar compra ---
     const compraModal = document.getElementById('compraModal');
+    const compraValorInput = document.getElementById('compraCartaoValor');
+    F.ligarMascaraMoeda(compraValorInput);
+
+    function fecharModalCompra() { compraModal.classList.remove('visible'); }
+
     document.getElementById('btnAddCompra').addEventListener('click', () => {
       if (!cartaoSelecionado) return;
       document.getElementById('compraCartaoNome').value = '';
       document.getElementById('compraCartaoDescricao').value = '';
-      document.getElementById('compraCartaoValor').value = '';
+      F.definirMoeda(compraValorInput, 0);
       document.getElementById('compraCartaoParcelas').value = '1';
       document.getElementById('compraCartaoRecorrente').checked = false;
+      document.getElementById('compraErro').textContent = '';
+      compraValorInput.classList.remove('erro');
+      document.getElementById('compraCartaoNome').classList.remove('erro');
       F.popularSelectsCategoria(['compraCartaoCategoria']);
       document.getElementById('compraCartaoCategoria').value = '';
       compraModal.classList.add('visible');
+      compraValorInput.focus();
     });
-    document.getElementById('btnCancelarCompra').addEventListener('click', () => compraModal.classList.remove('visible'));
-    compraModal.addEventListener('click', (ev) => { if (ev.target === compraModal) compraModal.classList.remove('visible'); });
+    document.getElementById('btnCancelarCompra').addEventListener('click', fecharModalCompra);
+    document.getElementById('btnFecharCompra').addEventListener('click', fecharModalCompra);
+    compraModal.addEventListener('click', (ev) => { if (ev.target === compraModal) fecharModalCompra(); });
 
     async function salvarCompra() {
-      const nome = document.getElementById('compraCartaoNome').value.trim();
+      const nomeInput = document.getElementById('compraCartaoNome');
+      const erroEl = document.getElementById('compraErro');
+      const nome = nomeInput.value.trim();
       const descricao = document.getElementById('compraCartaoDescricao').value.trim();
-      const valor = Number(document.getElementById('compraCartaoValor').value);
+      const valor = F.lerMoeda(compraValorInput);
       const totalParcelas = Number(document.getElementById('compraCartaoParcelas').value) || 1;
       const recorrente = document.getElementById('compraCartaoRecorrente').checked;
       const categoria = document.getElementById('compraCartaoCategoria').value.trim();
-      if (!nome || !valor || valor <= 0) {
-        window.finToast?.('Preencha título e valor.', { type: 'error' });
+      compraValorInput.classList.remove('erro');
+      nomeInput.classList.remove('erro');
+      if (!valor) {
+        compraValorInput.classList.add('erro');
+        erroEl.textContent = 'Informe um valor maior que zero.';
+        compraValorInput.focus();
         return;
       }
+      if (!nome) {
+        nomeInput.classList.add('erro');
+        erroEl.textContent = 'Dê um título para a compra.';
+        nomeInput.focus();
+        return;
+      }
+      erroEl.textContent = '';
+      const botao = document.getElementById('btnSalvarCompra');
+      botao.disabled = true;
+      botao.textContent = 'Salvando...';
       try {
         await F.api('/api/financeiro/compras-cartao', {
           method: 'POST',
@@ -450,11 +574,14 @@
             cartaoId: refCartao(cartaoSelecionado), categoria, totalParcelas, recorrente, descricao,
           }),
         });
-        compraModal.classList.remove('visible');
+        fecharModalCompra();
         window.finToast?.('Compra adicionada.', { type: 'success' });
         observador && observador.forcar();
       } catch (err) {
-        window.finToast?.(err.message || 'Não foi possível adicionar.', { type: 'error' });
+        erroEl.textContent = err.message || 'Não foi possível salvar. Tente de novo.';
+      } finally {
+        botao.disabled = false;
+        botao.textContent = 'Adicionar compra';
       }
     }
     document.getElementById('btnSalvarCompra').addEventListener('click', (e) => finRunOnce(e, salvarCompra));
@@ -571,19 +698,121 @@
       }
     }
 
-    // --- Adiantar parcela ---
+    // --- Adiantar parcela (sempre da última para as anteriores) ---
     const anticipateModal = document.getElementById('anticipateModal');
     const anticipateTotalEl = document.getElementById('anticipateTotal');
     const anticipateTotalValorEl = document.getElementById('anticipateTotalValor');
 
+    function ordemUltimaParcela(item) {
+      const match = String(item.parcelas || '').match(/(\d+)\s*\/\s*(\d+)/);
+      const numero = match ? Number(match[1]) : 0;
+      const mesIdx = Math.max(0, F.MESES.indexOf(item.origemMes));
+      return numero * 100000 + Number(item.origemAno || 0) * 100 + mesIdx;
+    }
+
+    function chaveGrupoAdiantar(item) {
+      if (item.serieUuid) return `serie:${item.serieUuid}`;
+      const total = (String(item.parcelas || '').match(/\/\s*(\d+)/) || [])[1] || '';
+      return `nome:${item.nome}|${total}|${Number(item.valor) || 0}`;
+    }
+
+    function parcelasSelecionadas() {
+      return gruposAdiantar.flatMap((grupo) => grupo.itens.slice(0, grupo.quantidade));
+    }
+
     function atualizarTotalAdiantar() {
-      const checks = document.querySelectorAll('#anticipateList input[type="checkbox"][data-idx]:checked');
-      let soma = 0;
-      checks.forEach((chk) => {
-        const item = parcelasParaAdiantar[Number(chk.dataset.idx)];
-        soma += Number((item && item.valor) || 0);
-      });
+      const soma = parcelasSelecionadas().reduce((acc, item) => acc + Number(item.valor || 0), 0);
       anticipateTotalValorEl.textContent = F.formatar(soma);
+      anticipateTotalEl.classList.toggle('visible', gruposAdiantar.length > 0);
+    }
+
+    function renderizarGruposAdiantar() {
+      const lista = document.getElementById('anticipateList');
+      lista.innerHTML = '';
+      if (!gruposAdiantar.length) {
+        lista.innerHTML = '<p class="info-text">Nenhuma parcela futura encontrada.</p>';
+        anticipateTotalEl.classList.remove('visible');
+        return;
+      }
+
+      gruposAdiantar.forEach((grupo, grupoIdx) => {
+        const selecionados = grupo.itens.slice(0, grupo.quantidade);
+        const soma = selecionados.reduce((s, it) => s + Number(it.valor || 0), 0);
+
+        const card = document.createElement('div');
+        card.className = 'anticipate-card';
+        card.dataset.grupo = String(grupoIdx);
+
+        const info = document.createElement('div');
+        info.className = 'anticipate-card-info';
+        const titulo = document.createElement('strong');
+        titulo.textContent = grupo.nome;
+        const sub = document.createElement('span');
+        sub.className = 'anticipate-group-sub';
+        sub.textContent = grupo.itens.length === 1
+          ? '1 parcela futura'
+          : `${grupo.itens.length} parcelas futuras`;
+        info.append(titulo, sub);
+
+        const lado = document.createElement('div');
+        lado.className = 'anticipate-side';
+        const stepper = document.createElement('div');
+        stepper.className = 'anticipate-stepper';
+
+        const menos = document.createElement('button');
+        menos.type = 'button';
+        menos.dataset.acao = 'menos';
+        menos.textContent = '−';
+        menos.setAttribute('aria-label', 'Diminuir parcelas de ' + grupo.nome);
+        menos.disabled = grupo.quantidade <= 0;
+
+        const qtd = document.createElement('span');
+        qtd.className = 'anticipate-qtd';
+        qtd.textContent = String(grupo.quantidade);
+
+        const max = document.createElement('span');
+        max.className = 'anticipate-qtd-max';
+        max.textContent = `/ ${grupo.itens.length}`;
+
+        const mais = document.createElement('button');
+        mais.type = 'button';
+        mais.dataset.acao = 'mais';
+        mais.textContent = '+';
+        mais.setAttribute('aria-label', 'Aumentar parcelas de ' + grupo.nome);
+        mais.disabled = grupo.quantidade >= grupo.itens.length;
+
+        stepper.append(menos, qtd, max, mais);
+
+        const valorSel = document.createElement('div');
+        valorSel.className = 'anticipate-card-valor';
+        valorSel.textContent = F.formatar(soma);
+        lado.append(stepper, valorSel);
+
+        const linhas = document.createElement('div');
+        linhas.className = 'anticipate-linhas';
+        if (!selecionados.length) {
+          const vazio = document.createElement('p');
+          vazio.className = 'anticipate-vazio';
+          vazio.textContent = 'Nenhuma parcela. O + inclui a última primeiro.';
+          linhas.appendChild(vazio);
+        } else {
+          selecionados.forEach((item) => {
+            const linha = document.createElement('div');
+            linha.className = 'anticipate-linha';
+            const esq = document.createElement('span');
+            esq.textContent = `Parcela ${item.parcelas} · ${item.origemMes}/${item.origemAno}`;
+            const dir = document.createElement('span');
+            dir.textContent = F.formatar(item.valor);
+            linha.append(esq, dir);
+            linhas.appendChild(linha);
+          });
+        }
+
+        card.append(info, lado, linhas);
+        lista.appendChild(card);
+      });
+
+      atualizarTotalAdiantar();
     }
 
     document.getElementById('btnAdiantar').addEventListener('click', async () => {
@@ -592,6 +821,7 @@
       const lista = document.getElementById('anticipateList');
       lista.innerHTML = '<p class="info-text">Buscando parcelas futuras…</p>';
       anticipateTotalEl.classList.remove('visible');
+      gruposAdiantar = [];
 
       const mesIndex = F.MESES.indexOf(periodo.mes);
       const encontradas = [];
@@ -608,86 +838,46 @@
         });
       }
 
-      parcelasParaAdiantar = encontradas;
-      lista.innerHTML = '';
-      if (!encontradas.length) {
-        lista.innerHTML = '<p class="info-text">Nenhuma parcela futura encontrada.</p>';
-        return;
-      }
-
-      const grupos = {};
-      encontradas.forEach((item, idx) => {
-        if (!grupos[item.nome]) grupos[item.nome] = [];
-        grupos[item.nome].push({ ...item, idx });
+      const mapa = new Map();
+      encontradas.forEach((item) => {
+        const chave = chaveGrupoAdiantar(item);
+        if (!mapa.has(chave)) mapa.set(chave, { nome: item.nome, itens: [], quantidade: 0 });
+        mapa.get(chave).itens.push(item);
       });
-
-      Object.keys(grupos).forEach((nome, grupoIdx) => {
-        const itens = grupos[nome];
-        const total = itens.reduce((s, it) => s + Number(it.valor || 0), 0);
-
-        const groupDiv = document.createElement('div');
-        groupDiv.className = 'anticipate-group';
-
-        const header = document.createElement('div');
-        header.className = 'modal-month-item anticipate-group-header';
-        header.innerHTML = `
-          <input type="checkbox" id="adiantar-grupo-${grupoIdx}">
-          <label for="adiantar-grupo-${grupoIdx}">
-            <strong>${nome}</strong>
-            <span class="anticipate-group-sub">${itens.length} parcela(s) · Total ${F.formatar(total)}</span>
-          </label>
-        `;
-        groupDiv.appendChild(header);
-
-        itens.forEach((item) => {
-          const sub = document.createElement('div');
-          sub.className = 'modal-month-item anticipate-sub-item';
-          sub.innerHTML = `
-            <input type="checkbox" id="adiantar-${item.idx}" data-idx="${item.idx}">
-            <label for="adiantar-${item.idx}">
-              <span class="anticipate-parcela-info">
-                Parcela ${item.parcelas}
-                <span class="anticipate-group-sub">— ${item.origemMes}/${item.origemAno}</span>
-              </span>
-              <span class="anticipate-parcela-valor">${F.formatar(item.valor)}</span>
-            </label>
-          `;
-          groupDiv.appendChild(sub);
-        });
-
-        lista.appendChild(groupDiv);
-      });
-
-      anticipateTotalEl.classList.add('visible');
-      atualizarTotalAdiantar();
+      gruposAdiantar = Array.from(mapa.values())
+        .map((grupo) => ({
+          ...grupo,
+          itens: grupo.itens.sort((a, b) => ordemUltimaParcela(b) - ordemUltimaParcela(a)),
+        }))
+        .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+      renderizarGruposAdiantar();
     });
 
-    document.getElementById('anticipateList').addEventListener('change', (ev) => {
-      const input = ev.target;
-      if (!(input instanceof HTMLInputElement) || input.type !== 'checkbox') return;
-      if (!input.dataset.idx) {
-        const grupo = input.closest('.anticipate-group');
-        if (grupo) {
-          grupo.querySelectorAll('.anticipate-sub-item input[type="checkbox"]').forEach((chk) => {
-            chk.checked = input.checked;
-          });
-        }
-      }
-      atualizarTotalAdiantar();
+    document.getElementById('anticipateList').addEventListener('click', (ev) => {
+      const btn = ev.target.closest('button[data-acao]');
+      if (!btn || btn.disabled) return;
+      const card = btn.closest('[data-grupo]');
+      if (!card) return;
+      const grupo = gruposAdiantar[Number(card.dataset.grupo)];
+      if (!grupo) return;
+      if (btn.dataset.acao === 'mais' && grupo.quantidade < grupo.itens.length) grupo.quantidade += 1;
+      if (btn.dataset.acao === 'menos' && grupo.quantidade > 0) grupo.quantidade -= 1;
+      renderizarGruposAdiantar();
     });
 
-    document.getElementById('btnCancelarAdiantar').addEventListener('click', () => anticipateModal.classList.remove('visible'));
-    anticipateModal.addEventListener('click', (ev) => { if (ev.target === anticipateModal) anticipateModal.classList.remove('visible'); });
+    function fecharModalAdiantar() { anticipateModal.classList.remove('visible'); }
+    document.getElementById('btnCancelarAdiantar').addEventListener('click', fecharModalAdiantar);
+    document.getElementById('btnFecharAdiantar').addEventListener('click', fecharModalAdiantar);
+    anticipateModal.addEventListener('click', (ev) => { if (ev.target === anticipateModal) fecharModalAdiantar(); });
 
     async function confirmarAdiantamento() {
-      const checks = Array.from(document.querySelectorAll('#anticipateList input[type="checkbox"][data-idx]:checked'));
-      if (!checks.length) {
-        window.finToast?.('Selecione ao menos uma parcela.', { type: 'error' });
+      const selecionados = parcelasSelecionadas();
+      if (!selecionados.length) {
+        window.finToast?.('Escolha quantas parcelas adiantar.', { type: 'error' });
         return;
       }
       let ok = 0;
-      for (const chk of checks) {
-        const item = parcelasParaAdiantar[Number(chk.dataset.idx)];
+      for (const item of selecionados) {
         try {
           await F.api(`/api/financeiro/compras-cartao/${item.id}/mover`, {
             method: 'PUT',
@@ -698,8 +888,8 @@
           console.error('Erro ao adiantar parcela:', err);
         }
       }
-      window.finToast?.(`${ok} parcela(s) adiantada(s).`, { type: ok === checks.length ? 'success' : 'error' });
-      anticipateModal.classList.remove('visible');
+      window.finToast?.(`${ok} parcela(s) adiantada(s).`, { type: ok === selecionados.length ? 'success' : 'error' });
+      fecharModalAdiantar();
       observador && observador.forcar();
     }
     document.getElementById('btnConfirmarAdiantar').addEventListener('click', (e) => finRunOnce(e, confirmarAdiantamento));

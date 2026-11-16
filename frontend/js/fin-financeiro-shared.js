@@ -23,6 +23,47 @@
   const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const formatar = (valor) => moeda.format(Number(valor) || 0);
 
+  function centavosParaTexto(centavos) {
+    return (centavos / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function ajustarFonteValor(input) {
+    const tamanho = (input.value || '').length;
+    input.dataset.largo = tamanho > 11 ? '2' : tamanho > 8 ? '1' : '';
+  }
+
+  /** Máscara de moeda: só dígitos, empurrando os centavos (1 → 0,01 → 0,12 → 1,23). */
+  function ligarMascaraMoeda(input) {
+    if (!input || input.dataset.moedaLigada) return;
+    input.dataset.moedaLigada = '1';
+    input.setAttribute('inputmode', 'numeric');
+    input.setAttribute('autocomplete', 'off');
+    input.addEventListener('input', () => {
+      const centavos = parseInt(String(input.value).replace(/\D/g, '') || '0', 10);
+      input.dataset.centavos = String(centavos);
+      input.value = centavos ? centavosParaTexto(centavos) : '';
+      ajustarFonteValor(input);
+    });
+  }
+
+  function definirMoeda(input, valorNumero) {
+    if (!input) return;
+    const numero = Number(valorNumero);
+    const centavos = Number.isFinite(numero) && numero > 0 ? Math.round(numero * 100) : 0;
+    input.dataset.centavos = String(centavos);
+    input.value = centavos ? centavosParaTexto(centavos) : '';
+    ajustarFonteValor(input);
+  }
+
+  function lerMoeda(input) {
+    if (!input) return 0;
+    const guardado = input.dataset.centavos;
+    const centavos = guardado != null && guardado !== ''
+      ? parseInt(guardado, 10)
+      : parseInt(String(input.value).replace(/\D/g, '') || '0', 10);
+    return (Number.isFinite(centavos) ? centavos : 0) / 100;
+  }
+
   function api(path, options) {
     return global.finApi.request(path, options);
   }
@@ -288,42 +329,44 @@
   function injetarModal() {
     if (document.getElementById('finItemModal')) return;
     document.body.insertAdjacentHTML('beforeend', `
-      <div id="finItemModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 460px;">
-          <h3 id="finItemModalTitulo">Item</h3>
-          <div class="form-row" style="flex-direction: column; gap: 14px;">
-            <div>
-              <label class="fin-field-label" for="finItemNome">Título</label>
-              <input id="finItemNome" type="text" placeholder="Título" />
-            </div>
-            <div>
-              <label class="fin-field-label" for="finItemDescricao">Descrição</label>
-              <textarea id="finItemDescricao" rows="3" placeholder="Detalhes opcionais (observações, local, etc.)"></textarea>
-            </div>
-            <div>
-              <label class="fin-field-label" for="finItemValor">Valor</label>
-              <input id="finItemValor" type="number" step="0.01" placeholder="Valor em R$" />
-            </div>
-            <div id="finItemCategoriaWrap">
-              <label class="fin-field-label" for="finItemCategoria">Categoria</label>
-              <select id="finItemCategoria"><option value="">Selecione uma categoria</option></select>
-            </div>
-            <div id="finItemStatusWrap" style="display:none;">
-              <label class="fin-field-label">Status</label>
-              <div class="fin-status-toggle">
-                <button type="button" class="fin-status-opt" data-status="pendente">Pendente</button>
-                <button type="button" class="fin-status-opt" data-status="pago">Pago</button>
-              </div>
-            </div>
-            <div id="finItemParcelaInfo" class="fin-parcela-info" style="display:none;"></div>
+      <div id="finItemModal" class="modal-overlay fin-entry-overlay">
+        <div class="modal-content fin-entry-modal">
+          <div class="fin-entry-head">
+            <h3 id="finItemModalTitulo">Item</h3>
+            <button type="button" class="fin-entry-x" id="finItemFechar" aria-label="Fechar">&times;</button>
           </div>
-          <div class="modal-actions" style="justify-content: space-between;">
-            <button type="button" class="btn-inline fin-btn-danger" id="finItemExcluir">🗑️ Excluir</button>
-            <div style="display:flex; gap:10px;">
-              <button type="button" class="btn-icon-inline copy" id="finItemCopiar" style="font-size:20px;" title="Copiar para outros meses">❐</button>
-              <button type="button" class="btn-cancel" id="finItemCancelar">Cancelar</button>
-              <button type="button" class="btn-confirm" id="finItemSalvar">Salvar</button>
+          <div class="fin-entry-valor">
+            <label for="finItemValor">Valor</label>
+            <div class="fin-entry-valor-linha">
+              <span class="fin-entry-moeda">R$</span>
+              <input id="finItemValor" class="fin-entry-valor-input" inputmode="numeric" autocomplete="off" placeholder="0,00" />
             </div>
+          </div>
+          <div class="fin-entry-campo">
+            <label for="finItemNome">Título</label>
+            <input id="finItemNome" class="fin-entry-input" type="text" autocomplete="off" placeholder="Ex.: Conta de luz" />
+          </div>
+          <div class="fin-entry-campo" id="finItemCategoriaWrap">
+            <label for="finItemCategoria">Categoria</label>
+            <select id="finItemCategoria" class="fin-entry-input"><option value="">Selecione uma categoria</option></select>
+          </div>
+          <div class="fin-entry-campo">
+            <label for="finItemDescricao">Observação <small>(opcional)</small></label>
+            <textarea id="finItemDescricao" class="fin-entry-input" placeholder="Algum detalhe?"></textarea>
+          </div>
+          <div class="fin-entry-campo" id="finItemStatusWrap" style="display:none;">
+            <span class="fin-entry-legend">Status</span>
+            <div class="fin-entry-seg">
+              <button type="button" class="fin-entry-seg-opt" data-status="pendente">Pendente</button>
+              <button type="button" class="fin-entry-seg-opt" data-status="pago">Pago</button>
+            </div>
+          </div>
+          <div id="finItemParcelaInfo" class="fin-parcela-info" style="display:none;"></div>
+          <div class="fin-entry-acoes fin-entry-acoes-edit">
+            <button type="button" class="btn-inline fin-btn-danger" id="finItemExcluir">Excluir</button>
+            <button type="button" class="btn-icon-inline copy" id="finItemCopiar" style="font-size:20px;" title="Copiar para outros meses">❐</button>
+            <button type="button" class="fin-entry-btn fin-entry-btn-sec" id="finItemCancelar">Cancelar</button>
+            <button type="button" class="fin-entry-btn fin-entry-btn-pri" id="finItemSalvar">Salvar</button>
           </div>
         </div>
       </div>
@@ -348,7 +391,8 @@
       categoriaWrap: document.getElementById('finItemCategoriaWrap'),
       categoria: document.getElementById('finItemCategoria'),
       statusWrap: document.getElementById('finItemStatusWrap'),
-      statusOpts: Array.from(document.querySelectorAll('.fin-status-opt')),
+      statusOpts: Array.from(document.querySelectorAll('#finItemStatusWrap .fin-entry-seg-opt')),
+      fechar: document.getElementById('finItemFechar'),
       parcelaInfo: document.getElementById('finItemParcelaInfo'),
       excluir: document.getElementById('finItemExcluir'),
       copiar: document.getElementById('finItemCopiar'),
@@ -365,6 +409,8 @@
         modalEls.statusOpts.forEach((b) => b.classList.toggle('active', b === btn));
       });
     });
+    ligarMascaraMoeda(modalEls.valor);
+    modalEls.fechar.addEventListener('click', fecharModalItem);
     modalEls.cancelar.addEventListener('click', fecharModalItem);
     modalEls.excluir.addEventListener('click', () => finRunOnce(modalEls.excluir, excluirItemAtual));
     modalEls.salvar.addEventListener('click', () => finRunOnce(modalEls.salvar, salvarItemAtual));
@@ -399,7 +445,7 @@
     modalEls.titulo.textContent = opts.item.nome || 'Editar item';
     modalEls.nome.value = opts.item.nome || '';
     modalEls.descricao.value = opts.item.descricao || '';
-    modalEls.valor.value = opts.item.valor != null ? opts.item.valor : '';
+    definirMoeda(modalEls.valor, opts.item.valor);
 
     modalEls.categoriaWrap.style.display = cfg.temCategoria ? '' : 'none';
     if (cfg.temCategoria) {
@@ -437,7 +483,7 @@
     const { tipo, cfg, item, onSalvo } = modalEstado;
     const nome = modalEls.nome.value.trim();
     const descricao = modalEls.descricao.value.trim();
-    const valor = Number(modalEls.valor.value);
+    const valor = lerMoeda(modalEls.valor);
     if (!nome || !valor || valor <= 0) {
       toast('Preencha título e valor.', { type: 'error' });
       return;
@@ -560,6 +606,9 @@
     ANO_BASE,
     ANO_LIMITE,
     formatar,
+    ligarMascaraMoeda,
+    definirMoeda,
+    lerMoeda,
     api,
     criarControladorPeriodo(config) {
       const ctrl = criarControladorPeriodo(config);

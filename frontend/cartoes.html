@@ -27,55 +27,193 @@
 
     .content {
       flex: 1;
-      padding: 40px;
+      padding: 28px 36px 48px;
       margin-left: 280px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
-      max-width: 1180px;
+      gap: 16px;
+      max-width: 1200px;
     }
 
-    .cartoes-container {
+    .cartao-topo {
       display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
       flex-wrap: wrap;
+    }
+
+    .cartao-topo h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .cartao-topo p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .cartao-acoes-topo,
+    .cartao-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .cartao-acoes-topo select,
+    .cartao-btn {
+      font: 500 13px var(--font-family);
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #e8eaee;
+      background: #fff;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .cartao-btn.pri {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .cartao-btn.pri:hover { background: #1d4ed8; }
+    .cartao-acoes-topo select:hover,
+    .cartao-btn:hover { border-color: #cbd5e1; }
+
+    .cartao-area {
+      display: grid;
+      grid-template-columns: minmax(280px, 380px) 1fr;
       gap: 16px;
     }
 
-    .cartao-card {
-      position: relative;
-      overflow: hidden;
-      min-width: 260px;
-      max-width: 300px;
-      min-height: 160px;
-      border-radius: 18px;
-      padding: 22px;
+    .cartao-col { display: grid; gap: 14px; align-content: start; }
+
+    .cartao-switcher { display: flex; gap: 8px; flex-wrap: wrap; }
+    .cartao-switcher button {
+      font: 600 12px var(--font-family);
+      padding: 7px 12px;
+      border-radius: 99px;
+      border: 1px solid #e8eaee;
+      background: #fff;
+      color: var(--text-secondary);
       cursor: pointer;
+    }
+    .cartao-switcher button.on {
+      background: var(--text-primary);
+      border-color: var(--text-primary);
       color: #fff;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      box-shadow: 0 10px 24px rgba(11, 18, 48, 0.18);
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
-      background: linear-gradient(135deg, #526080 0%, #333e5c 100%);
     }
 
-    .cartao-card:hover { transform: translateY(-3px); }
-    .cartao-card.selecionado { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .cartao-visual {
+      aspect-ratio: 1.586;
+      border-radius: 20px;
+      padding: 22px;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(140deg, #1b2b66, #0a1030);
+      box-shadow: 0 22px 34px -22px rgba(15, 29, 69, 0.8);
+    }
+    .cartao-visual::after {
+      content: "";
+      position: absolute;
+      right: -60px;
+      top: -60px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.14), transparent 70%);
+    }
+    .cartao-visual.visa { background: linear-gradient(140deg, #1a1f71, #0d1142); }
+    .cartao-visual.mastercard { background: linear-gradient(140deg, #eb001b, #7a0014); }
+    .cartao-visual.elo { background: linear-gradient(140deg, #ffcb05, #c68600); color: #1a1a1a; }
+    .cartao-visual.elo .cartao-venc { color: rgba(26,26,26,.72); }
+    .cartao-visual.amex { background: linear-gradient(140deg, #006fcf, #013e78); }
+    .cartao-visual.hipercard { background: linear-gradient(140deg, #df0f50, #7a082c); }
+    .cartao-visual .chip {
+      width: 40px; height: 30px; border-radius: 7px;
+      background: linear-gradient(135deg, #f6d36b, #d9a93a);
+    }
+    .cartao-visual .bandeira {
+      position: absolute; right: 22px; top: 22px; z-index: 1;
+      font: italic 800 18px var(--font-family); letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .cartao-visual .num {
+      position: absolute; left: 22px; bottom: 50px;
+      font-size: 17px; letter-spacing: 0.2em; font-weight: 500;
+    }
+    .cartao-visual .venc {
+      position: absolute; left: 22px; bottom: 22px;
+      font-size: 12px; color: #b8c2e0;
+    }
 
-    .cartao-card.visa { background: linear-gradient(135deg, #1a1f71 0%, #0d1142 100%); }
-    .cartao-card.mastercard { background: linear-gradient(135deg, #eb001b 0%, #c20018 100%); }
-    .cartao-card.elo { background: linear-gradient(135deg, #ffcb05 0%, #ffa000 100%); color: #1a1a1a; }
-    .cartao-card.amex { background: linear-gradient(135deg, #006fcf 0%, #0052a3 100%); }
-    .cartao-card.hipercard { background: linear-gradient(135deg, #df0f50 0%, #b00d42 100%); }
-    .cartao-card.outro { background: linear-gradient(135deg, #6c7190 0%, #4a4f6e 100%); }
+    .fatura-card h2 { margin: 0 0 16px; font-size: 14px; font-weight: 600; }
+    .fatura-topo {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 16px; flex-wrap: wrap; margin-bottom: 22px;
+    }
+    .fatura-rot { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+    .fatura-valor {
+      font-size: 36px; font-weight: 700; letter-spacing: -0.02em; margin: 4px 0 10px;
+      font-variant-numeric: tabular-nums;
+    }
+    .fatura-selo {
+      display: inline-block; font-size: 12px; font-weight: 600;
+      padding: 4px 10px; border-radius: 99px;
+      background: #fff4e5; color: #b45309;
+    }
+    .fatura-selo.paga { background: #e8f7ee; color: #15803d; }
+    .cartao-seg {
+      display: inline-grid; grid-template-columns: 1fr 1fr; gap: 4px;
+      padding: 4px; background: #f8fafc; border: 1px solid #e8eaee; border-radius: 12px;
+    }
+    .cartao-seg .fin-status-opt {
+      flex: none; font: 600 12px var(--font-family); border: 0; background: transparent;
+      color: var(--text-secondary); padding: 8px 14px; border-radius: 9px; cursor: pointer;
+    }
+    .cartao-seg .fin-status-opt.active[data-status="pendente"] { background: #fff4e5; color: #b45309; }
+    .cartao-seg .fin-status-opt.active[data-status="pago"] { background: #e8f7ee; color: #15803d; }
+    .fatura-pilha { display: flex; height: 10px; gap: 3px; margin: 4px 0 18px; }
+    .fatura-pilha div { height: 100%; border-radius: 99px; }
+    .fatura-comp { display: grid; gap: 12px; font-size: 13px; }
+    .fatura-comp div { display: grid; grid-template-columns: 10px 1fr auto 44px; gap: 10px; align-items: center; }
+    .fatura-comp i { width: 10px; height: 10px; border-radius: 3px; }
+    .fatura-comp span:last-child { text-align: right; color: var(--text-secondary); }
+    .linha-tempo svg { width: 100%; height: auto; display: block; }
+    .linha-nota { font-size: 12px; color: var(--text-secondary); margin: 12px 0 0; }
+    .cab-lista { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+    .cab-lista h2 { margin: 0; font-size: 14px; font-weight: 600; }
+    .chips-filtro { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip-f {
+      font: 500 12px var(--font-family); padding: 7px 12px; border-radius: 99px;
+      border: 1px solid #e8eaee; background: #fff; color: var(--text-secondary); cursor: pointer;
+    }
+    .chip-f.on { background: var(--text-primary); border-color: var(--text-primary); color: #fff; }
+    .compra-row {
+      display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px;
+      align-items: center; padding: 12px 0; border-top: 1px solid #e8eaee;
+      background: transparent; width: 100%; text-align: left; font-family: inherit;
+      color: inherit; cursor: pointer; border-left: 0; border-right: 0; border-bottom: 0;
+      appearance: none; box-shadow: none;
+    }
+    .compra-row:first-child { border-top: 0; }
+    .compra-row b { font-size: 14px; font-weight: 600; display: block; }
+    .compra-row small { font-size: 12px; color: var(--text-secondary); }
+    .compra-row .v { font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .compra-ini {
+      width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+      font-weight: 600; font-size: 13px;
+    }
+    .lista-vazia { padding: 24px 0; text-align: center; color: var(--text-secondary); font-size: 13px; }
 
-    .cartao-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
-    .cartao-chip { width: 34px; height: 26px; border-radius: 5px; background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); }
-    .cartao-bandeira-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; }
-    .cartao-numero { font-family: 'Courier New', monospace; font-size: 18px; letter-spacing: 2px; }
-    .cartao-vencimento { font-size: 13px; opacity: 0.85; margin-top: 4px; }
-
-    .cartoes-toolbar { display: flex; flex-wrap: wrap; gap: 10px; }
+    @media (max-width: 960px) {
+      .cartao-area { grid-template-columns: 1fr; }
+      .fatura-valor { font-size: 30px; }
+    }
 
     .cartao-gerenciar-item {
       display: flex;
@@ -268,38 +406,58 @@
 <body>
 
   <main class="content">
-    <div class="page-header-row">
-      <div class="page-header">
+    <div class="cartao-topo">
+      <div>
         <h1>Cartões</h1>
         <p id="tituloPeriodo">Carregando…</p>
       </div>
-      <div class="period-controls" style="display:flex; gap:10px;">
-        <select id="selectAno" style="min-width:110px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--border-color); background:var(--bg-section); color:var(--text-primary);"></select>
-        <select id="selectMes" style="min-width:140px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--border-color); background:var(--bg-section); color:var(--text-primary);"></select>
+      <div class="cartao-acoes-topo">
+        <select id="selectAno" aria-label="Ano"></select>
+        <select id="selectMes" aria-label="Mês"></select>
+        <button type="button" class="cartao-btn" id="btnGerenciarCartoes">Gerenciar cartões</button>
       </div>
     </div>
 
-    <section class="section-card">
-      <div class="page-header-row" style="margin-bottom:16px;">
-        <h2 class="section-card-title" style="margin:0;">Seus cartões</h2>
-        <button class="btn-cancel" id="btnGerenciarCartoes">Gerenciar cartões</button>
-      </div>
-      <div id="cartoesContainer" class="cartoes-container"></div>
-      <div id="cartoesVazio" class="statement-empty" style="display:none;">Nenhum cartão cadastrado ainda.</div>
-
-      <div class="cartoes-toolbar" id="cartaoAcoes" style="display:none; margin-top:18px;">
-        <button class="btn-add" id="btnAddCompra">+ Adicionar compra</button>
-        <button class="btn-cancel" id="btnAdiantar">Adiantar parcela</button>
-        <div class="fin-status-toggle" id="faturaStatusToggle" style="max-width:260px;">
-          <button type="button" class="fin-status-opt" data-status="pendente">Fatura pendente</button>
-          <button type="button" class="fin-status-opt" data-status="pago">Fatura paga</button>
+    <div class="cartao-area" id="cartaoArea">
+      <div class="cartao-col">
+        <div id="cartoesSwitcher" class="cartao-switcher"></div>
+        <div id="cartaoVisual"></div>
+        <div id="cartoesVazio" class="lista-vazia" style="display:none;">Nenhum cartão cadastrado ainda.</div>
+        <div class="cartao-btns" id="cartaoAcoes" style="display:none;">
+          <button type="button" class="cartao-btn pri" id="btnAddCompra">+ Adicionar compra</button>
+          <button type="button" class="cartao-btn" id="btnAdiantar">Adiantar parcela</button>
         </div>
       </div>
+      <section class="section-card fatura-card" id="painelFatura">
+        <div class="fatura-topo">
+          <div>
+            <div class="fatura-rot" id="faturaRotulo">Fatura do mês</div>
+            <div class="fatura-valor" id="faturaTotal">R$ 0,00</div>
+            <span class="fatura-selo" id="faturaSelo">Fatura pendente</span>
+          </div>
+          <div class="cartao-seg" id="faturaStatusToggle">
+            <button type="button" class="fin-status-opt" data-status="pendente">Pendente</button>
+            <button type="button" class="fin-status-opt" data-status="pago">Paga</button>
+          </div>
+        </div>
+        <h2>Composição da fatura</h2>
+        <div class="fatura-pilha" id="faturaPilha"></div>
+        <div class="fatura-comp" id="faturaComp"></div>
+      </section>
+    </div>
+
+    <section class="section-card">
+      <h2 class="section-card-title">Linha do tempo <small style="font-weight:500;color:var(--text-secondary);margin-left:6px;">valor da fatura mês a mês</small></h2>
+      <div class="linha-tempo" id="linhaTempo"></div>
+      <p class="linha-nota">Nas faturas futuras aparece só o que já está comprometido: compras recorrentes e parcelas.</p>
     </section>
 
     <section class="section-card">
-      <h2 class="section-card-title" id="tituloComprasCartao">Compras</h2>
-      <div id="listaCompras" class="statement-list"></div>
+      <div class="cab-lista">
+        <h2 id="tituloComprasCartao">Compras</h2>
+        <div class="chips-filtro" id="chipsCompras"></div>
+      </div>
+      <div id="listaCompras"></div>
     </section>
   </main>
 
@@ -420,6 +578,39 @@
     let cartaoSelecionado = null;
     let dadosMesAtual = { cartao: [], cartaoStatus: 'pendente' };
     let gruposAdiantar = [];
+    let filtroCompras = 'todas';
+    let linhaSeq = 0;
+
+    const TIPOS_COMPRA = {
+      recorrente: ['Recorrentes', '#2563eb'],
+      parcelada: ['Parceladas', '#7c3aed'],
+      unica: ['Únicas', '#94a3b8'],
+    };
+
+    function esc(valor) {
+      return String(valor ?? '').replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[c]));
+    }
+
+    function tipoCompra(item) {
+      if (item.recorrente || item.parcelas === 'Recorrente') return 'recorrente';
+      const parcelas = String(item.parcelas || '');
+      if (parcelas.includes('/') && parcelas !== '1/1') return 'parcelada';
+      return 'unica';
+    }
+
+    function mesComOffset(ano, mes, offset) {
+      const base = F.MESES.indexOf(mes);
+      const total = base + offset;
+      const anoNovo = Number(ano) + Math.floor(total / 12);
+      const idx = ((total % 12) + 12) % 12;
+      return { ano: anoNovo, mes: F.MESES[idx] };
+    }
+
+    function comprasDoCartao(lista) {
+      return (lista || []).filter((c) => compraPertenceAoCartao(c, cartaoSelecionado));
+    }
 
     function refCartao(cartao) {
       return String((cartao && cartao.data && cartao.data.numero) || '').trim();
@@ -437,50 +628,58 @@
       return `${bandeira} · Final ${d.numero || '????'}`;
     }
 
-    // --- Carrossel de cartões ---
+    // --- Cartão selecionado ---
     async function carregarCartoes() {
       cartoesCache = await F.api('/api/cartoes');
-      renderizarCartoes();
-      if (!cartaoSelecionado && cartoesCache.length) {
-        selecionarCartao(cartoesCache[0]);
-      } else if (cartaoSelecionado) {
-        const atualizado = cartoesCache.find((c) => c.id === cartaoSelecionado.id);
-        if (atualizado) cartaoSelecionado = atualizado;
+      if (cartaoSelecionado) {
+        cartaoSelecionado = cartoesCache.find((c) => c.id === cartaoSelecionado.id) || cartoesCache[0] || null;
+      } else if (cartoesCache.length) {
+        cartaoSelecionado = cartoesCache[0];
       }
+      renderizarCartoes();
+      atualizarPainelCartao();
+      atualizarLinhaTempo();
     }
 
     function renderizarCartoes() {
-      const container = document.getElementById('cartoesContainer');
+      const visual = document.getElementById('cartaoVisual');
+      const switcher = document.getElementById('cartoesSwitcher');
       const vazio = document.getElementById('cartoesVazio');
-      container.innerHTML = '';
-      vazio.style.display = cartoesCache.length ? 'none' : 'block';
-      document.getElementById('cartaoAcoes').style.display = cartoesCache.length ? 'flex' : 'none';
-
-      cartoesCache.forEach((cartao) => {
-        const d = cartao.data || {};
-        const card = document.createElement('div');
-        card.className = `cartao-card ${d.bandeira || 'outro'}${cartaoSelecionado && cartaoSelecionado.id === cartao.id ? ' selecionado' : ''}`;
-        card.innerHTML = `
-          <div class="cartao-card-top">
-            <div class="cartao-chip"></div>
-            <span class="cartao-bandeira-tag">${d.bandeira || ''}</span>
-          </div>
-          <div>
-            <div class="cartao-numero">•••• ${d.numero || '????'}</div>
-            <div class="cartao-vencimento">${d.vencimento ? `Vence dia ${d.vencimento}` : ''}</div>
-          </div>
-        `;
-        card.addEventListener('click', () => selecionarCartao(cartao));
-        container.appendChild(card);
-      });
+      const tem = cartoesCache.length > 0;
+      vazio.style.display = tem ? 'none' : 'block';
+      document.getElementById('cartaoAcoes').style.display = tem ? 'flex' : 'none';
+      visual.style.display = tem ? 'block' : 'none';
+      switcher.innerHTML = '';
+      if (!tem || !cartaoSelecionado) {
+        visual.innerHTML = '';
+        return;
+      }
+      if (cartoesCache.length > 1) {
+        cartoesCache.forEach((cartao) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = cartao.id === cartaoSelecionado.id ? 'on' : '';
+          btn.textContent = rotuloCartao(cartao);
+          btn.addEventListener('click', () => selecionarCartao(cartao));
+          switcher.appendChild(btn);
+        });
+      }
+      const d = cartaoSelecionado.data || {};
+      const bandeira = d.bandeira || 'outro';
+      visual.className = `cartao-visual ${bandeira}`;
+      visual.innerHTML = `
+        <div class="chip"></div>
+        <div class="bandeira">${esc(bandeira)}</div>
+        <div class="num">•••• ${esc(d.numero || '????')}</div>
+        <div class="venc">${d.vencimento ? `Vence dia ${esc(d.vencimento)}` : ''}</div>
+      `;
     }
 
     function selecionarCartao(cartao) {
       cartaoSelecionado = cartao;
       renderizarCartoes();
-      document.getElementById('tituloComprasCartao').textContent = `Compras — ${rotuloCartao(cartao)}`;
-      renderizarCompras();
-      atualizarToggleFatura();
+      atualizarPainelCartao();
+      atualizarLinhaTempo();
     }
 
     function atualizarToggleFatura() {
@@ -488,47 +687,159 @@
       document.querySelectorAll('#faturaStatusToggle .fin-status-opt').forEach((b) => {
         b.classList.toggle('active', b.dataset.status === status);
       });
+      const selo = document.getElementById('faturaSelo');
+      const paga = status === 'pago';
+      selo.textContent = paga ? 'Fatura paga' : 'Fatura pendente';
+      selo.classList.toggle('paga', paga);
     }
 
-    // --- Compras do cartão selecionado ---
+    function atualizarPainelCartao() {
+      const titulo = document.getElementById('tituloComprasCartao');
+      titulo.textContent = cartaoSelecionado ? `Compras · ${rotuloCartao(cartaoSelecionado)}` : 'Compras';
+      const mes = periodo && periodo.mes ? periodo.mes.toLowerCase() : 'mês';
+      document.getElementById('faturaRotulo').textContent = `Fatura de ${mes}`;
+      const compras = cartaoSelecionado ? comprasDoCartao(dadosMesAtual.cartao) : [];
+      const total = compras.reduce((s, c) => s + Number(c.valor || 0), 0);
+      document.getElementById('faturaTotal').textContent = F.formatar(total);
+      atualizarToggleFatura();
+      const partes = Object.keys(TIPOS_COMPRA).map((k) => {
+        const valor = compras.filter((c) => tipoCompra(c) === k).reduce((s, c) => s + Number(c.valor || 0), 0);
+        return [k, valor, total ? (valor / total) * 100 : 0];
+      });
+      document.getElementById('faturaPilha').innerHTML = partes
+        .filter((parte) => parte[1] > 0)
+        .map(([k, , pct]) => `<div style="width:${pct}%;background:${TIPOS_COMPRA[k][1]}"></div>`)
+        .join('');
+      document.getElementById('faturaComp').innerHTML = partes.map(([k, valor, pct]) => (
+        `<div><i style="background:${TIPOS_COMPRA[k][1]}"></i><span>${TIPOS_COMPRA[k][0]}</span><b>${F.formatar(valor)}</b><span>${Math.round(pct)}%</span></div>`
+      )).join('');
+      renderizarCompras();
+    }
+
+    function montarChips() {
+      const filtros = [['todas', 'Todas'], ...Object.entries(TIPOS_COMPRA).map(([k, v]) => [k, v[0]])];
+      document.getElementById('chipsCompras').innerHTML = filtros.map(([k, nome]) => (
+        `<button type="button" class="chip-f${k === filtroCompras ? ' on' : ''}" data-f="${k}">${nome}</button>`
+      )).join('');
+    }
+
     function renderizarCompras() {
       const lista = document.getElementById('listaCompras');
       lista.innerHTML = '';
       if (!cartaoSelecionado) {
-        lista.innerHTML = '<div class="statement-empty">Selecione um cartão para ver as compras.</div>';
+        lista.innerHTML = '<div class="lista-vazia">Selecione um cartão para ver as compras.</div>';
         return;
       }
-      const compras = (dadosMesAtual.cartao || []).filter((c) => compraPertenceAoCartao(c, cartaoSelecionado));
+      const compras = comprasDoCartao(dadosMesAtual.cartao)
+        .filter((c) => filtroCompras === 'todas' || tipoCompra(c) === filtroCompras);
       if (!compras.length) {
-        lista.innerHTML = '<div class="statement-empty">Nenhuma compra registrada neste cartão para este mês.</div>';
+        lista.innerHTML = '<div class="lista-vazia">Nenhuma compra nesta categoria.</div>';
         return;
       }
       compras.forEach((item) => {
-        const partesSub = [];
-        const desc = (item.descricao || '').trim();
-        if (desc) partesSub.push(desc.length > 60 ? `${desc.slice(0, 57)}…` : desc);
-        partesSub.push(item.recorrente ? 'Recorrente' : item.parcelas);
-        const cat = (item.categoria || '').trim();
-        if (cat) partesSub.push(cat);
-        const row = F.renderStatementRow({
-          titulo: item.nome,
-          subtitulo: partesSub.filter(Boolean).join(' · '),
-          valor: item.valor,
-          onClick: () => F.abrirModalItem({
-            tipo: 'compraCartao',
-            item,
-            onSalvo: () => observador && observador.forcar(),
-            onExcluido: () => observador && observador.forcar(),
-          }),
-        });
+        const tipo = tipoCompra(item);
+        const cor = TIPOS_COMPRA[tipo][1];
+        const inicial = (item.nome || '?').trim().charAt(0).toUpperCase() || '?';
+        let detalhe = 'À vista';
+        if (tipo === 'recorrente') detalhe = 'Recorrente';
+        else if (tipo === 'parcelada') detalhe = `Parcela ${item.parcelas}`;
+        const categoria = (item.categoria || '').trim();
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'compra-row';
+        row.innerHTML = `
+          <div class="compra-ini" style="background:${cor}1a;color:${cor}">${esc(inicial)}</div>
+          <div><b>${esc(item.nome)}</b><small>${esc(detalhe)}${categoria ? ` · ${esc(categoria)}` : ''}</small></div>
+          <span class="v">${F.formatar(item.valor)}</span>
+        `;
+        row.addEventListener('click', () => F.abrirModalItem({
+          tipo: 'compraCartao',
+          item,
+          onSalvo: () => observador && observador.forcar(),
+          onExcluido: () => observador && observador.forcar(),
+        }));
         lista.appendChild(row);
       });
     }
 
+    function desenharLinha(pontos) {
+      const host = document.getElementById('linhaTempo');
+      const W = 980;
+      const H = 220;
+      const base = 168;
+      const xs = pontos.map((_, i) => 78 + i * ((W - 156) / (pontos.length - 1)));
+      const valores = pontos.map((p) => p.valor);
+      const minimo = Math.min(...valores);
+      const maximo = Math.max(...valores);
+      const ys = valores.map((v) => 112 - ((v - minimo) / (maximo - minimo || 1)) * 68);
+      const curva = (inicio, fim) => {
+        let d = '';
+        for (let k = inicio; k < fim; k++) {
+          const meio = (xs[k] + xs[k + 1]) / 2;
+          d += ` C${meio},${ys[k]} ${meio},${ys[k + 1]} ${xs[k + 1]},${ys[k + 1]}`;
+        }
+        return d;
+      };
+      const atual = Math.max(0, pontos.findIndex((p) => p.atual));
+      const fim = pontos.length - 1;
+      let g = `<path d="M${xs[0]},${ys[0]}${curva(0, fim)} L${xs[fim]},${base} L${xs[0]},${base}Z" fill="#2563eb" opacity=".06"/>`;
+      g += `<path d="M${xs[0]},${ys[0]}${curva(0, atual)}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>`;
+      g += `<path d="M${xs[atual]},${ys[atual]}${curva(atual, fim)}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6 6" opacity=".65"/>`;
+      pontos.forEach((p, i) => {
+        const marcado = p.atual;
+        const futuro = i > atual;
+        const fonte = 'font-family="Montserrat, sans-serif" text-anchor="middle"';
+        if (marcado) g += `<circle cx="${xs[i]}" cy="${ys[i]}" r="13" fill="#2563eb" opacity=".12"/>`;
+        g += `<circle cx="${xs[i]}" cy="${ys[i]}" r="${marcado ? 6.5 : 4.5}" fill="${futuro ? '#fff' : '#2563eb'}" stroke="#2563eb" stroke-width="2.5"/>`;
+        g += `<text x="${xs[i]}" y="${ys[i] - 16}" ${fonte} font-size="${marcado ? 13 : 11}" font-weight="${marcado ? 700 : 600}" fill="#0f172a">${esc(F.formatar(p.valor))}</text>`;
+        g += `<text x="${xs[i]}" y="188" ${fonte} font-size="12" font-weight="600" fill="${marcado ? '#0f172a' : '#64748b'}">${esc(p.label)}</text>`;
+        g += `<text x="${xs[i]}" y="206" ${fonte} font-size="11" fill="#94a3b8">${esc(p.rotulo)}</text>`;
+      });
+      host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Valor das faturas: duas anteriores, a atual e três seguintes">${g}</svg>`;
+    }
+
+    async function atualizarLinhaTempo() {
+      const seq = ++linhaSeq;
+      const host = document.getElementById('linhaTempo');
+      if (!periodo || !cartaoSelecionado) {
+        host.innerHTML = '<div class="lista-vazia">Cadastre um cartão para ver a linha do tempo.</div>';
+        return;
+      }
+      const offsets = [-2, -1, 0, 1, 2, 3];
+      const alvos = offsets.map((off) => {
+        const dest = mesComOffset(periodo.ano, periodo.mes, off);
+        let rotulo = 'Previsto';
+        if (off < 0) rotulo = 'Anterior';
+        if (off === 0) rotulo = 'Atual';
+        return { ...dest, off, rotulo };
+      });
+      const dados = await Promise.all(alvos.map(async (alvo) => {
+        if (alvo.off === 0) return dadosMesAtual;
+        try {
+          return await F.carregarMes(alvo.ano, alvo.mes);
+        } catch (err) {
+          return { cartao: [] };
+        }
+      }));
+      if (seq !== linhaSeq || !cartaoSelecionado) return;
+      const pontos = alvos.map((alvo, i) => {
+        const lista = (dados[i].cartao || []).filter((c) => compraPertenceAoCartao(c, cartaoSelecionado));
+        const valor = lista.reduce((s, c) => s + Number(c.valor || 0), 0);
+        const abrev = alvo.mes.slice(0, 3);
+        return {
+          label: abrev.charAt(0).toUpperCase() + abrev.slice(1),
+          valor,
+          rotulo: alvo.rotulo,
+          atual: alvo.off === 0,
+        };
+      });
+      desenharLinha(pontos);
+    }
+
     function renderizarTudo(data) {
       dadosMesAtual = data;
-      renderizarCompras();
-      atualizarToggleFatura();
+      atualizarPainelCartao();
+      atualizarLinhaTempo();
     }
 
     // --- Fatura: pendente/pago ---
@@ -920,6 +1231,15 @@
       observador && observador.forcar();
     }
     document.getElementById('btnConfirmarAdiantar').addEventListener('click', (e) => finRunOnce(e, confirmarAdiantamento));
+
+    montarChips();
+    document.getElementById('chipsCompras').addEventListener('click', (ev) => {
+      const filtro = ev.target.dataset.f;
+      if (!filtro) return;
+      filtroCompras = filtro;
+      montarChips();
+      renderizarCompras();
+    });
 
     // --- Inicialização ---
     async function iniciar() {

@@ -244,6 +244,40 @@
     return categoriasCache;
   }
 
+  const ICONES_CATEGORIA = [
+    ['alimentacao', 'Alimentação', '<path d="M4 3v7a2 2 0 0 0 2 2v9"/><path d="M4 7h4"/><path d="M6 3v7"/><path d="M16 3c-1.6 2.2-2 4.2-2 6a2 2 0 0 0 2 2v10"/>'],
+    ['mercado', 'Mercado', '<circle cx="8" cy="20" r="1"/><circle cx="17" cy="20" r="1"/><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L21 8H7"/>'],
+    ['transporte', 'Transporte', '<path d="M4 16V9l2.2-4h11.6L20 9v7"/><path d="M3 16h18"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/>'],
+    ['combustivel', 'Combustível', '<path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M4 21h10"/><path d="M14 8h2.5a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2H21"/><path d="M7 8h4"/>'],
+    ['moradia', 'Moradia', '<path d="m4 10.5 8-6.5 8 6.5V20H4z"/><path d="M10 20v-6h4v6"/>'],
+    ['contas', 'Contas', '<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>'],
+    ['saude', 'Saúde', '<path d="M12 20s-7-4.4-7-9a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 4.6-7 9-7 9z"/>'],
+    ['educacao', 'Educação', '<path d="m3 8 9-4 9 4-9 4-9-4z"/><path d="M7 10.5V16c0 1 2.2 3 5 3s5-2 5-3v-5.5"/>'],
+    ['lazer', 'Lazer', '<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6V4M16 6V4M3 11h18"/>'],
+    ['vestuario', 'Vestuário', '<path d="m8 4-4 3 2 2 2-2v11h8V7l2 2 2-2-4-3"/><path d="M9 4a3 3 0 0 0 6 0"/>'],
+    ['eletronicos', 'Eletrônicos', '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>'],
+    ['viagem', 'Viagem', '<path d="m10 20 2-6-8-3 16-7-4 16-4-3-2 3z"/>'],
+    ['pet', 'Pet', '<circle cx="6" cy="8" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="18" cy="8" r="2"/><path d="M8 14c0 3 1.8 5 4 5s4-2 4-5c-1.2 1-2.5 1.5-4 1.5S9.2 15 8 14z"/>'],
+    ['dinheiro', 'Dinheiro', '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9v.01M18 15v.01"/>'],
+    ['presente', 'Presente', '<rect x="4" y="10" width="16" height="10" rx="1"/><path d="M4 14h16M12 10v10"/><path d="M12 10c-2 0-4-1.6-3.2-3.2S12 7.2 12 10c0-2.8 2.2-4 3.2-3.2S14 10 12 10z"/>'],
+    ['beleza', 'Beleza', '<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>'],
+    ['familia', 'Família', '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2"/><path d="M3 19c0-3 2.5-5 6-5s6 2 6 5"/><path d="M15 14.2c1.8.3 4 1.6 4 4.3"/>'],
+    ['outros', 'Outros', '<path d="M20 13V7a2 2 0 0 0-2-2h-3l-1-2H8L7 5H4a2 2 0 0 0-2 2v6"/><path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/><circle cx="12" cy="13" r="3"/>'],
+  ];
+
+  function svgIcone(chave) {
+    const item = ICONES_CATEGORIA.find((icone) => icone[0] === chave);
+    if (!item) return '';
+    return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${item[2]}</svg>`;
+  }
+
+  function svgDaCategoria(nome) {
+    const alvo = String(nome || '').trim().toLowerCase();
+    if (!alvo) return '';
+    const cat = categoriasCache.find((item) => String(item.nome || '').trim().toLowerCase() === alvo);
+    return cat ? svgIcone(cat.icone) : '';
+  }
+
   function popularSelectsCategoria(selectIds) {
     selectIds.forEach((id) => {
       const select = document.getElementById(id);
@@ -621,6 +655,9 @@
     observarMes,
     carregarCategorias,
     popularSelectsCategoria,
+    ICONES_CATEGORIA,
+    svgIcone,
+    svgDaCategoria,
     renderStatementRow,
     subtituloFinanceiro,
     abrirModalItem,

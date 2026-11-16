@@ -5,25 +5,32 @@
   top: 0;
   left: 0;
   height: 100%;
-  width: 280px;
-  background: linear-gradient(165deg, var(--sidebar-bg, #0B1230) 0%, var(--sidebar-bg-2, #1D3FC4) 130%);
-  color: var(--sidebar-text, #F8FAFC);
-  padding: 24px 18px;
+  width: 240px;
+  background: #0f1d45;
+  color: #b8c2e0;
+  padding: 24px 14px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 8px;
   z-index: 10;
-  box-shadow: var(--shadow-xl);
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+  border-right: none;
   overflow: hidden;
 }
 
 .sidebar-header {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   flex-shrink: 0;
   position: relative;
+  padding: 4px 12px 22px;
+}
+
+.sidebar .sidebar-logo {
+  height: 46px;
+  width: auto;
+  max-width: none;
 }
 
 .sidebar-brand {
@@ -39,7 +46,7 @@
 .desktop-nav {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
@@ -54,10 +61,10 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 11px 14px;
-  border-radius: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
   background: transparent;
-  color: rgba(248, 250, 252, 0.72);
+  color: inherit;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
   border: none;
@@ -78,8 +85,8 @@ a.btn-sidebar {
 }
 
 .btn-sidebar-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -87,29 +94,25 @@ a.btn-sidebar {
 }
 
 .btn-sidebar-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   stroke: currentColor;
   fill: none;
-  stroke-width: 2;
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .btn-sidebar:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--sidebar-text, #F8FAFC);
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
 }
 
 .btn-sidebar.active {
-  background: var(--sidebar-item-active-bg, #FFFFFF);
-  color: var(--sidebar-item-active-text, #1E3A8A);
-  font-weight: 700;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
-}
-
-.btn-sidebar.active .btn-sidebar-icon {
-  color: var(--accent, #2563EB);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 #60a5fa;
 }
 
 .btn-sidebar-logout {
@@ -123,7 +126,7 @@ a.btn-sidebar {
     left: auto;
     right: 0;
     height: 100%;
-    width: min(82vw, 320px);
+    width: min(82vw, 280px);
     flex-direction: column;
     justify-content: flex-start;
     align-items: stretch;

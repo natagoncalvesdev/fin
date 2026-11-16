@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cartões | Fin</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="sidebar.css?v=10">
-  <link rel="stylesheet" href="css/theme.css?v=8">
+  <link rel="stylesheet" href="sidebar.css?v=11">
+  <link rel="stylesheet" href="css/theme.css?v=9">
   <link rel="stylesheet" href="css/mobile-shell.css?v=8">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
-  <script src="js/fin-financeiro-shared.js?v=6"></script>
+  <script src="js/fin-financeiro-shared.js?v=7"></script>
   <script src="sidebar.js?v=9"></script>
   <style>
     * { box-sizing: border-box; }
@@ -28,7 +28,7 @@
     .content {
       flex: 1;
       padding: 28px 36px 48px;
-      margin-left: 280px;
+      margin-left: 240px;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -208,6 +208,7 @@
       width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
       font-weight: 600; font-size: 13px;
     }
+    .compra-ini svg { width: 16px; height: 16px; }
     .lista-vazia { padding: 24px 0; text-align: center; color: var(--text-secondary); font-size: 13px; }
 
     @media (max-width: 960px) {
@@ -747,8 +748,9 @@
         const row = document.createElement('button');
         row.type = 'button';
         row.className = 'compra-row';
+        const marca = F.svgDaCategoria(item.categoria);
         row.innerHTML = `
-          <div class="compra-ini" style="background:${cor}1a;color:${cor}">${esc(inicial)}</div>
+          <div class="compra-ini" style="background:${cor}1a;color:${cor}">${marca || esc(inicial)}</div>
           <div><b>${esc(item.nome)}</b><small>${esc(detalhe)}${categoria ? ` · ${esc(categoria)}` : ''}</small></div>
           <span class="v">${F.formatar(item.valor)}</span>
         `;

@@ -409,7 +409,11 @@
       if (type === 'categoria_doc') {
         const cats = await apiRequest('/api/categorias');
         const found = cats.find((c) => c.id === segments[3]);
-        return new DocumentSnapshot(segments[3], found ? { nome: found.nome } : null, !!found);
+        return new DocumentSnapshot(
+          segments[3],
+          found ? { nome: found.nome, icone: found.icone || null } : null,
+          !!found,
+        );
       }
 
       if (type === 'abastecimento_doc') {
@@ -493,6 +497,14 @@
         await apiRequest(`/api/cartoes/${segments[3]}`, {
           method: 'PUT',
           body: JSON.stringify(payload),
+        });
+        return;
+      }
+
+      if (type === 'categoria_doc') {
+        await apiRequest(`/api/categorias/${segments[3]}`, {
+          method: 'PUT',
+          body: JSON.stringify({ icone: payload.icone || null }),
         });
         return;
       }
@@ -618,7 +630,7 @@
             'categorias',
             c.id,
           ]);
-          return new DocumentSnapshot(c.id, { nome: c.nome }, true, ref);
+          return new DocumentSnapshot(c.id, { nome: c.nome, icone: c.icone || null }, true, ref);
         });
         return new QuerySnapshot(docs);
       }
@@ -741,7 +753,7 @@
       if (type === 'categorias_collection') {
         const res = await apiRequest('/api/categorias', {
           method: 'POST',
-          body: JSON.stringify({ nome: payload.nome }),
+          body: JSON.stringify({ nome: payload.nome, icone: payload.icone || null }),
         });
         return new DocumentReference(this._db, [...segments, res.id]);
       }

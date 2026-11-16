@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Relatório - Controle Financeiro</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="sidebar.css?v=10">
-  <link rel="stylesheet" href="css/theme.css?v=7">
+  <link rel="stylesheet" href="sidebar.css?v=11">
+  <link rel="stylesheet" href="css/theme.css?v=8">
   <link rel="stylesheet" href="css/mobile-shell.css?v=8">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
-  <script src="js/fin-sdk.js?v=6"></script>
+  <script src="js/fin-sdk.js?v=7"></script>
+  <script src="js/fin-financeiro-shared.js?v=7"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <script src="sidebar.js?v=9"></script>
   <style>
@@ -28,7 +29,7 @@
     .content {
       flex: 1;
       padding: 40px;
-      margin-left: 280px;
+      margin-left: 240px;
       display: flex;
       flex-direction: column;
       gap: 24px;
@@ -49,10 +50,55 @@
       align-items: center;
     }
 
+    .modal-categorias {
+      width: min(560px, calc(100vw - 32px));
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+    }
+
+    .icone-rotulo {
+      margin: 14px 0 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .icone-grade {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .icone-opcao,
+    .cat-icone {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: #fff;
+      color: var(--text-primary);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      padding: 0;
+      font: 600 16px var(--font-family);
+    }
+
+    .icone-opcao.on,
+    .cat-icone.on {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .icone-editor { width: 100%; }
+
     .categoria-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
       padding: 12px 14px;
       border-radius: 12px;
       margin-bottom: 8px;
@@ -108,9 +154,14 @@
     }
 
     .categoria-card-nome {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-size: 16px;
       font-weight: 600;
     }
+
+    .categoria-card-nome svg { width: 18px; height: 18px; flex: none; }
 
     .categoria-card-valor {
       font-size: 18px;
@@ -256,12 +307,14 @@
 
     <!-- Modal de Categorias -->
     <div id="modalCategorias" class="modal-overlay">
-      <div class="modal-content">
+      <div class="modal-content modal-categorias">
         <h3>Administrar Categorias</h3>
         <div class="form-row">
           <input type="text" id="novaCategoria" placeholder="Nome da categoria" />
           <button class="btn-add" onclick="finRunOnce(event, () => adicionarCategoria())">Adicionar Categoria</button>
         </div>
+        <p class="icone-rotulo">Ícone</p>
+        <div class="icone-grade" id="gradeIconeNova"></div>
         <div id="listaCategorias" style="margin-top: 16px;">
           <!-- Categorias serão listadas aqui -->
         </div>
@@ -348,6 +401,54 @@
     let currentUser = null;
     let categoriasCache = [];
     let graficoCategorias = null;
+    let iconeNova = '';
+    let iconeManual = false;
+    let categoriaIconeAberta = null;
+
+    const SUGESTOES_ICONE = [
+      ['alimentacao', ['aliment', 'comida', 'restaur', 'lanche', 'padaria', 'ifood']],
+      ['mercado', ['mercado', 'super', 'feira']],
+      ['combustivel', ['combust', 'gasolina', 'posto']],
+      ['transporte', ['transporte', 'uber', 'onibus', 'ônibus', 'carro', 'moto']],
+      ['moradia', ['moradia', 'aluguel', 'casa', 'condom']],
+      ['saude', ['saúde', 'saude', 'farmac', 'médic', 'medic', 'plano']],
+      ['educacao', ['educ', 'escola', 'curso', 'facul']],
+      ['lazer', ['lazer', 'netflix', 'jogo', 'cinema', 'streaming']],
+      ['vestuario', ['vestu', 'roupa', 'sapato']],
+      ['eletronicos', ['eletr', 'celular', 'notebook']],
+      ['viagem', ['viagem', 'hotel', 'passagem']],
+      ['pet', ['pet', 'veter', 'ração', 'racao']],
+      ['dinheiro', ['salár', 'salar', 'renda', 'invest']],
+      ['presente', ['presente']],
+      ['beleza', ['beleza', 'barbear', 'cabelo']],
+      ['familia', ['famíl', 'famil', 'filho']],
+      ['contas', ['luz', 'água', 'agua', 'internet', 'energia', 'telefone']],
+    ];
+
+    function escHtml(valor) {
+      return String(valor ?? '').replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[c]));
+    }
+
+    function sugerirIcone(nome) {
+      const texto = String(nome || '').toLowerCase();
+      const achou = SUGESTOES_ICONE.find(([, chaves]) => chaves.some((chave) => texto.includes(chave)));
+      return achou ? achou[0] : '';
+    }
+
+    function renderizarGradeNova() {
+      const grade = document.getElementById('gradeIconeNova');
+      grade.innerHTML = window.finFinanceiro.ICONES_CATEGORIA.map(([id, nome]) => (
+        `<button type="button" class="icone-opcao${id === iconeNova ? ' on' : ''}" data-icone="${id}" title="${escHtml(nome)}">${window.finFinanceiro.svgIcone(id)}</button>`
+      )).join('');
+    }
+
+    function svgDaCategoriaLocal(nome) {
+      const alvo = String(nome || '').trim().toLowerCase();
+      const cat = categoriasCache.find((item) => String(item.nome || '').trim().toLowerCase() === alvo);
+      return cat ? window.finFinanceiro.svgIcone(cat.icone) : '';
+    }
 
     function toggleMobileMenu() {
       const menu = document.getElementById('mobileNavMenu');
@@ -356,6 +457,7 @@
 
     function abrirModalCategorias() {
       document.getElementById('modalCategorias').classList.add('visible');
+      renderizarGradeNova();
       renderizarListaCategorias();
     }
 
@@ -408,7 +510,7 @@
         const snapshot = await categoriasRef.get();
         categoriasCache = [];
         snapshot.forEach(doc => {
-          categoriasCache.push({ id: doc.id, nome: doc.data().nome });
+          categoriasCache.push({ id: doc.id, nome: doc.data().nome, icone: doc.data().icone || '' });
         });
         categoriasCache.sort((a, b) => a.nome.localeCompare(b.nome));
         renderizarListaCategorias();
@@ -428,10 +530,29 @@
       categoriasCache.forEach(cat => {
         const div = document.createElement("div");
         div.className = "categoria-item";
+        const marca = window.finFinanceiro.svgIcone(cat.icone);
+        const aberta = categoriaIconeAberta === cat.id;
+        const opcoes = window.finFinanceiro.ICONES_CATEGORIA.map(([id, nome]) => (
+          `<button type="button" class="icone-opcao${id === cat.icone ? ' on' : ''}" data-icone="${id}" title="${escHtml(nome)}">${window.finFinanceiro.svgIcone(id)}</button>`
+        )).join('');
         div.innerHTML = `
-          <span>${cat.nome}</span>
-          <button class="btn-inline fin-btn-danger" onclick="finRunOnce(event, () => removerCategoria('${cat.id}'))">Remover</button>
+          <button type="button" class="cat-icone${aberta ? ' on' : ''}" data-acao="abrir" title="Escolher ícone">${marca || '+'}</button>
+          <span>${escHtml(cat.nome)}</span>
+          <button type="button" class="btn-inline fin-btn-danger" data-acao="remover">Remover</button>
+          ${aberta ? `<div class="icone-editor icone-grade"><button type="button" class="icone-opcao${cat.icone ? '' : ' on'}" data-icone="" title="Sem ícone">—</button>${opcoes}</div>` : ''}
         `;
+        div.querySelector('[data-acao="abrir"]').addEventListener('click', () => {
+          categoriaIconeAberta = aberta ? null : cat.id;
+          renderizarListaCategorias();
+        });
+        div.querySelector('[data-acao="remover"]').addEventListener('click', (ev) => {
+          finRunOnce(ev, () => removerCategoria(cat.id));
+        });
+        div.querySelectorAll('.icone-editor [data-icone]').forEach((btn) => {
+          btn.addEventListener('click', (ev) => {
+            finRunOnce(ev, () => salvarIconeCategoria(cat.id, btn.dataset.icone));
+          });
+        });
         lista.appendChild(div);
       });
     }
@@ -463,13 +584,29 @@
       }
       try {
         const categoriasRef = db.collection('users').doc(currentUser.uid).collection('categorias');
-        await categoriasRef.add({ nome: nome });
+        await categoriasRef.add({ nome: nome, icone: iconeNova || null });
         input.value = "";
+        iconeNova = '';
+        iconeManual = false;
+        renderizarGradeNova();
         await carregarCategorias();
         renderizarListaCategorias();
       } catch (error) {
         console.error("Erro ao adicionar categoria:", error);
         alert("Erro ao adicionar categoria. Tente novamente.");
+      }
+    }
+
+    async function salvarIconeCategoria(categoriaId, icone) {
+      if (!currentUser) return;
+      try {
+        const categoriaRef = db.collection('users').doc(currentUser.uid).collection('categorias').doc(categoriaId);
+        await categoriaRef.update({ icone: icone || null });
+        categoriaIconeAberta = null;
+        await carregarCategorias();
+      } catch (error) {
+        console.error('Erro ao salvar ícone:', error);
+        alert('Não foi possível salvar o ícone.');
       }
     }
 
@@ -901,7 +1038,7 @@
 
         card.innerHTML = `
           <div class="categoria-card-header">
-            <div class="categoria-card-nome">${rotuloPrincipal}</div>
+            <div class="categoria-card-nome">${svgDaCategoriaLocal(categoria)}<span>${rotuloPrincipal}</span></div>
             <div class="categoria-card-valor">${formatar(dados.total)}</div>
           </div>
           <div class="categoria-card-itens">
@@ -1065,6 +1202,19 @@
     // `categoriaSelect_*` que não existem em lugar nenhum do HTML; o botão
     // "Salvar Alterações de Categorias" que a chamava também foi removido.
     // O fluxo real de categorização é o modal por card, acima.
+
+    document.getElementById('gradeIconeNova').addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-icone]');
+      if (!btn) return;
+      iconeNova = btn.dataset.icone;
+      iconeManual = true;
+      renderizarGradeNova();
+    });
+    document.getElementById('novaCategoria').addEventListener('input', () => {
+      if (iconeManual) return;
+      iconeNova = sugerirIcone(document.getElementById('novaCategoria').value);
+      renderizarGradeNova();
+    });
 
     // Fechar modal ao clicar fora
     document.addEventListener('click', (e) => {

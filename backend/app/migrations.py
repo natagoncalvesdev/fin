@@ -111,6 +111,7 @@ def run_migrations(engine: Engine) -> None:
         )
         conn.execute(text("ALTER TABLE cofrinho ADD COLUMN IF NOT EXISTS aportes_extras TEXT"))
         conn.execute(text("ALTER TABLE cofrinho ADD COLUMN IF NOT EXISTS historico_taxas TEXT"))
+        conn.execute(text("ALTER TABLE categoria ADD COLUMN IF NOT EXISTS icone VARCHAR(40)"))
 
         # Parcelas de cofrinho antigas: nome "Cofrinho: <meta>" -> título + descrição.
         conn.execute(

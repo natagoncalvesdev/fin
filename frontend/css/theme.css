@@ -528,6 +528,11 @@ a.statement-row {
   font-size: 14px;
 }
 
+.statement-row-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
 .statement-row-body {
   flex: 1;
   min-width: 0;

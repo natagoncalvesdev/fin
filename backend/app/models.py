@@ -71,6 +71,7 @@ class Categoria(Base):
     uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, default=new_uuid, index=True)
     id_usuario: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), nullable=False)
     nome: Mapped[str] = mapped_column(String(255), nullable=False)
+    icone: Mapped[str | None] = mapped_column(String(40), nullable=True)
 
     usuario: Mapped["Usuario"] = relationship(back_populates="categorias")
 

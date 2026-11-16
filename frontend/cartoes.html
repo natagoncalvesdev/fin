@@ -97,19 +97,39 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      max-height: 420px;
+      flex: 1 1 auto;
+      min-height: 0;
       overflow-y: auto;
+      overflow-anchor: none;
+    }
+
+    #anticipateModal .modal-content {
+      width: min(680px, calc(100vw - 24px));
+      max-width: 680px;
+      min-height: min(70vh, 640px);
+      max-height: calc(100vh - 24px);
+      overflow: hidden;
+    }
+
+    #anticipateModal .modal-content > :not(.anticipate-list) {
+      flex-shrink: 0;
     }
 
     .anticipate-card {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px 12px;
-      align-items: center;
-      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px;
       border: 1.5px solid var(--border-color);
       border-radius: 14px;
       background: #fff;
+    }
+
+    .anticipate-card-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 12px;
+      align-items: center;
     }
 
     .anticipate-card-info {
@@ -131,16 +151,10 @@
       color: var(--text-secondary);
     }
 
-    .anticipate-side {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 4px;
-    }
-
     .anticipate-stepper {
       display: flex;
       align-items: center;
+      flex-shrink: 0;
       background: #f8fafc;
       border: 1.5px solid var(--border-color);
       border-radius: 12px;
@@ -180,26 +194,35 @@
     }
 
     .anticipate-card-valor {
+      width: 96px;
+      text-align: right;
       font-size: 13px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
 
     .anticipate-linhas {
-      grid-column: 1 / -1;
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      padding-top: 4px;
-      border-top: 1px solid var(--border-color);
+      gap: 6px;
     }
 
     .anticipate-linha {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       gap: 12px;
-      font-size: 12.5px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #f8fafc;
+      font-size: 13px;
       color: var(--text-secondary);
+    }
+
+    .anticipate-linha.selecionada {
+      background: rgba(37, 99, 235, 0.12);
+      color: var(--text-primary);
+      box-shadow: inset 3px 0 0 var(--accent);
     }
 
     .anticipate-linha span:last-child {
@@ -207,6 +230,10 @@
       color: var(--text-primary);
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
+    }
+
+    .anticipate-linha.selecionada span:last-child {
+      color: var(--accent);
     }
 
     .anticipate-vazio {
@@ -365,12 +392,12 @@
 
   <!-- Modal: adiantar parcela -->
   <div id="anticipateModal" class="modal-overlay">
-    <div class="modal-content" style="max-width: 480px;">
+    <div class="modal-content">
       <div class="fin-entry-head">
         <h3>Adiantar parcelas</h3>
         <button type="button" class="fin-entry-x" id="btnFecharAdiantar" aria-label="Fechar">&times;</button>
       </div>
-      <p class="anticipate-hint">O banco adianta da última parcela para as anteriores. Use + e − para escolher quantas entram neste mês.</p>
+      <p class="anticipate-hint">Todas as parcelas futuras aparecem abaixo. O + destaca da última para as anteriores, e essas são as que entram neste mês.</p>
       <div id="anticipateList" class="anticipate-list"><p class="info-text">Buscando parcelas futuras…</p></div>
       <div id="anticipateTotal" class="anticipate-total">
         <span class="anticipate-total-label">Total a adiantar</span>
@@ -726,6 +753,17 @@
       anticipateTotalEl.classList.toggle('visible', gruposAdiantar.length > 0);
     }
 
+    function atualizarCardAdiantar(card, grupo) {
+      const soma = grupo.itens.slice(0, grupo.quantidade).reduce((s, it) => s + Number(it.valor || 0), 0);
+      card.querySelector('.anticipate-qtd').textContent = String(grupo.quantidade);
+      card.querySelector('[data-acao="menos"]').disabled = grupo.quantidade <= 0;
+      card.querySelector('[data-acao="mais"]').disabled = grupo.quantidade >= grupo.itens.length;
+      card.querySelector('.anticipate-card-valor').textContent = F.formatar(soma);
+      card.querySelectorAll('.anticipate-linha').forEach((linha, indice) => {
+        linha.classList.toggle('selecionada', indice < grupo.quantidade);
+      });
+    }
+
     function renderizarGruposAdiantar() {
       const lista = document.getElementById('anticipateList');
       lista.innerHTML = '';
@@ -736,12 +774,12 @@
       }
 
       gruposAdiantar.forEach((grupo, grupoIdx) => {
-        const selecionados = grupo.itens.slice(0, grupo.quantidade);
-        const soma = selecionados.reduce((s, it) => s + Number(it.valor || 0), 0);
-
         const card = document.createElement('div');
         card.className = 'anticipate-card';
         card.dataset.grupo = String(grupoIdx);
+
+        const topo = document.createElement('div');
+        topo.className = 'anticipate-card-top';
 
         const info = document.createElement('div');
         info.className = 'anticipate-card-info';
@@ -754,8 +792,6 @@
           : `${grupo.itens.length} parcelas futuras`;
         info.append(titulo, sub);
 
-        const lado = document.createElement('div');
-        lado.className = 'anticipate-side';
         const stepper = document.createElement('div');
         stepper.className = 'anticipate-stepper';
 
@@ -764,11 +800,9 @@
         menos.dataset.acao = 'menos';
         menos.textContent = '−';
         menos.setAttribute('aria-label', 'Diminuir parcelas de ' + grupo.nome);
-        menos.disabled = grupo.quantidade <= 0;
 
         const qtd = document.createElement('span');
         qtd.className = 'anticipate-qtd';
-        qtd.textContent = String(grupo.quantidade);
 
         const max = document.createElement('span');
         max.className = 'anticipate-qtd-max';
@@ -779,36 +813,28 @@
         mais.dataset.acao = 'mais';
         mais.textContent = '+';
         mais.setAttribute('aria-label', 'Aumentar parcelas de ' + grupo.nome);
-        mais.disabled = grupo.quantidade >= grupo.itens.length;
 
         stepper.append(menos, qtd, max, mais);
 
         const valorSel = document.createElement('div');
         valorSel.className = 'anticipate-card-valor';
-        valorSel.textContent = F.formatar(soma);
-        lado.append(stepper, valorSel);
+        topo.append(info, stepper, valorSel);
 
         const linhas = document.createElement('div');
         linhas.className = 'anticipate-linhas';
-        if (!selecionados.length) {
-          const vazio = document.createElement('p');
-          vazio.className = 'anticipate-vazio';
-          vazio.textContent = 'Nenhuma parcela. O + inclui a última primeiro.';
-          linhas.appendChild(vazio);
-        } else {
-          selecionados.forEach((item) => {
-            const linha = document.createElement('div');
-            linha.className = 'anticipate-linha';
-            const esq = document.createElement('span');
-            esq.textContent = `Parcela ${item.parcelas} · ${item.origemMes}/${item.origemAno}`;
-            const dir = document.createElement('span');
-            dir.textContent = F.formatar(item.valor);
-            linha.append(esq, dir);
-            linhas.appendChild(linha);
-          });
-        }
+        grupo.itens.forEach((item) => {
+          const linha = document.createElement('div');
+          linha.className = 'anticipate-linha';
+          const esq = document.createElement('span');
+          esq.textContent = `Parcela ${item.parcelas} · ${item.origemMes}/${item.origemAno}`;
+          const dir = document.createElement('span');
+          dir.textContent = F.formatar(item.valor);
+          linha.append(esq, dir);
+          linhas.appendChild(linha);
+        });
 
-        card.append(info, lado, linhas);
+        card.append(topo, linhas);
+        atualizarCardAdiantar(card, grupo);
         lista.appendChild(card);
       });
 
@@ -862,7 +888,8 @@
       if (!grupo) return;
       if (btn.dataset.acao === 'mais' && grupo.quantidade < grupo.itens.length) grupo.quantidade += 1;
       if (btn.dataset.acao === 'menos' && grupo.quantidade > 0) grupo.quantidade -= 1;
-      renderizarGruposAdiantar();
+      atualizarCardAdiantar(card, grupo);
+      atualizarTotalAdiantar();
     });
 
     function fecharModalAdiantar() { anticipateModal.classList.remove('visible'); }

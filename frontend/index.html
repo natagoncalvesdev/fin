@@ -13,7 +13,6 @@
   <script src="js/fin-sdk.js?v=6"></script>
   <script src="js/fin-financeiro-shared.js?v=6"></script>
   <script src="sidebar.js?v=9"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <style>
     * { box-sizing: border-box; }
 
@@ -24,171 +23,393 @@
       display: flex;
       min-height: 100vh;
       color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
     }
 
     .content {
       flex: 1;
-      padding: 40px;
+      padding: 28px 36px 48px;
       margin-left: 280px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
-      max-width: 1180px;
-    }
-
-    .resumo-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 16px;
+      max-width: 1200px;
+      width: 100%;
     }
 
-    .resumo-charts {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
-    }
-
-    @media (min-width: 960px) {
-      .resumo-charts {
-        grid-template-columns: 1.1fr 1fr;
-      }
-    }
-
-    .chart-box {
-      position: relative;
-      height: 220px;
-    }
-
-    .progress-ring-wrap {
+    .home-topo {
       display: flex;
-      align-items: center;
-      gap: 24px;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
       flex-wrap: wrap;
     }
 
-    .progress-ring-canvas {
-      position: relative;
-      width: 140px;
-      height: 140px;
-      flex-shrink: 0;
+    .home-topo h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
     }
 
-    .progress-ring-legend {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      flex: 1;
-      min-width: 160px;
-    }
-
-    .progress-ring-legend-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13.5px;
+    .home-sub {
+      margin: 4px 0 0;
+      font-size: 13px;
       color: var(--text-secondary);
     }
 
-    .progress-ring-dot {
+    .home-acoes {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .home-acoes select,
+    .home-btn {
+      font: 500 13px var(--font-family);
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-section);
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    #selectAno { min-width: 92px; }
+    #selectMes { min-width: 140px; }
+
+    .home-acoes select:hover,
+    .home-btn:hover { border-color: #cbd5e1; }
+
+    .home-acoes select:focus-visible,
+    .home-btn:focus-visible,
+    .home-kpi:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .home-card {
+      background: var(--bg-section);
+      border: 1px solid #e8eaee;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .home-card h2 {
+      margin: 0 0 16px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .home-card h2 small {
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-left: 6px;
+    }
+
+    .home-grid { display: grid; gap: 16px; }
+    .home-g3 { grid-template-columns: repeat(3, 1fr); }
+    .home-g2 { grid-template-columns: 1fr 1fr; }
+
+    .home-saldo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      padding: 26px 28px;
+    }
+
+    .home-rot {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .home-saldo-valor {
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 6px 0 10px;
+      line-height: 1.1;
+    }
+
+    .home-saldo-valor.neg { color: var(--negative); }
+
+    .home-selo {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: #fdecec;
+      color: var(--negative);
+    }
+
+    .home-selo.ok {
+      background: #e8f7ee;
+      color: var(--positive);
+    }
+
+    .home-medidor {
+      min-width: 240px;
+      flex: 0 1 360px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .home-trilho {
+      height: 8px;
+      border-radius: 99px;
+      background: #eef0f3;
+      overflow: hidden;
+    }
+
+    .home-trilho div {
+      height: 100%;
+      width: 0;
+      border-radius: 99px;
+      background: var(--accent);
+      transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .home-trilho div.estourou { background: var(--negative); }
+
+    .home-medidor small {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .home-kpi {
+      display: block;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      color: inherit;
+      cursor: pointer;
+      appearance: none;
+    }
+
+    .home-kpi:hover { border-color: #cbd5e1; }
+
+    .home-kpi-valor {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 6px 0;
+    }
+
+    .home-delta {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .home-delta.ok { color: var(--positive); }
+    .home-delta.ruim { color: var(--negative); }
+
+    .home-barra {
+      height: 3px;
+      border-radius: 3px;
+      margin: -6px 0 14px;
+    }
+
+    .home-rosca {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+
+    .home-rosca svg {
+      width: 170px;
+      height: 170px;
+      flex: none;
+    }
+
+    .home-leg {
+      flex: 1;
+      min-width: 200px;
+      display: grid;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .home-leg div {
+      display: grid;
+      grid-template-columns: 10px minmax(0, 1fr) auto 40px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .home-leg i {
       width: 10px;
       height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
+      border-radius: 3px;
     }
 
-    .progress-ring-legend-item strong {
-      color: var(--ink-950);
+    .home-leg span:last-child {
+      text-align: right;
+      color: var(--text-secondary);
     }
 
-    .quick-link-button {
-      padding: 13px 28px;
-      border-radius: var(--btn-radius);
-      color: var(--negative);
+    .home-legenda-graf {
+      display: flex;
+      gap: 14px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .home-legenda-graf i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      margin-right: 6px;
+    }
+
+    .home-grafico svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .home-lista { display: grid; }
+
+    .home-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 2px 12px;
+      padding: 12px 0;
+      border-top: 1px solid #e8eaee;
+      align-items: center;
+    }
+
+    .home-item:first-child { border-top: 0; padding-top: 0; }
+
+    .home-item b {
+      font-size: 14px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .home-item small {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .home-item .v {
+      text-align: right;
       font-weight: 600;
       font-size: 14px;
-      border: 1px solid var(--border-color);
-      cursor: pointer;
-      background: var(--bg-section);
-      box-shadow: var(--shadow-sm);
     }
 
-    .quick-link-button:hover {
-      background: rgba(185, 28, 28, 0.06);
-      border-color: rgba(185, 28, 28, 0.35);
+    .home-item .v.entrada { color: var(--positive); }
+
+    .home-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 99px;
+      justify-self: end;
+    }
+
+    .home-tag.pendente { background: #fff4e5; color: #b45309; }
+    .home-tag.pago { background: #e8f7ee; color: #15803d; }
+    .home-tag.neutro { background: #f1f5f9; color: var(--text-secondary); }
+
+    .home-vazio {
+      margin: 0;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 960px) {
+      .home-g3, .home-g2 { grid-template-columns: 1fr; }
+      .home-saldo-valor { font-size: 32px; }
     }
   </style>
 </head>
 <body>
 
   <main class="content">
-    <div class="page-header-row">
-      <div class="page-header">
-        <h1 id="welcome-message">Bem-vindo!</h1>
-        <p>Saldo e movimentações de <span id="welcome-periodo">este mês</span>.</p>
+    <div class="home-topo">
+      <div>
+        <h1 id="welcome-message">Olá</h1>
+        <p class="home-sub">Saldo e movimentações de <span id="welcome-periodo">este mês</span></p>
       </div>
-      <div class="period-controls" style="display:flex; gap:10px;">
-        <select id="selectAno" style="min-width:110px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--border-color); background:var(--bg-section); color:var(--text-primary);"></select>
-        <select id="selectMes" style="min-width:140px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--border-color); background:var(--bg-section); color:var(--text-primary);"></select>
-        <button class="btn-cancel" id="btnResumoAnual">Resumo anual</button>
+      <div class="home-acoes">
+        <select id="selectAno" aria-label="Ano"></select>
+        <select id="selectMes" aria-label="Mês"></select>
+        <button type="button" class="home-btn" id="btnResumoAnual">Resumo anual</button>
+        <button type="button" class="home-btn" id="logout-button-home">Sair</button>
       </div>
     </div>
 
-    <div class="saldo-card" id="saldoCard">
-      <div class="saldo-card-label">Saldo disponível</div>
-      <div class="saldo-card-value" id="saldoValor">R$ 0,00</div>
-      <div class="saldo-card-trend" id="saldoTrend">—</div>
-    </div>
-
-    <div class="resumo-stats">
-      <button type="button" class="dash-summary-row" id="btnReceitas">
-        <span class="dash-summary-icon receitas" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
-        <span class="dash-summary-text"><strong>Receitas</strong></span>
-        <span class="dash-summary-value receitas" id="receitasValor">R$ 0,00</span>
-      </button>
-      <button type="button" class="dash-summary-row" id="btnDespesas" onclick="window.finMobileNav.irContas()">
-        <span class="dash-summary-icon despesas" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span>
-        <span class="dash-summary-text"><strong>Despesas</strong></span>
-        <span class="dash-summary-value despesas" id="despesasValor">R$ 0,00</span>
-      </button>
-      <button type="button" class="dash-summary-row" onclick="window.finMobileNav.irReservas()">
-        <span class="dash-summary-icon" style="background:rgba(180,83,9,0.12); color:var(--warning);" aria-hidden="true"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
-        <span class="dash-summary-text"><strong>Reservado</strong></span>
-        <span class="dash-summary-value" id="reservadoValor">R$ 0,00</span>
-      </button>
-    </div>
-
-    <div class="resumo-charts">
-      <section class="section-card">
-        <h2 class="section-card-title">Despesas por categoria</h2>
-        <div class="dash-chart-wrap" style="justify-content:flex-start;">
-          <div class="dash-chart-canvas">
-            <canvas id="chartCategorias"></canvas>
-          </div>
-          <div id="chartCategoriasVazio" class="dash-empty-chart" style="display:none;">Nenhuma despesa neste mês.</div>
-          <div id="chartCategoriasLegenda" class="dash-chart-legend"></div>
-        </div>
-      </section>
-
-      <section class="section-card">
-        <h2 class="section-card-title">Gasto nos últimos 6 meses</h2>
-        <div class="chart-box"><canvas id="chartTendencia"></canvas></div>
-      </section>
-    </div>
-
-    <section class="section-card">
-      <h2 class="section-card-title">Contas do mês: pagas × pendentes</h2>
-      <div class="progress-ring-wrap">
-        <div class="progress-ring-canvas"><canvas id="chartStatusContas"></canvas></div>
-        <div class="progress-ring-legend">
-          <div class="progress-ring-legend-item"><span class="progress-ring-dot" style="background:var(--positive);"></span> <strong id="statusPagoValor">R$ 0,00</strong> pagas</div>
-          <div class="progress-ring-legend-item"><span class="progress-ring-dot" style="background:var(--warning);"></span> <strong id="statusPendenteValor">R$ 0,00</strong> pendentes</div>
-          <button type="button" class="btn-cancel" style="align-self:flex-start; margin-top:6px;" onclick="window.finMobileNav.irContas()">Ver contas</button>
-        </div>
+    <section class="home-card home-saldo" id="saldoCard">
+      <div>
+        <div class="home-rot">Saldo disponível</div>
+        <div class="home-saldo-valor" id="saldoValor">R$ 0,00</div>
+        <span class="home-selo" id="saldoSelo">—</span>
+      </div>
+      <div class="home-medidor">
+        <div class="home-rot">Receita comprometida</div>
+        <div class="home-trilho"><div id="saldoMedidor"></div></div>
+        <small id="saldoMedidorTexto">—</small>
       </div>
     </section>
 
-    <div style="text-align: center; padding-top: 4px;">
-      <button id="logout-button-home" class="quick-link-button">Sair</button>
+    <div class="home-grid home-g3">
+      <button type="button" class="home-card home-kpi" id="btnReceitas">
+        <div class="home-barra" style="background:#2563eb"></div>
+        <div class="home-rot">Receitas</div>
+        <div class="home-kpi-valor" id="receitasValor">R$ 0,00</div>
+        <div class="home-delta" id="deltaReceitas">—</div>
+      </button>
+      <button type="button" class="home-card home-kpi" id="btnDespesas">
+        <div class="home-barra" style="background:#94a3b8"></div>
+        <div class="home-rot">Despesas</div>
+        <div class="home-kpi-valor" id="despesasValor">R$ 0,00</div>
+        <div class="home-delta" id="deltaDespesas">—</div>
+      </button>
+      <button type="button" class="home-card home-kpi" id="btnReservado">
+        <div class="home-barra" style="background:#f59e0b"></div>
+        <div class="home-rot">Reservado</div>
+        <div class="home-kpi-valor" id="reservadoValor">R$ 0,00</div>
+        <div class="home-delta">guardado neste mês</div>
+      </button>
+    </div>
+
+    <div class="home-grid home-g2">
+      <section class="home-card">
+        <h2>Despesas por categoria</h2>
+        <div class="home-rosca">
+          <svg id="roscaCategorias" viewBox="0 0 200 200" role="img" aria-label="Despesas por categoria"></svg>
+          <div class="home-leg" id="legendaCategorias"></div>
+        </div>
+        <p class="home-vazio" id="categoriasVazio" style="display:none;">Nenhuma despesa neste mês.</p>
+      </section>
+      <section class="home-card">
+        <h2>Receitas e despesas <small>últimos 6 meses</small></h2>
+        <div class="home-legenda-graf">
+          <span><i style="background:#2563eb"></i>Receitas</span>
+          <span><i style="background:#94a3b8"></i>Despesas</span>
+        </div>
+        <div class="home-grafico" id="graficoBarras"></div>
+      </section>
+    </div>
+
+    <div class="home-grid home-g2">
+      <section class="home-card">
+        <h2>Próximas contas</h2>
+        <div class="home-lista" id="listaProximas"></div>
+      </section>
+      <section class="home-card">
+        <h2>Últimas movimentações</h2>
+        <div class="home-lista" id="listaUltimas"></div>
+      </section>
     </div>
   </main>
 
@@ -212,18 +433,16 @@
   <script>
     const auth = firebase.auth();
     const F = window.finFinanceiro;
+    const esc = (valor) => (window.finEscapeHtml ? window.finEscapeHtml(valor) : String(valor ?? ''));
 
     let periodo = null;
     let observador = null;
-    let chartCategorias = null;
-    let chartTendencia = null;
-    let chartStatus = null;
 
-    const CORES_CATEGORIA = ['#2563EB', '#0EA5E9', '#7C3AED', '#F59E0B', '#EF4444', '#64748B'];
+    const CORES_CATEGORIA = ['#2563eb', '#0ea5e9', '#7c3aed', '#f59e0b', '#ef4444', '#94a3b8'];
 
     function extrairPrimeiroNome(nome) {
       const limpo = String(nome || '').trim();
-      if (!limpo) return 'Usuário';
+      if (!limpo) return '';
       if (limpo.includes('@')) return limpo.split('@')[0];
       return limpo.split(/\s+/)[0];
     }
@@ -238,39 +457,76 @@
       return { despesas, receitas, reservado, saldo: receitas - despesas - reservado };
     }
 
+    function mesAnterior(ano, mes) {
+      const idx = F.MESES.indexOf(mes);
+      if (idx <= 0) return { ano: Number(ano) - 1, mes: F.MESES[11] };
+      return { ano: Number(ano), mes: F.MESES[idx - 1] };
+    }
+
     function atualizarSaldo(data) {
       const t = calcularTotais(data);
-      document.getElementById('saldoValor').textContent = F.formatar(t.saldo);
+      const valor = document.getElementById('saldoValor');
+      const selo = document.getElementById('saldoSelo');
+      const barra = document.getElementById('saldoMedidor');
+      const texto = document.getElementById('saldoMedidorTexto');
+      valor.textContent = F.formatar(t.saldo);
+      valor.classList.toggle('neg', t.saldo < 0);
+
+      const negativo = t.saldo < 0;
+      selo.textContent = negativo ? 'Despesas acima das receitas' : 'Dentro do orçamento';
+      selo.classList.toggle('ok', !negativo);
+
+      const comprometido = t.despesas + t.reservado;
+      let pct = 0;
+      if (t.receitas > 0) pct = (comprometido / t.receitas) * 100;
+      else if (comprometido > 0) pct = 100;
+      barra.style.width = Math.min(pct, 100) + '%';
+      barra.classList.toggle('estourou', pct > 100);
+      if (t.receitas <= 0 && comprometido > 0) {
+        texto.textContent = 'Não há receita para cobrir o mês';
+      } else if (comprometido <= 0) {
+        texto.textContent = 'Nenhuma receita comprometida';
+      } else if (pct > 100) {
+        texto.textContent = Math.round(pct) + '% da receita do mês já foi gasta';
+      } else {
+        texto.textContent = Math.round(pct) + '% da receita do mês foi gasta';
+      }
+
       document.getElementById('receitasValor').textContent = F.formatar(t.receitas);
       document.getElementById('despesasValor').textContent = F.formatar(t.despesas);
       document.getElementById('reservadoValor').textContent = F.formatar(t.reservado);
-
-      const card = document.getElementById('saldoCard');
-      card.classList.remove('card-saldo-positivo', 'card-saldo-aviso', 'card-saldo-negativo');
-      if (t.saldo < 0) card.classList.add('card-saldo-negativo');
-      else if (t.saldo < 100) card.classList.add('card-saldo-aviso');
-      else card.classList.add('card-saldo-positivo');
     }
 
-    async function atualizarTrendMesAnterior() {
-      const idx = F.MESES.indexOf(periodo.mes);
-      let anoAnt = Number(periodo.ano);
-      let idxAnt = idx - 1;
-      if (idxAnt < 0) { idxAnt = 11; anoAnt -= 1; }
-      const el = document.getElementById('saldoTrend');
+    function pintarDelta(id, atual, anterior, aumentoEhRuim) {
+      const el = document.getElementById(id);
+      const nomeMes = mesAnterior(periodo.ano, periodo.mes).mes.toLowerCase();
+      el.classList.remove('ok', 'ruim');
+      if (!anterior) {
+        el.textContent = atual ? 'sem valor em ' + nomeMes : 'igual a ' + nomeMes;
+        return;
+      }
+      const pct = Math.round(((atual - anterior) / Math.abs(anterior)) * 100);
+      if (pct === 0) {
+        el.textContent = 'igual a ' + nomeMes;
+        return;
+      }
+      const subiu = pct > 0;
+      el.textContent = (subiu ? '↑ ' : '↓ ') + Math.abs(pct) + '% em relação a ' + nomeMes;
+      const ruim = aumentoEhRuim ? subiu : !subiu;
+      el.classList.add(ruim ? 'ruim' : 'ok');
+    }
+
+    async function atualizarComparacao(dataAtual) {
+      const atual = calcularTotais(dataAtual);
+      const ant = mesAnterior(periodo.ano, periodo.mes);
       try {
-        const [dataAtual, dataAnt] = await Promise.all([
-          F.carregarMes(periodo.ano, periodo.mes),
-          F.carregarMes(anoAnt, F.MESES[idxAnt]),
-        ]);
-        const atual = calcularTotais(dataAtual).saldo;
-        const ant = calcularTotais(dataAnt).saldo;
-        let pct = ant !== 0 ? Math.round(((atual - ant) / Math.abs(ant)) * 100) : (atual !== 0 ? 100 : 0);
-        const subiu = pct >= 0;
-        el.classList.toggle('negativo', !subiu);
-        el.textContent = `${subiu ? '↑' : '↓'} ${Math.abs(pct)}% em relação ao mês anterior`;
+        const dataAnt = await F.carregarMes(ant.ano, ant.mes);
+        const anterior = calcularTotais(dataAnt);
+        pintarDelta('deltaReceitas', atual.receitas, anterior.receitas, false);
+        pintarDelta('deltaDespesas', atual.despesas, anterior.despesas, true);
       } catch (e) {
-        el.textContent = '—';
+        document.getElementById('deltaReceitas').textContent = '—';
+        document.getElementById('deltaDespesas').textContent = '—';
       }
     }
 
@@ -288,137 +544,144 @@
       return Object.entries(mapa).sort((a, b) => b[1] - a[1]);
     }
 
-    function atualizarChartCategorias(data) {
-      const canvas = document.getElementById('chartCategorias');
-      const legenda = document.getElementById('chartCategoriasLegenda');
-      const vazio = document.getElementById('chartCategoriasVazio');
-      const categorias = agregarPorCategoria(data);
-      const total = categorias.reduce((s, [, v]) => s + v, 0);
-
-      if (chartCategorias) { chartCategorias.destroy(); chartCategorias = null; }
-
-      if (!categorias.length || total <= 0) {
-        canvas.style.display = 'none';
+    function atualizarCategorias(data) {
+      const svg = document.getElementById('roscaCategorias');
+      const legenda = document.getElementById('legendaCategorias');
+      const vazio = document.getElementById('categoriasVazio');
+      const bruto = agregarPorCategoria(data);
+      const total = bruto.reduce((s, [, v]) => s + v, 0);
+      if (!bruto.length || total <= 0) {
+        svg.innerHTML = '';
+        svg.style.display = 'none';
         legenda.innerHTML = '';
         vazio.style.display = 'block';
         return;
       }
       vazio.style.display = 'none';
-      canvas.style.display = 'block';
+      svg.style.display = 'block';
 
-      const top = categorias.slice(0, 5);
-      const outros = categorias.slice(5).reduce((s, [, v]) => s + v, 0);
-      const labels = top.map(([n]) => n);
-      const values = top.map(([, v]) => v);
-      if (outros > 0) { labels.push('Outros'); values.push(outros); }
-      const cores = labels.map((_, i) => CORES_CATEGORIA[i % CORES_CATEGORIA.length]);
+      const top = bruto.slice(0, 5);
+      const outros = bruto.slice(5).reduce((s, [, v]) => s + v, 0);
+      const categorias = top.map(([nome, valor], i) => [nome, valor, CORES_CATEGORIA[i]]);
+      if (outros > 0) categorias.push(['Outros', outros, CORES_CATEGORIA[5]]);
 
-      legenda.innerHTML = labels.map((nome, i) => {
-        const pct = Math.round((values[i] / total) * 100);
-        return `<div class="dash-legend-item">
-          <span class="dash-legend-left"><span class="dash-legend-dot" style="background:${cores[i]}"></span><span class="dash-legend-nome">${nome}</span></span>
-          <span class="dash-legend-values"><strong class="dash-legend-valor">${F.formatar(values[i])}</strong><span class="dash-legend-pct">${pct}%</span></span>
-        </div>`;
-      }).join('');
-
-      chartCategorias = new Chart(canvas.getContext('2d'), {
-        type: 'doughnut',
-        data: { labels, datasets: [{ data: values, backgroundColor: cores, borderWidth: 0, hoverOffset: 4 }] },
-        options: { responsive: true, maintainAspectRatio: true, cutout: '68%', plugins: { legend: { display: false } } },
+      const R = 78;
+      const C = 2 * Math.PI * R;
+      let off = 0;
+      let desenho = '<circle cx="100" cy="100" r="' + R + '" fill="none" stroke="#f1f5f9" stroke-width="16"/>';
+      categorias.forEach(([, valor, cor]) => {
+        const len = valor / total * C;
+        desenho += '<circle cx="100" cy="100" r="' + R + '" fill="none" stroke="' + cor + '" stroke-width="16" stroke-dasharray="' + Math.max(len - 3, 0) + ' ' + C + '" stroke-dashoffset="' + (-off) + '" transform="rotate(-90 100 100)"/>';
+        off += len;
       });
+      desenho += '<text x="100" y="96" text-anchor="middle" font-size="11" fill="#64748b" font-family="Montserrat">Total</text>';
+      desenho += '<text x="100" y="116" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a" font-family="Montserrat">' + esc(F.formatar(total)) + '</text>';
+      svg.innerHTML = desenho;
+      legenda.innerHTML = categorias.map(([nome, valor, cor]) => {
+        const pct = Math.round((valor / total) * 100);
+        return '<div><i style="background:' + cor + '"></i><span>' + esc(nome) + '</span><b>' + esc(F.formatar(valor)) + '</b><span>' + pct + '%</span></div>';
+      }).join('');
     }
 
-    async function atualizarChartTendencia() {
-      const canvas = document.getElementById('chartTendencia');
+    function rotuloEixo(valor) {
+      if (valor >= 1000) {
+        return (valor / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil';
+      }
+      return F.formatar(valor);
+    }
+
+    function desenharBarras(pontos) {
+      const host = document.getElementById('graficoBarras');
+      const maxValor = Math.max(1, ...pontos.map((p) => Math.max(p.receitas, p.despesas)));
+      const W = 520;
+      const H = 220;
+      const base = 186;
+      const topo = 18;
+      const escada = (base - topo) / maxValor;
+      const gw = (W - 64) / pontos.length;
+      let b = '';
+      [0, 0.5, 1].forEach((f) => {
+        const v = maxValor * f;
+        const y = base - v * escada;
+        b += '<line x1="58" x2="' + W + '" y1="' + y + '" y2="' + y + '" stroke="#eef0f3"/>';
+        b += '<text x="52" y="' + (y + 4) + '" text-anchor="end" font-size="10" fill="#94a3b8" font-family="Montserrat">' + esc(rotuloEixo(v)) + '</text>';
+      });
+      pontos.forEach((p, i) => {
+        const x = 70 + i * gw;
+        const altR = p.receitas * escada;
+        const altD = p.despesas * escada;
+        b += '<rect x="' + x + '" y="' + (base - altR) + '" width="16" height="' + altR + '" rx="4" fill="#2563eb"><title>' + esc(p.label + ' – receitas ' + F.formatar(p.receitas)) + '</title></rect>';
+        b += '<rect x="' + (x + 20) + '" y="' + (base - altD) + '" width="16" height="' + altD + '" rx="4" fill="#94a3b8"><title>' + esc(p.label + ' – despesas ' + F.formatar(p.despesas)) + '</title></rect>';
+        b += '<text x="' + (x + 18) + '" y="208" text-anchor="middle" font-size="11" fill="#64748b" font-family="Montserrat">' + esc(p.label) + '</text>';
+      });
+      host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Receitas e despesas dos últimos 6 meses">' + b + '</svg>';
+    }
+
+    async function atualizarBarras() {
       const idxAtual = F.MESES.indexOf(periodo.mes);
       const alvos = [];
       for (let i = 5; i >= 0; i--) {
-        const { ano, mes } = F.destinoMesOffset(Number(periodo.ano), idxAtual, -i);
-        alvos.push({ ano, mes, atual: i === 0 });
+        alvos.push(F.destinoMesOffset(Number(periodo.ano), idxAtual, -i));
       }
-      // Busca os 6 meses em paralelo (antes era em série).
       const dados = await Promise.all(alvos.map((a) => F.carregarMes(a.ano, a.mes)));
-      const pontos = alvos.map((a, k) => ({
-        label: `${a.mes.slice(0, 3)}/${String(a.ano).slice(2)}`,
-        despesa: calcularTotais(dados[k]).despesas,
-        atual: a.atual,
+      desenharBarras(alvos.map((a, k) => {
+        const t = calcularTotais(dados[k]);
+        return { label: a.mes.slice(0, 3), receitas: t.receitas, despesas: t.despesas };
       }));
-      if (chartTendencia) { chartTendencia.destroy(); chartTendencia = null; }
-      chartTendencia = new Chart(canvas.getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: pontos.map((p) => p.label),
-          datasets: [{
-            data: pontos.map((p) => p.despesa),
-            backgroundColor: pontos.map((p) => (p.atual ? '#2563EB' : 'rgba(37,99,235,0.35)')),
-            borderRadius: 6,
-            maxBarThickness: 42,
-          }],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => ` ${F.formatar(c.parsed.y)}` } } },
-          scales: {
-            y: { ticks: { callback: (v) => F.formatar(v), font: { size: 11 } }, grid: { color: 'rgba(148,163,184,0.15)' } },
-            x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-          },
-        },
-      });
     }
 
-    function atualizarChartStatusContas(data) {
-      const canvas = document.getElementById('chartStatusContas');
-      const contas = data.contas || [];
-      let pago = contas.filter((c) => c.status === 'pago').reduce((s, c) => s + Number(c.valor || 0), 0);
-      let pendente = contas.filter((c) => c.status !== 'pago').reduce((s, c) => s + Number(c.valor || 0), 0);
+    function itemLista(titulo, subtitulo, valor, tag, classeTag) {
+      const positivo = Number(valor) > 0;
+      const texto = (positivo ? '+' : '') + F.formatar(valor);
+      const classeValor = positivo ? 'v entrada' : 'v';
+      return '<div class="home-item"><b>' + esc(titulo) + '</b><span class="' + classeValor + '">' + esc(texto) + '</span><small>' + esc(subtitulo || 'Sem categoria') + '</small><span class="home-tag ' + classeTag + '">' + esc(tag) + '</span></div>';
+    }
 
-      // Fatura do cartão de crédito entra como uma conta única, seguindo o
-      // status mensal da fatura (mesmo tratamento da página de Contas).
+    function atualizarListas(data) {
+      const proximas = document.getElementById('listaProximas');
+      const ultimas = document.getElementById('listaUltimas');
+      const pendentes = (data.contas || [])
+        .filter((c) => c.status !== 'pago')
+        .map((c) => ({ titulo: c.nome, sub: c.categoria, valor: Number(c.valor || 0) }));
       const totalCartao = (data.cartao || []).reduce((s, i) => s + Number(i.valor || 0), 0);
-      if (totalCartao > 0) {
-        if ((data.cartaoStatus || 'pendente') === 'pago') pago += totalCartao;
-        else pendente += totalCartao;
+      if (totalCartao > 0 && (data.cartaoStatus || 'pendente') !== 'pago') {
+        pendentes.push({ titulo: 'Cartão de crédito', sub: 'Fatura do mês', valor: totalCartao });
       }
+      pendentes.sort((a, b) => b.valor - a.valor);
+      const topPendentes = pendentes.slice(0, 5);
+      proximas.innerHTML = topPendentes.length
+        ? topPendentes.map((item) => itemLista(item.titulo, item.sub, -item.valor, 'Pendente', 'pendente')).join('')
+        : '<p class="home-vazio">Nenhuma conta pendente.</p>';
 
-      document.getElementById('statusPagoValor').textContent = F.formatar(pago);
-      document.getElementById('statusPendenteValor').textContent = F.formatar(pendente);
-
-      if (chartStatus) { chartStatus.destroy(); chartStatus = null; }
-      const total = pago + pendente;
-      chartStatus = new Chart(canvas.getContext('2d'), {
-        type: 'doughnut',
-        data: {
-          datasets: [{
-            data: total > 0 ? [pago, pendente] : [1],
-            backgroundColor: total > 0 ? ['#15803D', '#B45309'] : ['#E2E8F0'],
-            borderWidth: 0,
-          }],
-        },
-        options: { responsive: true, maintainAspectRatio: true, cutout: '72%', plugins: { legend: { display: false }, tooltip: { enabled: total > 0 } } },
-        plugins: [{
-          id: 'pctText',
-          beforeDraw(chart) {
-            const { ctx, chartArea } = chart;
-            if (!chartArea) return;
-            const pct = total > 0 ? Math.round((pago / total) * 100) : 0;
-            ctx.save();
-            ctx.font = 'bold 22px Montserrat, sans-serif';
-            ctx.fillStyle = '#0B1120';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(`${pct}%`, (chartArea.left + chartArea.right) / 2, (chartArea.top + chartArea.bottom) / 2);
-            ctx.restore();
-          },
-        }],
+      const movimentos = [];
+      (data.debito || []).slice(0, 3).forEach((item) => {
+        movimentos.push({ titulo: item.nome, sub: item.categoria, valor: Number(item.valor || 0), positivo: false, tag: 'Débito', classe: 'neutro' });
       });
+      (data.contas || []).slice(-3).reverse().forEach((item) => {
+        const pago = item.status === 'pago';
+        movimentos.push({
+          titulo: item.nome,
+          sub: item.categoria,
+          valor: Number(item.valor || 0),
+          positivo: false,
+          tag: pago ? 'Pago' : 'Pendente',
+          classe: pago ? 'pago' : 'pendente',
+        });
+      });
+      (data.adicionais || []).slice(-3).reverse().forEach((item) => {
+        movimentos.push({ titulo: item.nome, sub: 'Receita', valor: Number(item.valor || 0), positivo: true, tag: 'Entrada', classe: 'pago' });
+      });
+      const topMov = movimentos.slice(0, 6);
+      ultimas.innerHTML = topMov.length
+        ? topMov.map((item) => itemLista(item.titulo, item.sub, item.positivo ? Math.abs(item.valor) : -Math.abs(item.valor), item.tag, item.classe)).join('')
+        : '<p class="home-vazio">Nenhuma movimentação neste mês.</p>';
     }
 
     function renderizarTudo(data) {
       atualizarSaldo(data);
-      atualizarChartCategorias(data);
-      atualizarChartStatusContas(data);
-      atualizarTrendMesAnterior();
+      atualizarCategorias(data);
+      atualizarListas(data);
+      atualizarComparacao(data);
     }
 
     // --- Entradas (modal) ---
@@ -427,6 +690,8 @@
       entradasModal.classList.add('visible');
       await renderizarEntradas();
     });
+    document.getElementById('btnDespesas').addEventListener('click', () => window.finMobileNav?.irContas());
+    document.getElementById('btnReservado').addEventListener('click', () => window.finMobileNav?.irReservas());
     document.getElementById('btnFecharEntradas').addEventListener('click', () => entradasModal.classList.remove('visible'));
     entradasModal.addEventListener('click', (ev) => { if (ev.target === entradasModal) entradasModal.classList.remove('visible'); });
 
@@ -484,23 +749,22 @@
     document.getElementById('btnAddEntrada').addEventListener('click', (e) => finRunOnce(e, adicionarEntrada));
 
     document.getElementById('btnResumoAnual').addEventListener('click', () => {
-      window.location.href = `resumo.html?ano=${encodeURIComponent(periodo.ano)}`;
+      window.location.href = 'resumo.html?ano=' + encodeURIComponent(periodo.ano);
     });
 
     document.getElementById('logout-button-home').addEventListener('click', () => {
-      auth.signOut().then(() => window.location.href = 'login.html');
+      auth.signOut().then(() => { window.location.href = 'login.html'; });
     });
 
-    // --- Inicialização ---
     async function iniciar() {
       periodo = F.criarControladorPeriodo({
         selectAno: document.getElementById('selectAno'),
         selectMes: document.getElementById('selectMes'),
         onChange: (ano, mes) => {
-          document.getElementById('welcome-periodo').textContent = `${mes.toLowerCase()}/${ano}`;
+          document.getElementById('welcome-periodo').textContent = mes.toLowerCase() + '/' + ano;
           if (observador) observador.parar();
           observador = F.observarMes(() => ({ ano, mes }), renderizarTudo);
-          atualizarChartTendencia();
+          atualizarBarras();
         },
       });
     }
@@ -510,7 +774,8 @@
         window.location.href = 'login.html';
         return;
       }
-      document.getElementById('welcome-message').textContent = `Bem-vindo, ${extrairPrimeiroNome(user.displayName || user.email)}!`;
+      const nome = extrairPrimeiroNome(user.displayName || user.email);
+      document.getElementById('welcome-message').textContent = nome ? 'Olá, ' + nome : 'Olá';
       iniciar();
     });
   </script>

@@ -193,7 +193,45 @@
     .fatura-comp div { display: grid; grid-template-columns: 10px 1fr auto 44px; gap: 10px; align-items: center; }
     .fatura-comp i { width: 10px; height: 10px; border-radius: 3px; }
     .fatura-comp span:last-child { text-align: right; color: var(--text-secondary); }
-    .linha-tempo svg { width: 100%; height: auto; display: block; }
+    .lt-wrap { position: relative; margin: 0 -8px; }
+    .lt-scroll {
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      overscroll-behavior-x: contain;
+      cursor: grab;
+      -webkit-mask-image: linear-gradient(to right, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%);
+    }
+    .lt-scroll::-webkit-scrollbar { display: none; }
+    .lt-scroll.arrastando { cursor: grabbing; }
+    .lt-scroll.arrastando * { pointer-events: none; }
+    .lt-trilho { display: flex; width: max-content; user-select: none; -webkit-user-select: none; }
+    .lt-trilho svg { display: block; flex: none; }
+    .lt-load { flex: none; display: grid; place-items: center; }
+    .lt-load span { display: flex; gap: 5px; margin-bottom: 40px; }
+    .lt-load i {
+      width: 6px; height: 6px; border-radius: 50%; background: #93c5fd;
+      animation: ltPulso 1s ease-in-out infinite;
+    }
+    .lt-load i:nth-child(2) { animation-delay: .15s; }
+    .lt-load i:nth-child(3) { animation-delay: .3s; }
+    @keyframes ltPulso { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1); } }
+    .lt-seta {
+      position: absolute; top: 50%; z-index: 2;
+      width: 34px; height: 34px; margin-top: -30px;
+      display: grid; place-items: center;
+      border-radius: 50%; border: 1px solid #e8eaee; background: #fff;
+      color: #0f172a; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, .08);
+      opacity: 0; transition: opacity .18s ease, transform .18s ease;
+    }
+    .lt-seta.esq { left: 4px; }
+    .lt-seta.dir { right: 4px; }
+    .lt-wrap:hover .lt-seta, .lt-seta:focus-visible { opacity: 1; }
+    .lt-seta:hover { transform: scale(1.06); }
+    @media (hover: none) { .lt-seta { display: none; } }
     .linha-nota { font-size: 12px; color: var(--text-secondary); margin: 12px 0 0; }
     .cab-lista { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
     .cab-lista h2 { margin: 0; font-size: 14px; font-weight: 600; }
@@ -487,7 +525,7 @@
     <section class="section-card">
       <h2 class="section-card-title">Linha do tempo <small style="font-weight:500;color:var(--text-secondary);margin-left:6px;">valor da fatura mês a mês</small></h2>
       <div class="linha-tempo" id="linhaTempo"></div>
-      <p class="linha-nota">Nas faturas futuras aparece só o que já está comprometido: compras recorrentes e parcelas.</p>
+      <p class="linha-nota">Arraste para os lados para ver outros meses. Nas faturas futuras aparece só o que já está comprometido: compras recorrentes e parcelas.</p>
     </section>
 
     <section class="section-card">
@@ -619,7 +657,11 @@
     let filtroCompras = 'todas';
     let linhaSeq = 0;
     const mqMobile = window.matchMedia('(max-width: 768px), (max-height: 500px)');
-    mqMobile.addEventListener('change', () => atualizarLinhaTempo());
+    mqMobile.addEventListener('change', () => {
+      if (!linhaPontos.length) return;
+      desenharLinha();
+      centralizarLinhaNoAtual();
+    });
 
     const TIPOS_COMPRA = {
       recorrente: ['Recorrentes', '#2563eb'],
@@ -803,17 +845,121 @@
       });
     }
 
-    function desenharLinha(pontos) {
+    // --- Linha do tempo (rolagem infinita) ---
+    const LT_PASSO = 5;
+    const ltEstado = { chave: '', min: -LT_PASSO, max: LT_PASSO, carregando: { esq: false, dir: false } };
+    const anosLinha = new Map();
+    let linhaPontos = [];
+
+    function colunaLinha() { return mqMobile.matches ? 96 : 112; }
+
+    function anoDaLinha(ano) {
+      if (!anosLinha.has(ano)) {
+        anosLinha.set(ano, F.carregarAno(ano).catch((err) => {
+          anosLinha.delete(ano);
+          throw err;
+        }));
+      }
+      return anosLinha.get(ano);
+    }
+
+    async function pontosDaFaixa(de, ate) {
+      const alvos = [];
+      for (let off = de; off <= ate; off++) {
+        alvos.push({ ...mesComOffset(periodo.ano, periodo.mes, off), off });
+      }
+      const porAno = {};
+      await Promise.all([...new Set(alvos.map((a) => a.ano))].map(async (ano) => {
+        try {
+          porAno[ano] = await anoDaLinha(ano);
+        } catch (err) {
+          porAno[ano] = {};
+        }
+      }));
+      return alvos.map((alvo) => {
+        const dados = alvo.off === 0 ? dadosMesAtual : ((porAno[alvo.ano] || {})[alvo.mes] || {});
+        const valor = (dados.cartao || [])
+          .filter((c) => compraPertenceAoCartao(c, cartaoSelecionado))
+          .reduce((s, c) => s + Number(c.valor || 0), 0);
+        let rotulo = 'Prevista';
+        if (alvo.off === 0) rotulo = 'Atual';
+        else if (alvo.off < 0 && !valor) rotulo = 'Sem fatura';
+        else if (alvo.off < 0) rotulo = dados.cartaoStatus === 'pago' ? 'Paga' : 'Em aberto';
+        const abrev = alvo.mes.slice(0, 3);
+        return {
+          off: alvo.off,
+          ano: alvo.ano,
+          janeiro: alvo.mes === F.MESES[0],
+          label: abrev.charAt(0).toUpperCase() + abrev.slice(1),
+          valor,
+          rotulo,
+          atual: alvo.off === 0,
+        };
+      });
+    }
+
+    function estruturaLinha() {
       const host = document.getElementById('linhaTempo');
-      const W = pontos.length <= 3 ? 420 : 980;
+      let scroll = host.querySelector('.lt-scroll');
+      if (scroll) return scroll;
+      host.innerHTML = `
+        <div class="lt-wrap">
+          <button type="button" class="lt-seta esq" aria-label="Meses anteriores">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div class="lt-scroll"><div class="lt-trilho"></div></div>
+          <button type="button" class="lt-seta dir" aria-label="Próximos meses">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>`;
+      scroll = host.querySelector('.lt-scroll');
+      ligarInteracaoLinha(host, scroll);
+      return scroll;
+    }
+
+    function ligarInteracaoLinha(host, scroll) {
+      let arrasto = null;
+      scroll.addEventListener('pointerdown', (ev) => {
+        if (ev.pointerType !== 'mouse' || ev.button !== 0) return;
+        arrasto = { x: ev.clientX, inicio: scroll.scrollLeft, id: ev.pointerId };
+      });
+      scroll.addEventListener('pointermove', (ev) => {
+        if (!arrasto) return;
+        const dx = ev.clientX - arrasto.x;
+        if (!scroll.classList.contains('arrastando')) {
+          if (Math.abs(dx) < 4) return;
+          scroll.classList.add('arrastando');
+          scroll.setPointerCapture(arrasto.id);
+        }
+        scroll.scrollLeft = arrasto.inicio - dx;
+      });
+      const soltar = () => {
+        arrasto = null;
+        scroll.classList.remove('arrastando');
+      };
+      scroll.addEventListener('pointerup', soltar);
+      scroll.addEventListener('pointercancel', soltar);
+      scroll.addEventListener('scroll', verificarBordasLinha, { passive: true });
+      host.querySelector('.lt-seta.esq').addEventListener('click', () => {
+        scroll.scrollBy({ left: -colunaLinha() * 3, behavior: 'smooth' });
+      });
+      host.querySelector('.lt-seta.dir').addEventListener('click', () => {
+        scroll.scrollBy({ left: colunaLinha() * 3, behavior: 'smooth' });
+      });
+    }
+
+    function desenharLinha() {
+      const scroll = estruturaLinha();
+      const pontos = linhaPontos;
+      const col = colunaLinha();
+      const W = pontos.length * col;
       const H = 220;
       const base = 168;
-      const margem = pontos.length <= 3 ? 62 : 78;
-      const xs = pontos.map((_, i) => margem + i * ((W - margem * 2) / (pontos.length - 1)));
+      const xs = pontos.map((_, i) => col / 2 + i * col);
       const valores = pontos.map((p) => p.valor);
       const minimo = Math.min(...valores);
       const maximo = Math.max(...valores);
-      const ys = valores.map((v) => 112 - ((v - minimo) / (maximo - minimo || 1)) * 68);
+      const ys = valores.map((v) => 118 - ((v - minimo) / (maximo - minimo || 1)) * 66);
       const curva = (inicio, fim) => {
         let d = '';
         for (let k = inicio; k < fim; k++) {
@@ -824,62 +970,103 @@
       };
       const atual = Math.max(0, pontos.findIndex((p) => p.atual));
       const fim = pontos.length - 1;
-      let g = `<path d="M${xs[0]},${ys[0]}${curva(0, fim)} L${xs[fim]},${base} L${xs[0]},${base}Z" fill="#2563eb" opacity=".06"/>`;
+      const fonte = 'font-family="Montserrat, sans-serif" text-anchor="middle"';
+      let g = '';
+      pontos.forEach((p, i) => {
+        if (!p.janeiro) return;
+        const x = xs[i] - col / 2;
+        g += `<line x1="${x}" y1="26" x2="${x}" y2="196" stroke="#e2e8f0" stroke-dasharray="3 4"/>`;
+        g += `<text x="${x + 8}" y="20" font-family="Montserrat, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">${p.ano}</text>`;
+      });
+      g += `<path d="M${xs[0]},${ys[0]}${curva(0, fim)} L${xs[fim]},${base} L${xs[0]},${base}Z" fill="#2563eb" opacity=".06"/>`;
       g += `<path d="M${xs[0]},${ys[0]}${curva(0, atual)}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>`;
       g += `<path d="M${xs[atual]},${ys[atual]}${curva(atual, fim)}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6 6" opacity=".65"/>`;
       pontos.forEach((p, i) => {
         const marcado = p.atual;
         const futuro = i > atual;
-        const fonte = 'font-family="Montserrat, sans-serif" text-anchor="middle"';
         if (marcado) g += `<circle cx="${xs[i]}" cy="${ys[i]}" r="13" fill="#2563eb" opacity=".12"/>`;
         g += `<circle cx="${xs[i]}" cy="${ys[i]}" r="${marcado ? 6.5 : 4.5}" fill="${futuro ? '#fff' : '#2563eb'}" stroke="#2563eb" stroke-width="2.5"/>`;
         g += `<text x="${xs[i]}" y="${ys[i] - 16}" ${fonte} font-size="${marcado ? 13 : 11}" font-weight="${marcado ? 700 : 600}" fill="#0f172a">${esc(F.formatar(p.valor))}</text>`;
         g += `<text x="${xs[i]}" y="188" ${fonte} font-size="12" font-weight="600" fill="${marcado ? '#0f172a' : '#64748b'}">${esc(p.label)}</text>`;
-        g += `<text x="${xs[i]}" y="206" ${fonte} font-size="11" fill="#94a3b8">${esc(p.rotulo)}</text>`;
+        g += `<text x="${xs[i]}" y="206" ${fonte} font-size="11" fill="${marcado ? '#2563eb' : '#94a3b8'}">${esc(p.rotulo)}</text>`;
       });
-      host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Valor das faturas mês a mês">${g}</svg>`;
+      const carregando = `<div class="lt-load" style="width:${col}px;height:${H}px" aria-hidden="true"><span><i></i><i></i><i></i></span></div>`;
+      scroll.firstElementChild.innerHTML = `${carregando}<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Valor das faturas mês a mês">${g}</svg>${carregando}`;
+    }
+
+    function centralizarLinhaNoAtual() {
+      const scroll = document.querySelector('#linhaTempo .lt-scroll');
+      const idx = linhaPontos.findIndex((p) => p.atual);
+      if (!scroll || idx < 0) return;
+      const col = colunaLinha();
+      scroll.scrollLeft = col + idx * col + col / 2 - scroll.clientWidth / 2;
+    }
+
+    function verificarBordasLinha() {
+      const scroll = document.querySelector('#linhaTempo .lt-scroll');
+      if (!scroll || !linhaPontos.length) return;
+      const limite = colunaLinha() * 1.25;
+      if (scroll.scrollLeft < limite) carregarMaisLinha('esq');
+      if (scroll.scrollLeft + scroll.clientWidth > scroll.scrollWidth - limite) carregarMaisLinha('dir');
+    }
+
+    async function carregarMaisLinha(lado) {
+      if (ltEstado.carregando[lado] || !periodo || !cartaoSelecionado) return;
+      ltEstado.carregando[lado] = true;
+      const seq = linhaSeq;
+      const esquerda = lado === 'esq';
+      const de = esquerda ? ltEstado.min - LT_PASSO : ltEstado.max + 1;
+      const ate = esquerda ? ltEstado.min - 1 : ltEstado.max + LT_PASSO;
+      let novos = null;
+      try {
+        novos = await pontosDaFaixa(de, ate);
+      } finally {
+        ltEstado.carregando[lado] = false;
+      }
+      if (seq !== linhaSeq || !novos) return;
+      const scroll = document.querySelector('#linhaTempo .lt-scroll');
+      const antes = scroll.scrollLeft;
+      if (esquerda) {
+        ltEstado.min = de;
+        linhaPontos = [...novos, ...linhaPontos];
+      } else {
+        ltEstado.max = ate;
+        linhaPontos = [...linhaPontos, ...novos];
+      }
+      desenharLinha();
+      scroll.scrollLeft = esquerda ? antes + novos.length * colunaLinha() : antes;
+      requestAnimationFrame(verificarBordasLinha);
     }
 
     async function atualizarLinhaTempo() {
       const seq = ++linhaSeq;
       const host = document.getElementById('linhaTempo');
       if (!periodo || !cartaoSelecionado) {
+        linhaPontos = [];
+        ltEstado.chave = '';
         host.innerHTML = '<div class="lista-vazia">Cadastre um cartão para ver a linha do tempo.</div>';
         return;
       }
-      const offsets = mqMobile.matches ? [0, 1, 2] : [-2, -1, 0, 1, 2, 3];
-      const alvos = offsets.map((off) => {
-        const dest = mesComOffset(periodo.ano, periodo.mes, off);
-        let rotulo = 'Previsto';
-        if (off < 0) rotulo = 'Anterior';
-        if (off === 0) rotulo = 'Atual';
-        return { ...dest, off, rotulo };
-      });
-      const dados = await Promise.all(alvos.map(async (alvo) => {
-        if (alvo.off === 0) return dadosMesAtual;
-        try {
-          return await F.carregarMes(alvo.ano, alvo.mes);
-        } catch (err) {
-          return { cartao: [] };
-        }
-      }));
+      const chave = `${cartaoSelecionado.id}|${periodo.ano}|${periodo.mes}`;
+      const recentrar = chave !== ltEstado.chave;
+      const faixa = recentrar ? { min: -LT_PASSO, max: LT_PASSO } : { min: ltEstado.min, max: ltEstado.max };
+      const pontos = await pontosDaFaixa(faixa.min, faixa.max);
       if (seq !== linhaSeq || !cartaoSelecionado) return;
-      const pontos = alvos.map((alvo, i) => {
-        const lista = (dados[i].cartao || []).filter((c) => compraPertenceAoCartao(c, cartaoSelecionado));
-        const valor = lista.reduce((s, c) => s + Number(c.valor || 0), 0);
-        const abrev = alvo.mes.slice(0, 3);
-        return {
-          label: abrev.charAt(0).toUpperCase() + abrev.slice(1),
-          valor,
-          rotulo: alvo.rotulo,
-          atual: alvo.off === 0,
-        };
-      });
-      desenharLinha(pontos);
+      ltEstado.chave = chave;
+      ltEstado.min = faixa.min;
+      ltEstado.max = faixa.max;
+      linhaPontos = pontos;
+      const scroll = estruturaLinha();
+      const antes = scroll.scrollLeft;
+      desenharLinha();
+      if (recentrar) centralizarLinhaNoAtual();
+      else scroll.scrollLeft = antes;
+      requestAnimationFrame(verificarBordasLinha);
     }
 
     function renderizarTudo(data) {
       dadosMesAtual = data;
+      anosLinha.clear();
       atualizarPainelCartao();
       atualizarLinhaTempo();
     }

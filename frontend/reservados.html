@@ -6,7 +6,7 @@
   <title>Reservados | Fin</title>
   <link rel="icon" href="img/icone.ico" type="image/x-icon" />
   <link rel="stylesheet" href="sidebar.css?v=11">
-  <link rel="stylesheet" href="css/theme.css?v=9">
+  <link rel="stylesheet" href="css/theme.css?v=10">
   <link rel="stylesheet" href="css/mobile-shell.css?v=8">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
@@ -27,12 +27,12 @@
 
     .content {
       flex: 1;
-      padding: 40px;
+      padding: 28px 36px 48px;
       margin-left: 240px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
-      max-width: 820px;
+      gap: 16px;
+      max-width: 1200px;
     }
   </style>
 </head>
@@ -44,17 +44,32 @@
         <h1>Reservados</h1>
         <p id="tituloPeriodo">Carregando…</p>
       </div>
-      <div class="period-controls" style="display:flex; gap:10px;">
-        <select id="selectAno" style="min-width:110px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--border-color); background:var(--bg-section); color:var(--text-primary);"></select>
-        <select id="selectMes" style="min-width:140px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--border-color); background:var(--bg-section); color:var(--text-primary);"></select>
+      <div class="period-controls" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <select id="selectAno" aria-label="Ano" style="min-width:92px;"></select>
+        <select id="selectMes" aria-label="Mês" style="min-width:140px;"></select>
+        <button class="btn-add" id="btnAddReservado">+ Nova reserva</button>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-tile">
+        <div class="stat-tile-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+        <div class="stat-tile-body">
+          <span class="stat-tile-label">Total reservado no mês</span>
+          <span class="stat-tile-value" id="reservaTotal">R$ 0,00</span>
+        </div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-tile-icon" style="background:#f1f5f9;color:#475569;"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></div>
+        <div class="stat-tile-body">
+          <span class="stat-tile-label">Reservas</span>
+          <span class="stat-tile-value" id="reservaQtd">0</span>
+        </div>
       </div>
     </div>
 
     <section class="section-card">
-      <div class="page-header-row" style="margin-bottom:16px;">
-        <h2 class="section-card-title" style="margin:0;">Combustível, lazer e outras reservas</h2>
-        <button class="btn-add" id="btnAddReservado">+ Adicionar</button>
-      </div>
+      <h2 class="section-card-title">Combustível, lazer e outras reservas</h2>
       <div id="listaReservado" class="statement-list"></div>
     </section>
   </main>
@@ -98,6 +113,8 @@
     function renderizarReservados(itens) {
       const lista = document.getElementById('listaReservado');
       lista.innerHTML = '';
+      document.getElementById('reservaTotal').textContent = F.formatar(itens.reduce((s, i) => s + Number(i.valor || 0), 0));
+      document.getElementById('reservaQtd').textContent = String(itens.length);
       if (!itens.length) {
         lista.innerHTML = '<div class="statement-empty">Nenhum valor reservado neste mês.</div>';
         return;

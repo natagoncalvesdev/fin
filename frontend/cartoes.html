@@ -16,12 +16,12 @@
   <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
   <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
-  <link rel="stylesheet" href="css/theme.css?v=11">
+  <link rel="stylesheet" href="css/theme.css?v=12">
   <link rel="stylesheet" href="css/mobile-shell.css?v=9">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
-  <script src="js/fin-financeiro-shared.js?v=8"></script>
+  <script src="js/fin-financeiro-shared.js?v=9"></script>
   <script src="sidebar.js?v=9"></script>
   <style>
     * { box-sizing: border-box; }
@@ -613,6 +613,16 @@
           <input id="compraCartaoValor" class="fin-entry-valor-input" inputmode="numeric" autocomplete="off" placeholder="0,00" />
         </div>
       </div>
+      <div class="fin-entry-reserva" id="compraReserva">
+        <button type="button" class="fin-entry-reserva-btn" data-role="abrir" aria-expanded="false">Usar reserva</button>
+        <div class="fin-entry-campo" data-role="box" hidden>
+          <label for="compraReservaSelect">Qual reserva usar</label>
+          <select id="compraReservaSelect" class="fin-entry-input" data-role="select">
+            <option value="">Selecione uma reserva</option>
+          </select>
+          <p class="fin-entry-reserva-resumo" data-role="resumo"></p>
+        </div>
+      </div>
       <div class="fin-entry-campo">
         <label for="compraCartaoNome">Título</label>
         <input class="fin-entry-input" id="compraCartaoNome" autocomplete="off" placeholder="Ex.: Óculos" />
@@ -1172,6 +1182,24 @@
     const compraModal = document.getElementById('compraModal');
     const compraValorInput = document.getElementById('compraCartaoValor');
     F.ligarMascaraMoeda(compraValorInput);
+    const compraUsoReserva = F.ligarUsoReserva(
+      document.getElementById('compraReserva'),
+      compraValorInput,
+      () => dadosMesAtual.reservado,
+      {
+        observar: [
+          document.getElementById('compraCartaoParcelas'),
+          document.getElementById('compraCartaoRecorrente'),
+        ],
+        detalhe() {
+          const recorrente = document.getElementById('compraCartaoRecorrente').checked;
+          const parcelas = Number(document.getElementById('compraCartaoParcelas').value) || 1;
+          if (recorrente) return ' Esse abatimento entra em cada mês.';
+          if (parcelas > 1) return ` Esse abatimento entra em cada uma das ${parcelas} parcelas.`;
+          return '';
+        },
+      },
+    );
 
     function fecharModalCompra() { compraModal.classList.remove('visible'); }
 
@@ -1185,6 +1213,7 @@
       document.getElementById('compraErro').textContent = '';
       compraValorInput.classList.remove('erro');
       document.getElementById('compraCartaoNome').classList.remove('erro');
+      compraUsoReserva.reset();
       F.popularSelectsCategoria(['compraCartaoCategoria']);
       document.getElementById('compraCartaoCategoria').value = '';
       compraModal.classList.add('visible');
@@ -1217,6 +1246,11 @@
         nomeInput.focus();
         return;
       }
+      const uso = compraUsoReserva.valorLiquido(valor);
+      if (!uso.ok) {
+        erroEl.textContent = uso.erro;
+        return;
+      }
       erroEl.textContent = '';
       const botao = document.getElementById('btnSalvarCompra');
       botao.disabled = true;
@@ -1225,12 +1259,12 @@
         await F.api('/api/financeiro/compras-cartao', {
           method: 'POST',
           body: JSON.stringify({
-            ano: Number(periodo.ano), mes: periodo.mes, nome, valor,
+            ano: Number(periodo.ano), mes: periodo.mes, nome, valor: uso.valor,
             cartaoId: refCartao(cartaoSelecionado), categoria, totalParcelas, recorrente, descricao,
           }),
         });
         fecharModalCompra();
-        window.finToast?.('Compra adicionada.', { type: 'success' });
+        window.finToast?.(uso.usou ? 'Compra adicionada com a reserva abatida.' : 'Compra adicionada.', { type: 'success' });
         observador && observador.forcar();
       } catch (err) {
         erroEl.textContent = err.message || 'Não foi possível salvar. Tente de novo.';

@@ -631,6 +631,134 @@
     });
   }
 
+  function centavosDe(valor) {
+    return Math.round((Number(valor) || 0) * 100);
+  }
+
+  /**
+   * Liga o bloco "Usar reserva" de um modal de lançamento.
+   * No registro, o valor da reserva escolhida é abatido do valor digitado.
+   * A reserva continua no mês: ela já entra no saldo, e o lançamento guarda a diferença.
+   */
+  function ligarUsoReserva(raiz, valorInput, obterItens, opcoes) {
+    const opts = opcoes || {};
+    const botao = raiz.querySelector('[data-role="abrir"]');
+    const box = raiz.querySelector('[data-role="box"]');
+    const select = raiz.querySelector('[data-role="select"]');
+    const resumo = raiz.querySelector('[data-role="resumo"]');
+    let aberto = false;
+
+    function itens() {
+      const lista = typeof obterItens === 'function' ? obterItens() : obterItens;
+      return (lista || []).filter((item) => item && centavosDe(item.valor) > 0);
+    }
+
+    function nomeReserva(item) {
+      return String((item && item.nome) || '').trim() || 'Reserva';
+    }
+
+    function textoReserva(item) {
+      return `${nomeReserva(item)} — ${formatar(item.valor)}`;
+    }
+
+    function selecionado() {
+      const id = select.value;
+      if (!id) return null;
+      return itens().find((item) => item.id === id) || null;
+    }
+
+    function popular() {
+      const lista = itens();
+      const atual = select.value;
+      select.replaceChildren();
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = lista.length ? 'Selecione uma reserva' : 'Nenhuma reserva neste mês';
+      select.appendChild(placeholder);
+      lista.forEach((item) => {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = textoReserva(item);
+        select.appendChild(opt);
+      });
+      if (atual && lista.some((item) => item.id === atual)) select.value = atual;
+    }
+
+    function atualizarResumo() {
+      if (!aberto) return;
+      resumo.classList.remove('alerta');
+      const lista = itens();
+      const item = selecionado();
+      if (!lista.length) {
+        resumo.textContent = 'Nenhuma reserva neste mês.';
+        return;
+      }
+      if (!item) {
+        resumo.textContent = select.value ? 'Essa reserva não está mais disponível.' : '';
+        if (select.value) resumo.classList.add('alerta');
+        return;
+      }
+      const digitado = centavosDe(lerMoeda(valorInput));
+      const abate = centavosDe(item.valor);
+      const liquido = digitado - abate;
+      if (digitado <= 0) {
+        resumo.textContent = `Abate ${formatar(item.valor)} de ${nomeReserva(item)}.`;
+        return;
+      }
+      if (liquido <= 0) {
+        resumo.textContent = `A reserva de ${formatar(item.valor)} cobre todo o valor informado.`;
+        resumo.classList.add('alerta');
+        return;
+      }
+      const extra = typeof opts.detalhe === 'function' ? (opts.detalhe() || '') : '';
+      resumo.textContent = `Abate ${formatar(abate / 100)}. O lançamento entra como ${formatar(liquido / 100)}.${extra}`;
+    }
+
+    function definirAberto(proximo) {
+      aberto = proximo;
+      box.hidden = !aberto;
+      botao.classList.toggle('on', aberto);
+      botao.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+      botao.textContent = aberto ? 'Cancelar uso da reserva' : 'Usar reserva';
+      if (aberto) {
+        popular();
+        atualizarResumo();
+      } else {
+        select.value = '';
+        resumo.textContent = '';
+        resumo.classList.remove('alerta');
+      }
+    }
+
+    botao.addEventListener('click', () => definirAberto(!aberto));
+    select.addEventListener('change', atualizarResumo);
+    valorInput.addEventListener('input', atualizarResumo);
+    (opts.observar || []).forEach((el) => {
+      if (!el) return;
+      el.addEventListener('input', atualizarResumo);
+      el.addEventListener('change', atualizarResumo);
+    });
+
+    return {
+      reset() { definirAberto(false); },
+      valorLiquido(valorDigitado) {
+        const centavos = centavosDe(valorDigitado);
+        if (!aberto) return { ok: true, valor: centavos / 100, usou: false };
+        if (!itens().length) return { ok: false, erro: 'Não há reserva neste mês para abater.' };
+        if (select.value && !selecionado()) {
+          return { ok: false, erro: 'Essa reserva não está mais disponível. Escolha outra.' };
+        }
+        const item = selecionado();
+        if (!item) return { ok: false, erro: 'Selecione qual reserva usar.' };
+        const liquido = centavos - centavosDe(item.valor);
+        if (liquido <= 0) {
+          return { ok: false, erro: 'A reserva cobre todo o valor. O lançamento ficaria zerado.' };
+        }
+        return { ok: true, valor: liquido / 100, usou: true, reserva: item };
+      },
+    };
+  }
+
   // --- Ponto de acesso global ---------------------------------------------
 
   let periodoAtualRef = { ano: '', mes: '' };
@@ -664,6 +792,7 @@
     fecharModalItem,
     alternarStatusConta,
     atualizarStatusFatura,
+    ligarUsoReserva,
     destinoMesOffset,
   };
 })(window);

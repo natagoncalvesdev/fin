@@ -1114,6 +1114,49 @@ select.fin-entry-input {
   color: #dc2626;
 }
 
+.fin-entry-reserva {
+  display: grid;
+  gap: 10px;
+}
+
+.fin-entry-reserva [data-role="box"][hidden] {
+  display: none;
+}
+
+.fin-entry-reserva-btn {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+  color: var(--text-primary);
+  font: 600 13px/1.2 var(--font-family);
+  cursor: pointer;
+}
+
+.fin-entry-reserva-btn.on {
+  border-style: solid;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: var(--accent);
+}
+
+.fin-entry-reserva-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.fin-entry-reserva-resumo {
+  margin: 2px 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.fin-entry-reserva-resumo.alerta {
+  color: #dc2626;
+}
+
 .fin-entry-acoes {
   display: grid;
   grid-template-columns: 1fr 1.6fr;

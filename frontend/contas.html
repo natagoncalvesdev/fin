@@ -16,12 +16,12 @@
   <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png" />
   <script src="/js/fin-pwa.js" defer></script>
   <link rel="stylesheet" href="sidebar.css?v=11">
-  <link rel="stylesheet" href="css/theme.css?v=11">
+  <link rel="stylesheet" href="css/theme.css?v=12">
   <link rel="stylesheet" href="css/mobile-shell.css?v=9">
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
-  <script src="js/fin-financeiro-shared.js?v=8"></script>
+  <script src="js/fin-financeiro-shared.js?v=9"></script>
   <script src="sidebar.js?v=9"></script>
   <style>
     * { box-sizing: border-box; }
@@ -397,6 +397,16 @@
           <input id="contaValorModal" class="fin-entry-valor-input" inputmode="numeric" autocomplete="off" placeholder="0,00" />
         </div>
       </div>
+      <div class="fin-entry-reserva" id="contaReserva">
+        <button type="button" class="fin-entry-reserva-btn" data-role="abrir" aria-expanded="false">Usar reserva</button>
+        <div class="fin-entry-campo" data-role="box" hidden>
+          <label for="contaReservaSelect">Qual reserva usar</label>
+          <select id="contaReservaSelect" class="fin-entry-input" data-role="select">
+            <option value="">Selecione uma reserva</option>
+          </select>
+          <p class="fin-entry-reserva-resumo" data-role="resumo"></p>
+        </div>
+      </div>
       <div class="fin-entry-campo">
         <label for="contaNomeModal">Título</label>
         <input class="fin-entry-input" id="contaNomeModal" autocomplete="off" placeholder="Ex.: Conta de luz" />
@@ -436,6 +446,16 @@
         <div class="fin-entry-valor-linha">
           <span class="fin-entry-moeda">R$</span>
           <input id="debitoValor" class="fin-entry-valor-input" inputmode="numeric" autocomplete="off" placeholder="0,00" />
+        </div>
+      </div>
+      <div class="fin-entry-reserva" id="debitoReserva">
+        <button type="button" class="fin-entry-reserva-btn" data-role="abrir" aria-expanded="false">Usar reserva</button>
+        <div class="fin-entry-campo" data-role="box" hidden>
+          <label for="debitoReservaSelect">Qual reserva usar</label>
+          <select id="debitoReservaSelect" class="fin-entry-input" data-role="select">
+            <option value="">Selecione uma reserva</option>
+          </select>
+          <p class="fin-entry-reserva-resumo" data-role="resumo"></p>
         </div>
       </div>
       <div class="fin-entry-campo">
@@ -731,6 +751,11 @@
     const contaModal = document.getElementById('contaModal');
     const contaValorInput = document.getElementById('contaValorModal');
     F.ligarMascaraMoeda(contaValorInput);
+    const contaUsoReserva = F.ligarUsoReserva(
+      document.getElementById('contaReserva'),
+      contaValorInput,
+      () => dadosMes.reservado,
+    );
 
     function abrirModalNovaConta() {
       document.getElementById('contaNomeModal').value = '';
@@ -739,6 +764,7 @@
       document.getElementById('contaCategoriaModal').value = '';
       document.querySelectorAll('#contaStatusToggle .fin-entry-seg-opt').forEach((b) => b.classList.toggle('active', b.dataset.status === 'pendente'));
       limparErrosLancamento(['contaValorModal', 'contaNomeModal', 'contaCategoriaModal'], 'contaErro');
+      contaUsoReserva.reset();
       F.popularSelectsCategoria(['contaCategoriaModal']);
       contaModal.classList.add('visible');
       contaValorInput.focus();
@@ -759,6 +785,11 @@
       const erroEl = document.getElementById('contaErro');
       const validado = validarLancamento(contaValorInput, nomeInput, erroEl);
       if (!validado) return;
+      const uso = contaUsoReserva.valorLiquido(validado.valor);
+      if (!uso.ok) {
+        erroEl.textContent = uso.erro;
+        return;
+      }
       const descricao = document.getElementById('contaDescricaoModal').value.trim();
       const categoria = document.getElementById('contaCategoriaModal').value.trim();
       const status = document.querySelector('#contaStatusToggle .fin-entry-seg-opt.active').dataset.status;
@@ -766,9 +797,9 @@
       botao.disabled = true;
       botao.textContent = 'Salvando...';
       try {
-        await iniciarConta(validado.titulo, validado.valor, categoria, status, descricao);
+        await iniciarConta(validado.titulo, uso.valor, categoria, status, descricao);
         fecharModalConta();
-        window.finToast?.('Conta adicionada.', { type: 'success' });
+        window.finToast?.(uso.usou ? 'Conta adicionada com a reserva abatida.' : 'Conta adicionada.', { type: 'success' });
         observador && observador.forcar();
       } catch (err) {
         erroEl.textContent = err.message || 'Não foi possível salvar. Tente de novo.';
@@ -783,6 +814,11 @@
     const debitoModal = document.getElementById('debitoModal');
     const debitoValorInput = document.getElementById('debitoValor');
     F.ligarMascaraMoeda(debitoValorInput);
+    const debitoUsoReserva = F.ligarUsoReserva(
+      document.getElementById('debitoReserva'),
+      debitoValorInput,
+      () => dadosMes.reservado,
+    );
 
     function abrirModalDebito() {
       document.getElementById('debitoNome').value = '';
@@ -790,6 +826,7 @@
       F.definirMoeda(debitoValorInput, 0);
       document.getElementById('debitoCategoria').value = '';
       limparErrosLancamento(['debitoValor', 'debitoNome', 'debitoCategoria'], 'debitoErro');
+      debitoUsoReserva.reset();
       F.popularSelectsCategoria(['debitoCategoria']);
       debitoModal.classList.add('visible');
       debitoValorInput.focus();
@@ -805,6 +842,11 @@
       const erroEl = document.getElementById('debitoErro');
       const validado = validarLancamento(debitoValorInput, nomeInput, erroEl);
       if (!validado) return;
+      const uso = debitoUsoReserva.valorLiquido(validado.valor);
+      if (!uso.ok) {
+        erroEl.textContent = uso.erro;
+        return;
+      }
       const descricao = document.getElementById('debitoDescricao').value.trim();
       const categoria = document.getElementById('debitoCategoria').value.trim();
       const botao = document.getElementById('debitoModalSalvar');
@@ -817,13 +859,13 @@
             ano: Number(periodo.ano),
             mes: periodo.mes,
             nome: validado.titulo,
-            valor: validado.valor,
+            valor: uso.valor,
             categoria,
             descricao,
           }),
         });
         fecharModalDebito();
-        window.finToast?.('Débito registrado.', { type: 'success' });
+        window.finToast?.(uso.usou ? 'Débito registrado com a reserva abatida.' : 'Débito registrado.', { type: 'success' });
         observador && observador.forcar();
       } catch (err) {
         erroEl.textContent = err.message || 'Não foi possível salvar. Tente de novo.';

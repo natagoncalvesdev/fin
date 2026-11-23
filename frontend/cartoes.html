@@ -140,26 +140,35 @@
     }
     .cartao-visual.visa { background: linear-gradient(140deg, #1a1f71, #0d1142); }
     .cartao-visual.mastercard { background: linear-gradient(140deg, #eb001b, #7a0014); }
-    .cartao-visual.elo { background: linear-gradient(140deg, #ffcb05, #c68600); color: #1a1a1a; }
-    .cartao-visual.elo .cartao-venc { color: rgba(26,26,26,.72); }
+    .cartao-visual.elo { background: linear-gradient(140deg, #ffcb05, #c68600); }
     .cartao-visual.amex { background: linear-gradient(140deg, #006fcf, #013e78); }
     .cartao-visual.hipercard { background: linear-gradient(140deg, #df0f50, #7a082c); }
+    .cartao-visual.elo,
+    .cartao-visual.texto-escuro { color: #1a1a1a; }
+    .cartao-visual.elo .venc,
+    .cartao-visual.texto-escuro .venc { color: rgba(26,26,26,.72); }
     .cartao-visual .chip {
+      position: relative; z-index: 1;
       width: 40px; height: 30px; border-radius: 7px;
       background: linear-gradient(135deg, #f6d36b, #d9a93a);
+    }
+    .cartao-visual .emissor {
+      position: absolute; left: 22px; top: 62px; z-index: 1;
+      font-size: 15px; font-weight: 700; letter-spacing: 0.01em;
     }
     .cartao-visual .bandeira {
       position: absolute; right: 22px; top: 22px; z-index: 1;
       font: italic 800 18px var(--font-family); letter-spacing: 0.04em; text-transform: uppercase;
     }
     .cartao-visual .num {
-      position: absolute; left: 22px; bottom: 50px;
+      position: absolute; left: 22px; bottom: 50px; z-index: 1;
       font-size: 17px; letter-spacing: 0.2em; font-weight: 500;
     }
     .cartao-visual .venc {
-      position: absolute; left: 22px; bottom: 22px;
+      position: absolute; left: 22px; bottom: 22px; z-index: 1;
       font-size: 12px; color: #b8c2e0;
     }
+    .cartao-preview { width: min(100%, 360px); }
 
     .fatura-card h2 { margin: 0 0 16px; font-size: 14px; font-weight: 600; }
     .fatura-topo {
@@ -307,6 +316,7 @@
       .cartao-visual .num { left: 18px; bottom: 44px; font-size: 15px; }
       .cartao-visual .venc { left: 18px; bottom: 18px; }
       .cartao-visual .bandeira { right: 18px; top: 18px; font-size: 16px; }
+      .cartao-visual .emissor { left: 18px; top: 54px; font-size: 14px; }
       .fatura-topo { margin-bottom: 16px; gap: 12px; }
       .fatura-topo > div:first-child { flex: 1 1 100%; }
       .fatura-valor { font-size: 26px; }
@@ -324,9 +334,86 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
       padding: 12px 14px;
       background: var(--slate-100);
       border-radius: 12px;
+    }
+    .cartao-gerenciar-nome {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .tema-pip {
+      width: 28px;
+      height: 18px;
+      border-radius: 4px;
+      flex: none;
+    }
+    .temas-grade {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+      gap: 8px;
+    }
+    .tema-swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 6px 7px;
+      border-radius: 12px;
+      border: 1px solid #e8eaee;
+      background: #fff;
+      color: var(--text-secondary);
+      font: 600 11px var(--font-family);
+      cursor: pointer;
+    }
+    .tema-swatch:hover { border-color: #cbd5e1; }
+    .tema-swatch.on {
+      border-color: var(--text-primary);
+      color: var(--text-primary);
+      box-shadow: 0 0 0 1px var(--text-primary);
+    }
+    .tema-amostra {
+      width: 100%;
+      height: 36px;
+      border-radius: 8px;
+    }
+    .tema-swatch span:last-child {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cores-personalizadas {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .cores-personalizadas[hidden] { display: none; }
+    .cores-personalizadas label {
+      flex: 1 1 140px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .cores-personalizadas input[type="color"] {
+      display: block;
+      width: 100%;
+      height: 42px;
+      margin-top: 6px;
+      padding: 4px;
+      border: 1px solid #e2e6ec;
+      border-radius: 10px;
+      background: #fff;
+      cursor: pointer;
+    }
+    .aparencia-nota {
+      margin: 8px 0 0;
+      font-size: 12px;
+      color: var(--text-secondary);
     }
 
     .anticipate-hint {
@@ -675,7 +762,7 @@
 
   <!-- Modal: gerenciar cartões -->
   <div id="gerenciarCartoesModal" class="modal-overlay">
-    <div class="modal-content" style="max-width: 620px;">
+    <div class="modal-content" style="max-width: 720px;">
       <h3>Gerenciar cartões</h3>
       <div class="section-actions">
         <button class="btn-add" id="btnNovoCartao">+ Novo cartão</button>
@@ -684,6 +771,7 @@
 
       <div id="formCartao" style="display:none; flex-direction:column; gap:14px; border-top:1px solid var(--border-color); padding-top:18px;">
         <h4 id="tituloFormCartao" style="margin:0;">Cadastrar cartão</h4>
+        <div id="previewCartao" class="cartao-visual cartao-preview" aria-hidden="true"></div>
         <div class="form-row">
           <div style="flex:1; min-width:140px;">
             <label class="fin-field-label" for="cartaoNumeroModal">Final do cartão</label>
@@ -704,6 +792,19 @@
           <div style="flex:1; min-width:140px;">
             <label class="fin-field-label" for="cartaoVencimentoModal">Vencimento</label>
             <select id="cartaoVencimentoModal"><option value="">Dia</option></select>
+          </div>
+        </div>
+        <div>
+          <label class="fin-field-label">Aparência</label>
+          <div class="temas-grade" id="temasCartao"></div>
+          <p class="aparencia-nota">Escolha o visual de um banco ou monte a cor e o degradê. A bandeira continua no canto do cartão.</p>
+          <div class="cores-personalizadas" id="coresPersonalizadas" hidden>
+            <label>Cor inicial
+              <input type="color" id="corInicioCartao" value="#1b2b66" />
+            </label>
+            <label>Cor final
+              <input type="color" id="corFimCartao" value="#0a1030" />
+            </label>
           </div>
         </div>
         <div class="modal-actions">
@@ -828,6 +929,42 @@
       unica: ['Únicas', '#94a3b8'],
     };
 
+    const CORES_BANDEIRA = {
+      visa: ['#1a1f71', '#0d1142'],
+      mastercard: ['#eb001b', '#7a0014'],
+      elo: ['#ffcb05', '#c68600'],
+      amex: ['#006fcf', '#013e78'],
+      hipercard: ['#df0f50', '#7a082c'],
+      outro: ['#1b2b66', '#0a1030'],
+    };
+
+    const TEMAS_CARTAO = [
+      { id: 'bandeira', nome: 'Bandeira', de: '#1a1f71', ate: '#eb001b' },
+      { id: 'personalizado', nome: 'Personalizar', de: '#1b2b66', ate: '#0a1030' },
+      { id: 'nubank', nome: 'Nubank', de: '#820AD1', ate: '#3B0764' },
+      { id: 'itau', nome: 'Itaú', de: '#FF6200', ate: '#003399' },
+      { id: 'santander', nome: 'Santander', de: '#EC0000', ate: '#6B0000' },
+      { id: 'bradesco', nome: 'Bradesco', de: '#CC092F', ate: '#4A0612' },
+      { id: 'bb', nome: 'Banco do Brasil', de: '#FFE14D', ate: '#F5C518', escuro: true },
+      { id: 'caixa', nome: 'Caixa', de: '#005CA9', ate: '#F39200' },
+      { id: 'inter', nome: 'Inter', de: '#FF7A00', ate: '#1F1F1F' },
+      { id: 'c6', nome: 'C6 Bank', de: '#3A3A3A', ate: '#121212' },
+      { id: 'xp', nome: 'XP', de: '#1A1A1A', ate: '#111111', acento: '#FFC709' },
+      { id: 'btg', nome: 'BTG', de: '#001E62', ate: '#000814' },
+      { id: 'picpay', nome: 'PicPay', de: '#21C25E', ate: '#0B7A38' },
+      { id: 'mercadopago', nome: 'Mercado Pago', de: '#00B1EA', ate: '#0077B6' },
+      { id: 'neon', nome: 'Neon', de: '#00D4C8', ate: '#06283D' },
+      { id: 'pagbank', nome: 'PagBank', de: '#00C853', ate: '#007A33' },
+      { id: 'will', nome: 'Will Bank', de: '#242424', ate: '#111111', acento: '#FFE500' },
+      { id: 'porto', nome: 'Porto', de: '#003DA5', ate: '#001A4D' },
+      { id: 'original', nome: 'Original', de: '#00A859', ate: '#005C30' },
+      { id: 'next', nome: 'Next', de: '#00E676', ate: '#111111' },
+      { id: 'sicoob', nome: 'Sicoob', de: '#003641', ate: '#00AE9D' },
+      { id: 'sicredi', nome: 'Sicredi', de: '#64B32C', ate: '#1B5E20' },
+    ];
+
+    let temaForm = 'bandeira';
+
     function esc(valor) {
       return String(valor ?? '').replace(/[&<>"']/g, (c) => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -863,10 +1000,89 @@
       return compra.cartaoId === ref || compra.cartaoId === cartao.id;
     }
 
+    function corHex(valor) {
+      return /^#[0-9a-fA-F]{6}$/.test(String(valor || ''));
+    }
+
+    function luminancia(hex) {
+      const n = hex.slice(1);
+      const canal = (i) => {
+        const c = parseInt(n.slice(i, i + 2), 16) / 255;
+        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      };
+      return 0.2126 * canal(0) + 0.7152 * canal(2) + 0.0722 * canal(4);
+    }
+
+    function textoEscuro(de, ate) {
+      return (luminancia(de) + luminancia(ate)) / 2 > 0.62;
+    }
+
+    function resolverAparencia(d) {
+      const dados = d || {};
+      const bandeira = dados.bandeira || 'outro';
+      const id = dados.tema || 'bandeira';
+      if (id === 'personalizado' && corHex(dados.corInicio) && corHex(dados.corFim)) {
+        return {
+          modo: 'cores',
+          de: dados.corInicio,
+          ate: dados.corFim,
+          nome: '',
+          escuro: textoEscuro(dados.corInicio, dados.corFim),
+        };
+      }
+      const tema = TEMAS_CARTAO.find((item) => item.id === id);
+      if (tema && tema.id !== 'bandeira' && tema.id !== 'personalizado') {
+        return {
+          modo: 'cores',
+          de: tema.de,
+          ate: tema.ate,
+          nome: tema.nome,
+          acento: tema.acento || '',
+          escuro: tema.escuro === true || textoEscuro(tema.de, tema.ate),
+        };
+      }
+      const par = CORES_BANDEIRA[bandeira] || CORES_BANDEIRA.outro;
+      return {
+        modo: 'bandeira',
+        classe: CORES_BANDEIRA[bandeira] ? bandeira : 'outro',
+        de: par[0],
+        ate: par[1],
+        nome: '',
+        escuro: bandeira === 'elo',
+      };
+    }
+
+    function fundoAparencia(d) {
+      const ap = resolverAparencia(d);
+      return `linear-gradient(140deg, ${ap.de}, ${ap.ate})`;
+    }
+
+    function aplicarVisualCartao(el, dados, extra) {
+      const ap = resolverAparencia(dados);
+      const extraClasse = extra ? ` ${extra}` : '';
+      const classeBandeira = ap.modo === 'bandeira' ? ` ${ap.classe}` : '';
+      const classeTexto = ap.escuro ? ' texto-escuro' : '';
+      el.className = `cartao-visual${extraClasse}${classeBandeira}${classeTexto}`;
+      el.style.background = ap.modo === 'cores' ? fundoAparencia(dados) : '';
+      const acento = ap.acento && corHex(ap.acento) ? ` style="color:${ap.acento}"` : '';
+      const emissor = ap.nome ? `<div class="emissor"${acento}>${esc(ap.nome)}</div>` : '';
+      const bandeira = (dados && dados.bandeira) || '';
+      const numero = (dados && dados.numero) || '????';
+      const venc = dados && dados.vencimento ? `Vence dia ${esc(dados.vencimento)}` : '';
+      el.innerHTML = `
+        <div class="chip"></div>
+        ${emissor}
+        <div class="bandeira">${esc(bandeira)}</div>
+        <div class="num">•••• ${esc(numero)}</div>
+        <div class="venc">${venc}</div>
+      `;
+    }
+
     function rotuloCartao(cartao) {
       const d = cartao.data || {};
-      const bandeira = (d.bandeira || '').charAt(0).toUpperCase() + (d.bandeira || '').slice(1);
-      return `${bandeira} · Final ${d.numero || '????'}`;
+      const ap = resolverAparencia(d);
+      const nome = ap.nome || ((d.bandeira || 'Cartão').charAt(0).toUpperCase() + (d.bandeira || 'cartão').slice(1));
+      return `${nome} · Final ${d.numero || '????'}`;
     }
 
     // --- Cartão selecionado ---
@@ -905,15 +1121,7 @@
           switcher.appendChild(btn);
         });
       }
-      const d = cartaoSelecionado.data || {};
-      const bandeira = d.bandeira || 'outro';
-      visual.className = `cartao-visual ${bandeira}`;
-      visual.innerHTML = `
-        <div class="chip"></div>
-        <div class="bandeira">${esc(bandeira)}</div>
-        <div class="num">•••• ${esc(d.numero || '????')}</div>
-        <div class="venc">${d.vencimento ? `Vence dia ${esc(d.vencimento)}` : ''}</div>
-      `;
+      aplicarVisualCartao(visual, cartaoSelecionado.data || {});
     }
 
     function selecionarCartao(cartao) {
@@ -1516,7 +1724,10 @@
         const div = document.createElement('div');
         div.className = 'cartao-gerenciar-item';
         div.innerHTML = `
-          <span>${rotuloCartao(cartao)}</span>
+          <span class="cartao-gerenciar-nome">
+            <i class="tema-pip" style="background:${fundoAparencia(cartao.data || {})}"></i>
+            <span>${rotuloCartao(cartao)}</span>
+          </span>
           <span style="display:flex; gap:6px;">
             <button class="btn-icon-inline" data-acao="editar" title="Editar">✏️</button>
             <button class="btn-inline fin-btn-danger" data-acao="excluir" title="Excluir">🗑️</button>
@@ -1527,6 +1738,69 @@
         lista.appendChild(div);
       });
     }
+
+    function dadosPreviewCartao() {
+      return {
+        numero: document.getElementById('cartaoNumeroModal').value.trim(),
+        bandeira: document.getElementById('cartaoBandeiraModal').value,
+        vencimento: document.getElementById('cartaoVencimentoModal').value,
+        tema: temaForm,
+        corInicio: document.getElementById('corInicioCartao').value,
+        corFim: document.getElementById('corFimCartao').value,
+      };
+    }
+
+    function atualizarPreviewCartao() {
+      aplicarVisualCartao(document.getElementById('previewCartao'), dadosPreviewCartao(), 'cartao-preview');
+    }
+
+    function pintarAmostraPersonalizada() {
+      const amostra = document.querySelector('.tema-swatch[data-tema="personalizado"] .tema-amostra');
+      if (!amostra) return;
+      const de = document.getElementById('corInicioCartao').value;
+      const ate = document.getElementById('corFimCartao').value;
+      if (corHex(de) && corHex(ate)) amostra.style.background = `linear-gradient(140deg, ${de}, ${ate})`;
+    }
+
+    function selecionarTema(id) {
+      temaForm = TEMAS_CARTAO.some((item) => item.id === id) ? id : 'bandeira';
+      document.querySelectorAll('.tema-swatch').forEach((btn) => {
+        const ativo = btn.dataset.tema === temaForm;
+        btn.classList.toggle('on', ativo);
+        btn.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+      });
+      document.getElementById('coresPersonalizadas').hidden = temaForm !== 'personalizado';
+      atualizarPreviewCartao();
+    }
+
+    function montarTemas() {
+      const grade = document.getElementById('temasCartao');
+      grade.innerHTML = '';
+      TEMAS_CARTAO.forEach((tema) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tema-swatch';
+        btn.dataset.tema = tema.id;
+        btn.title = tema.nome;
+        btn.setAttribute('aria-pressed', 'false');
+        const fundo = tema.id === 'bandeira'
+          ? 'linear-gradient(135deg, #1a1f71 0 50%, #eb001b 50% 100%)'
+          : `linear-gradient(140deg, ${tema.de}, ${tema.ate})`;
+        btn.innerHTML = `<span class="tema-amostra" style="background:${fundo}"></span><span>${esc(tema.nome)}</span>`;
+        btn.addEventListener('click', () => selecionarTema(tema.id));
+        grade.appendChild(btn);
+      });
+      selecionarTema('bandeira');
+    }
+
+    montarTemas();
+    ['cartaoNumeroModal', 'cartaoBandeiraModal', 'cartaoVencimentoModal', 'corInicioCartao', 'corFimCartao'].forEach((id) => {
+      const campo = document.getElementById(id);
+      campo.addEventListener('input', () => {
+        if (id === 'corInicioCartao' || id === 'corFimCartao') pintarAmostraPersonalizada();
+        atualizarPreviewCartao();
+      });
+    });
 
     document.getElementById('btnGerenciarCartoes').addEventListener('click', () => {
       gerenciarModal.classList.add('visible');
@@ -1542,7 +1816,11 @@
       document.getElementById('btnSalvarCartao').textContent = 'Cadastrar';
       document.getElementById('cartaoNumeroModal').value = '';
       document.getElementById('cartaoBandeiraModal').value = '';
+      document.getElementById('corInicioCartao').value = '#1b2b66';
+      document.getElementById('corFimCartao').value = '#0a1030';
       popularVencimento('');
+      pintarAmostraPersonalizada();
+      selecionarTema('bandeira');
       document.getElementById('formCartao').style.display = 'flex';
     });
 
@@ -1553,7 +1831,12 @@
       document.getElementById('btnSalvarCartao').textContent = 'Salvar alterações';
       document.getElementById('cartaoNumeroModal').value = d.numero || '';
       document.getElementById('cartaoBandeiraModal').value = d.bandeira || '';
+      document.getElementById('corInicioCartao').value = corHex(d.corInicio) ? d.corInicio : '#1b2b66';
+      document.getElementById('corFimCartao').value = corHex(d.corFim) ? d.corFim : '#0a1030';
       popularVencimento(d.vencimento || '');
+      pintarAmostraPersonalizada();
+      const tema = TEMAS_CARTAO.some((item) => item.id === d.tema) ? d.tema : 'bandeira';
+      selecionarTema(tema);
       document.getElementById('formCartao').style.display = 'flex';
     }
 
@@ -1570,7 +1853,11 @@
       if (!bandeira) return window.finToast?.('Selecione a bandeira.', { type: 'error' });
       if (!vencimento) return window.finToast?.('Selecione o dia de vencimento.', { type: 'error' });
 
-      const payload = { numero, bandeira, vencimento };
+      const payload = { numero, bandeira, vencimento, tema: temaForm };
+      if (temaForm === 'personalizado') {
+        payload.corInicio = document.getElementById('corInicioCartao').value;
+        payload.corFim = document.getElementById('corFimCartao').value;
+      }
       try {
         if (cartaoEditando) {
           await F.api(`/api/cartoes/${cartaoEditando.id}`, { method: 'PUT', body: JSON.stringify(payload) });

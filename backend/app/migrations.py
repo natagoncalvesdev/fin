@@ -121,6 +121,11 @@ def run_migrations(engine: Engine) -> None:
         conn.execute(text("ALTER TABLE cofrinho ADD COLUMN IF NOT EXISTS historico_taxas TEXT"))
         conn.execute(text("ALTER TABLE categoria ADD COLUMN IF NOT EXISTS icone VARCHAR(40)"))
 
+        # Aparência do cartão: tema de banco ou degradê personalizado.
+        conn.execute(text("ALTER TABLE cartao ADD COLUMN IF NOT EXISTS tema VARCHAR(40)"))
+        conn.execute(text("ALTER TABLE cartao ADD COLUMN IF NOT EXISTS cor_inicio VARCHAR(7)"))
+        conn.execute(text("ALTER TABLE cartao ADD COLUMN IF NOT EXISTS cor_fim VARCHAR(7)"))
+
         # Parcelas de cofrinho antigas: nome "Cofrinho: <meta>" -> título + descrição.
         conn.execute(
             text(

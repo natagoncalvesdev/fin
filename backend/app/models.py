@@ -121,6 +121,9 @@ class Cartao(Base):
     bandeira: Mapped[str | None] = mapped_column(String(50), nullable=True)
     nome: Mapped[str | None] = mapped_column(String(255), nullable=True)
     vencimento: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tema: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    cor_inicio: Mapped[str | None] = mapped_column(String(7), nullable=True)
+    cor_fim: Mapped[str | None] = mapped_column(String(7), nullable=True)
     situacao: Mapped[str] = mapped_column(String(20), default="ativo")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
@@ -139,6 +142,12 @@ class Cartao(Base):
             data["nome"] = self.nome
         if self.vencimento is not None:
             data["vencimento"] = self.vencimento
+        if self.tema:
+            data["tema"] = self.tema
+        if self.cor_inicio:
+            data["corInicio"] = self.cor_inicio
+        if self.cor_fim:
+            data["corFim"] = self.cor_fim
         return data
 
 

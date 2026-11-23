@@ -21,7 +21,7 @@
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
-  <script src="js/fin-financeiro-shared.js?v=10"></script>
+  <script src="js/fin-financeiro-shared.js?v=11"></script>
   <script src="sidebar.js?v=9"></script>
   <style>
     * { box-sizing: border-box; }
@@ -1385,12 +1385,18 @@
           document.getElementById('compraCartaoParcelas'),
           document.getElementById('compraCartaoRecorrente'),
         ],
-        detalhe() {
+        detalhe(info) {
           const recorrente = document.getElementById('compraCartaoRecorrente').checked;
           const parcelas = Number(document.getElementById('compraCartaoParcelas').value) || 1;
+          const varias = recorrente || parcelas > 1;
+          if (!varias) return '';
+          if (info && info.modo === 'consome') {
+            return recorrente
+              ? ' A reserva deste mês cobre só esta ocorrência.'
+              : ' A reserva deste mês cobre só a primeira parcela.';
+          }
           if (recorrente) return ' Esse abatimento entra em cada mês.';
-          if (parcelas > 1) return ` Esse abatimento entra em cada uma das ${parcelas} parcelas.`;
-          return '';
+          return ` Esse abatimento entra em cada uma das ${parcelas} parcelas.`;
         },
       },
     );
@@ -1461,8 +1467,13 @@
             naFatura,
           }),
         });
+        const reserva = await F.consumirReserva(uso);
         fecharModalCompra();
-        window.finToast?.(uso.usou ? 'Compra adicionada com a reserva abatida.' : 'Compra adicionada.', { type: 'success' });
+        if (!reserva.ok) {
+          window.finToast?.('A compra entrou, mas a reserva não foi atualizada. Ajuste o valor dela em Reservados.', { type: 'error' });
+        } else {
+          window.finToast?.(uso.usou ? 'Compra adicionada com a reserva abatida.' : 'Compra adicionada.', { type: 'success' });
+        }
         observador && observador.forcar();
       } catch (err) {
         erroEl.textContent = err.message || 'Não foi possível salvar. Tente de novo.';

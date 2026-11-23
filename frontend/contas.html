@@ -21,7 +21,7 @@
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
-  <script src="js/fin-financeiro-shared.js?v=10"></script>
+  <script src="js/fin-financeiro-shared.js?v=11"></script>
   <script src="sidebar.js?v=9"></script>
   <style>
     * { box-sizing: border-box; }
@@ -823,8 +823,13 @@
       botao.textContent = 'Salvando...';
       try {
         await iniciarConta(validado.titulo, uso.valor, categoria, status, descricao);
+        const reserva = await F.consumirReserva(uso);
         fecharModalConta();
-        window.finToast?.(uso.usou ? 'Conta adicionada com a reserva abatida.' : 'Conta adicionada.', { type: 'success' });
+        if (!reserva.ok) {
+          window.finToast?.('A conta entrou, mas a reserva não foi atualizada. Ajuste o valor dela em Reservados.', { type: 'error' });
+        } else {
+          window.finToast?.(uso.usou ? 'Conta adicionada com a reserva abatida.' : 'Conta adicionada.', { type: 'success' });
+        }
         observador && observador.forcar();
       } catch (err) {
         erroEl.textContent = err.message || 'Não foi possível salvar. Tente de novo.';
@@ -889,8 +894,13 @@
             descricao,
           }),
         });
+        const reserva = await F.consumirReserva(uso);
         fecharModalDebito();
-        window.finToast?.(uso.usou ? 'Débito registrado com a reserva abatida.' : 'Débito registrado.', { type: 'success' });
+        if (!reserva.ok) {
+          window.finToast?.('O débito entrou, mas a reserva não foi atualizada. Ajuste o valor dela em Reservados.', { type: 'error' });
+        } else {
+          window.finToast?.(uso.usou ? 'Débito registrado com a reserva abatida.' : 'Débito registrado.', { type: 'success' });
+        }
         observador && observador.forcar();
       } catch (err) {
         erroEl.textContent = err.message || 'Não foi possível salvar. Tente de novo.';

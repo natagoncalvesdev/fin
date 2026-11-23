@@ -675,10 +675,37 @@
     return Math.round((Number(valor) || 0) * 100);
   }
 
+  function reaisDeCentavos(centavos) {
+    return Number((centavos / 100).toFixed(2));
+  }
+
+  /**
+   * Quanto da reserva entra neste lançamento.
+   * Se a reserva cobre o valor, o lançamento entra inteiro e a reserva é reduzida.
+   * Se o valor passa da reserva, a reserva continua e o lançamento guarda só a diferença.
+   */
+  function calcularUsoReserva(digitadoCentavos, item) {
+    const reservaCentavos = centavosDe(item.valor);
+    if (digitadoCentavos <= reservaCentavos) {
+      return {
+        cobre: true,
+        valorCentavos: digitadoCentavos,
+        abateCentavos: digitadoCentavos,
+        restanteCentavos: reservaCentavos - digitadoCentavos,
+      };
+    }
+    return {
+      cobre: false,
+      valorCentavos: digitadoCentavos - reservaCentavos,
+      abateCentavos: reservaCentavos,
+      restanteCentavos: reservaCentavos,
+    };
+  }
+
   /**
    * Liga o bloco "Usar reserva" de um modal de lançamento.
-   * No registro, o valor da reserva escolhida é abatido do valor digitado.
-   * A reserva continua no mês: ela já entra no saldo, e o lançamento guarda a diferença.
+   * Reserva maior ou igual ao valor: o lançamento entra cheio e a reserva diminui.
+   * Valor maior que a reserva: a reserva continua no mês e o lançamento guarda a diferença.
    */
   function ligarUsoReserva(raiz, valorInput, obterItens, opcoes) {
     const opts = opcoes || {};
@@ -739,19 +766,24 @@
         return;
       }
       const digitado = centavosDe(lerMoeda(valorInput));
-      const abate = centavosDe(item.valor);
-      const liquido = digitado - abate;
+      const nome = nomeReserva(item);
       if (digitado <= 0) {
-        resumo.textContent = `Abate ${formatar(item.valor)} de ${nomeReserva(item)}.`;
+        resumo.textContent = `Abate até ${formatar(item.valor)} de ${nome}.`;
         return;
       }
-      if (liquido <= 0) {
-        resumo.textContent = `A reserva de ${formatar(item.valor)} cobre todo o valor informado.`;
-        resumo.classList.add('alerta');
+      const calc = calcularUsoReserva(digitado, item);
+      const extra = typeof opts.detalhe === 'function'
+        ? (opts.detalhe({ modo: calc.cobre ? 'consome' : 'diferenca' }) || '')
+        : '';
+      if (calc.cobre && calc.restanteCentavos <= 0) {
+        resumo.textContent = `A reserva cobre os ${formatar(digitado / 100)} e será encerrada. O lançamento entra com esse valor.${extra}`;
         return;
       }
-      const extra = typeof opts.detalhe === 'function' ? (opts.detalhe() || '') : '';
-      resumo.textContent = `Abate ${formatar(abate / 100)}. O lançamento entra como ${formatar(liquido / 100)}.${extra}`;
+      if (calc.cobre) {
+        resumo.textContent = `Abate ${formatar(calc.abateCentavos / 100)} de ${nome}. A reserva fica com ${formatar(calc.restanteCentavos / 100)}.${extra}`;
+        return;
+      }
+      resumo.textContent = `Abate ${formatar(calc.abateCentavos / 100)}. O lançamento entra como ${formatar(calc.valorCentavos / 100)}.${extra}`;
     }
 
     function definirAberto(proximo) {
@@ -790,13 +822,36 @@
         }
         const item = selecionado();
         if (!item) return { ok: false, erro: 'Selecione qual reserva usar.' };
-        const liquido = centavos - centavosDe(item.valor);
-        if (liquido <= 0) {
-          return { ok: false, erro: 'A reserva cobre todo o valor. O lançamento ficaria zerado.' };
-        }
-        return { ok: true, valor: liquido / 100, usou: true, reserva: item };
+        if (centavos <= 0) return { ok: false, erro: 'Informe um valor maior que zero.' };
+        const calc = calcularUsoReserva(centavos, item);
+        return {
+          ok: true,
+          valor: reaisDeCentavos(calc.valorCentavos),
+          usou: true,
+          consome: calc.cobre,
+          restante: reaisDeCentavos(calc.restanteCentavos),
+          reserva: item,
+        };
       },
     };
+  }
+
+  async function consumirReserva(uso) {
+    if (!uso || !uso.consome || !uso.reserva) return { ok: true };
+    try {
+      const id = uso.reserva.id;
+      if (centavosDe(uso.restante) <= 0) {
+        await api(`/api/financeiro/reservados/${id}`, { method: 'DELETE' });
+      } else {
+        await api(`/api/financeiro/reservados/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ valor: uso.restante }),
+        });
+      }
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, erro: erroMsg(err, 'Não foi possível atualizar a reserva.') };
+    }
   }
 
   // --- Ponto de acesso global ---------------------------------------------
@@ -836,6 +891,7 @@
     saldosCartao,
     alternarNaFatura,
     ligarUsoReserva,
+    consumirReserva,
     destinoMesOffset,
   };
 })(window);

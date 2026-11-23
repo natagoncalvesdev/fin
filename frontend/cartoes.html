@@ -21,7 +21,7 @@
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
-  <script src="js/fin-financeiro-shared.js?v=9"></script>
+  <script src="js/fin-financeiro-shared.js?v=10"></script>
   <script src="sidebar.js?v=9"></script>
   <style>
     * { box-sizing: border-box; }
@@ -167,13 +167,19 @@
       gap: 16px; flex-wrap: wrap; margin-bottom: 22px;
     }
     .fatura-rot { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+    .fatura-saldos { display: flex; gap: 28px; flex-wrap: wrap; margin-top: 10px; }
+    .fatura-subrot { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
     .fatura-valor {
-      font-size: 36px; font-weight: 700; letter-spacing: -0.02em; margin: 4px 0 10px;
+      font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin: 2px 0 0;
       font-variant-numeric: tabular-nums;
+    }
+    .fatura-valor-prev { color: #2563eb; }
+    .fatura-aviso {
+      margin: 10px 0 0; font-size: 12px; color: var(--text-secondary); max-width: 360px;
     }
     .fatura-selo {
       display: inline-block; font-size: 12px; font-weight: 600;
-      padding: 4px 10px; border-radius: 99px;
+      margin-top: 12px; padding: 4px 10px; border-radius: 99px;
       background: #fff4e5; color: #b45309;
     }
     .fatura-selo.paga { background: #e8f7ee; color: #15803d; }
@@ -266,6 +272,13 @@
     .compra-row b { font-size: 14px; font-weight: 600; display: block; }
     .compra-row small { font-size: 12px; color: var(--text-secondary); }
     .compra-row .v { font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .compra-fim { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .compra-flag {
+      font: 600 11px var(--font-family); border: 0; border-radius: 99px;
+      padding: 4px 8px; cursor: pointer;
+    }
+    .compra-flag.na { background: #e8f7ee; color: #15803d; }
+    .compra-flag.fora { background: #eff6ff; color: #2563eb; }
     .compra-ini {
       width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
       font-weight: 600; font-size: 13px;
@@ -275,7 +288,8 @@
 
     @media (max-width: 960px) {
       .cartao-area { grid-template-columns: 1fr; }
-      .fatura-valor { font-size: 30px; }
+      .fatura-valor { font-size: 28px; }
+      .fatura-saldos { gap: 18px; }
     }
 
     @media (max-width: 768px), (max-height: 500px) {
@@ -295,7 +309,8 @@
       .cartao-visual .bandeira { right: 18px; top: 18px; font-size: 16px; }
       .fatura-topo { margin-bottom: 16px; gap: 12px; }
       .fatura-topo > div:first-child { flex: 1 1 100%; }
-      .fatura-valor { font-size: 28px; }
+      .fatura-valor { font-size: 26px; }
+      .fatura-saldos { gap: 16px; }
       .cartao-seg { display: grid; width: 100%; }
       .cartao-seg .fin-status-opt { padding: 10px 14px; }
       .fatura-comp div { grid-template-columns: 10px minmax(0, 1fr) auto 38px; gap: 8px; }
@@ -613,7 +628,17 @@
         <div class="fatura-topo">
           <div>
             <div class="fatura-rot" id="faturaRotulo">Fatura do mês</div>
-            <div class="fatura-valor" id="faturaTotal">R$ 0,00</div>
+            <div class="fatura-saldos">
+              <div>
+                <div class="fatura-subrot">Saldo atual</div>
+                <div class="fatura-valor" id="faturaAtual">R$ 0,00</div>
+              </div>
+              <div>
+                <div class="fatura-subrot">Saldo previsto</div>
+                <div class="fatura-valor fatura-valor-prev" id="faturaPrevisao">R$ 0,00</div>
+              </div>
+            </div>
+            <p class="fatura-aviso" id="faturaAviso" hidden></p>
             <span class="fatura-selo" id="faturaSelo">Fatura pendente</span>
           </div>
           <div class="cartao-seg" id="faturaStatusToggle">
@@ -636,7 +661,7 @@
         </button>
       </div>
       <div class="linha-tempo" id="linhaTempo"></div>
-      <p class="linha-nota">Arraste para os lados para ver outros meses e clique em um mês para abrir a fatura. Nas faturas futuras aparece só o que já está comprometido: compras recorrentes e parcelas.</p>
+      <p class="linha-nota">Arraste para os lados para ver outros meses e clique em um mês para abrir a fatura. A linha mostra o saldo previsto. Uma recorrência só entra no saldo atual depois que você marca que ela já caiu na fatura.</p>
     </section>
 
     <section class="section-card">
@@ -737,6 +762,13 @@
         <input type="checkbox" id="compraCartaoRecorrente" />
         <span>Compra recorrente (repete todo mês)</span>
       </label>
+      <div id="compraNaFaturaWrap" hidden>
+        <label class="fin-checkbox-row">
+          <input type="checkbox" id="compraJaNaFatura" />
+          <span>Já está na fatura deste mês</span>
+        </label>
+        <p class="fin-parcela-info">Os próximos meses entram como previsão. Quando a cobrança aparecer na fatura, marque o mês.</p>
+      </div>
       <p class="fin-entry-erro" id="compraErro" role="alert"></p>
       <div class="fin-entry-acoes">
         <button type="button" class="fin-entry-btn fin-entry-btn-sec" id="btnCancelarCompra">Cancelar</button>
@@ -908,8 +940,19 @@
       const mes = periodo && periodo.mes ? periodo.mes.toLowerCase() : 'mês';
       document.getElementById('faturaRotulo').textContent = `Fatura de ${mes}`;
       const compras = cartaoSelecionado ? comprasDoCartao(dadosMesAtual.cartao) : [];
-      const total = compras.reduce((s, c) => s + Number(c.valor || 0), 0);
-      document.getElementById('faturaTotal').textContent = F.formatar(total);
+      const saldos = F.saldosCartao(compras);
+      const total = saldos.previsao;
+      document.getElementById('faturaAtual').textContent = F.formatar(saldos.atual);
+      document.getElementById('faturaPrevisao').textContent = F.formatar(saldos.previsao);
+      const aviso = document.getElementById('faturaAviso');
+      const fora = saldos.previsao - saldos.atual;
+      if (fora > 0.004) {
+        aviso.hidden = false;
+        aviso.textContent = `${F.formatar(fora)} em recorrências ainda não caíram na fatura.`;
+      } else {
+        aviso.hidden = true;
+        aviso.textContent = '';
+      }
       atualizarToggleFatura();
       const partes = Object.keys(TIPOS_COMPRA).map((k) => {
         const valor = compras.filter((c) => tipoCompra(c) === k).reduce((s, c) => s + Number(c.valor || 0), 0);
@@ -953,21 +996,47 @@
         if (tipo === 'recorrente') detalhe = 'Recorrente';
         else if (tipo === 'parcelada') detalhe = `Parcela ${item.parcelas}`;
         const categoria = (item.categoria || '').trim();
-        const row = document.createElement('button');
-        row.type = 'button';
+        const naFatura = F.compraNaFatura(item);
+        const row = document.createElement('div');
         row.className = 'compra-row';
+        row.tabIndex = 0;
+        row.setAttribute('role', 'button');
         const marca = F.svgDaCategoria(item.categoria);
+        const flag = tipo === 'recorrente'
+          ? `<button type="button" class="compra-flag ${naFatura ? 'na' : 'fora'}" data-role="fatura">${naFatura ? 'Na fatura' : 'Previsto'}</button>`
+          : '';
         row.innerHTML = `
           <div class="compra-ini" style="background:${cor}1a;color:${cor}">${marca || esc(inicial)}</div>
           <div><b>${esc(item.nome)}</b><small>${esc(detalhe)}${categoria ? ` · ${esc(categoria)}` : ''}</small></div>
-          <span class="v">${F.formatar(item.valor)}</span>
+          <span class="compra-fim">
+            <span class="v">${F.formatar(item.valor)}</span>
+            ${flag}
+          </span>
         `;
-        row.addEventListener('click', () => F.abrirModalItem({
+        const abrir = () => F.abrirModalItem({
           tipo: 'compraCartao',
           item,
           onSalvo: () => observador && observador.forcar(),
           onExcluido: () => observador && observador.forcar(),
-        }));
+        });
+        row.addEventListener('click', abrir);
+        row.addEventListener('keydown', (ev) => {
+          if (ev.target !== row) return;
+          if (ev.key === 'Enter' || ev.key === ' ') {
+            ev.preventDefault();
+            abrir();
+          }
+        });
+        const pill = row.querySelector('[data-role="fatura"]');
+        if (pill) {
+          pill.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            finRunOnce(pill, async () => {
+              const atualizado = await F.alternarNaFatura(item);
+              if (atualizado) observador && observador.forcar();
+            });
+          });
+        }
         lista.appendChild(row);
       });
     }
@@ -1335,6 +1404,8 @@
       F.definirMoeda(compraValorInput, 0);
       document.getElementById('compraCartaoParcelas').value = '1';
       document.getElementById('compraCartaoRecorrente').checked = false;
+      document.getElementById('compraJaNaFatura').checked = false;
+      document.getElementById('compraNaFaturaWrap').hidden = true;
       document.getElementById('compraErro').textContent = '';
       compraValorInput.classList.remove('erro');
       document.getElementById('compraCartaoNome').classList.remove('erro');
@@ -1356,6 +1427,7 @@
       const valor = F.lerMoeda(compraValorInput);
       const totalParcelas = Number(document.getElementById('compraCartaoParcelas').value) || 1;
       const recorrente = document.getElementById('compraCartaoRecorrente').checked;
+      const naFatura = recorrente && document.getElementById('compraJaNaFatura').checked;
       const categoria = document.getElementById('compraCartaoCategoria').value.trim();
       compraValorInput.classList.remove('erro');
       nomeInput.classList.remove('erro');
@@ -1386,6 +1458,7 @@
           body: JSON.stringify({
             ano: Number(periodo.ano), mes: periodo.mes, nome, valor: uso.valor,
             cartaoId: refCartao(cartaoSelecionado), categoria, totalParcelas, recorrente, descricao,
+            naFatura,
           }),
         });
         fecharModalCompra();
@@ -1399,6 +1472,11 @@
       }
     }
     document.getElementById('btnSalvarCompra').addEventListener('click', (e) => finRunOnce(e, salvarCompra));
+    document.getElementById('compraCartaoRecorrente').addEventListener('change', () => {
+      const ligado = document.getElementById('compraCartaoRecorrente').checked;
+      document.getElementById('compraNaFaturaWrap').hidden = !ligado;
+      if (!ligado) document.getElementById('compraJaNaFatura').checked = false;
+    });
 
     // --- Gerenciar cartões ---
     const gerenciarModal = document.getElementById('gerenciarCartoesModal');

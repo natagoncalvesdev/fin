@@ -396,6 +396,10 @@
             </div>
           </div>
           <div id="finItemParcelaInfo" class="fin-parcela-info" style="display:none;"></div>
+          <label class="fin-checkbox-row" id="finItemNaFaturaWrap" style="display:none;">
+            <input type="checkbox" id="finItemNaFatura" />
+            <span>Já está na fatura deste mês</span>
+          </label>
           <div class="fin-entry-acoes fin-entry-acoes-edit">
             <button type="button" class="btn-inline fin-btn-danger" id="finItemExcluir">Excluir</button>
             <button type="button" class="btn-icon-inline copy" id="finItemCopiar" style="font-size:20px;" title="Copiar para outros meses">❐</button>
@@ -428,6 +432,8 @@
       statusOpts: Array.from(document.querySelectorAll('#finItemStatusWrap .fin-entry-seg-opt')),
       fechar: document.getElementById('finItemFechar'),
       parcelaInfo: document.getElementById('finItemParcelaInfo'),
+      naFaturaWrap: document.getElementById('finItemNaFaturaWrap'),
+      naFatura: document.getElementById('finItemNaFatura'),
       excluir: document.getElementById('finItemExcluir'),
       copiar: document.getElementById('finItemCopiar'),
       cancelar: document.getElementById('finItemCancelar'),
@@ -498,11 +504,15 @@
     if (opts.tipo === 'compraCartao' && opts.item.parcelas) {
       modalEls.parcelaInfo.style.display = '';
       modalEls.parcelaInfo.textContent = opts.item.recorrente
-        ? 'Compra recorrente — excluir remove também as próximas ocorrências.'
+        ? 'Compra recorrente. Cada mês fica previsto até você marcar que caiu na fatura. Excluir remove também as próximas ocorrências.'
         : `Parcela ${opts.item.parcelas}`;
     } else {
       modalEls.parcelaInfo.style.display = 'none';
     }
+
+    const recorrente = opts.tipo === 'compraCartao' && (opts.item.recorrente || opts.item.parcelas === 'Recorrente');
+    modalEls.naFaturaWrap.style.display = recorrente ? '' : 'none';
+    modalEls.naFatura.checked = recorrente && opts.item.naFatura !== false;
 
     modalEls.overlay.classList.add('visible');
   }
@@ -525,6 +535,7 @@
     const payload = { nome, valor, descricao };
     if (cfg.temCategoria) payload.categoria = modalEls.categoria.value.trim();
     if (cfg.temStatus) payload.status = statusSelecionado();
+    if (modalEls.naFaturaWrap.style.display !== 'none') payload.naFatura = modalEls.naFatura.checked;
 
     try {
       const res = await api(`${cfg.base}/${item.id}`, { method: 'PUT', body: JSON.stringify(payload) });
@@ -621,6 +632,35 @@
       if (onAtualizado) onAtualizado(res.data);
     } catch (err) {
       toast(erroMsg(err, 'Não foi possível atualizar o status.'), { type: 'error' });
+    }
+  }
+
+  function compraNaFatura(item) {
+    return !!item && item.naFatura !== false;
+  }
+
+  function saldosCartao(lista) {
+    const itens = lista || [];
+    let atual = 0;
+    let previsao = 0;
+    itens.forEach((item) => {
+      const valor = Number(item.valor || 0);
+      previsao += valor;
+      if (compraNaFatura(item)) atual += valor;
+    });
+    return { atual, previsao };
+  }
+
+  async function alternarNaFatura(item) {
+    try {
+      const res = await api(`/api/financeiro/compras-cartao/${item.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ naFatura: item.naFatura === false }),
+      });
+      return res.data;
+    } catch (err) {
+      toast(erroMsg(err, 'Não foi possível atualizar a fatura.'), { type: 'error' });
+      return null;
     }
   }
 
@@ -792,6 +832,9 @@
     fecharModalItem,
     alternarStatusConta,
     atualizarStatusFatura,
+    compraNaFatura,
+    saldosCartao,
+    alternarNaFatura,
     ligarUsoReserva,
     destinoMesOffset,
   };

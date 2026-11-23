@@ -21,7 +21,7 @@
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
-  <script src="js/fin-financeiro-shared.js?v=9"></script>
+  <script src="js/fin-financeiro-shared.js?v=10"></script>
   <script src="sidebar.js?v=9"></script>
   <style>
     * { box-sizing: border-box; }
@@ -118,6 +118,13 @@
     }
 
     .ct-selo.ok { background: #e8f7ee; color: #15803d; }
+    .ct-previsao {
+      display: block;
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #2563eb;
+    }
 
     .ct-medidor-topo {
       display: flex;
@@ -322,6 +329,7 @@
       <div>
         <div class="ct-rot">Total a pagar no mês</div>
         <div class="ct-total" id="resumoTotal">R$ 0,00</div>
+        <small class="ct-previsao" id="resumoPrevisao" hidden></small>
         <span class="ct-selo" id="resumoSelo">—</span>
       </div>
       <div>
@@ -557,20 +565,32 @@
       const contas = data.contas || [];
       const totalContas = soma(contas);
       const pagoContas = soma(contas.filter((c) => c.status === 'pago'));
-      const totalCartao = soma(data.cartao);
+      const cartao = F.saldosCartao(data.cartao);
       const cartaoPago = (data.cartaoStatus || 'pendente') === 'pago';
       const totalDebito = soma(data.debito);
 
-      const total = totalContas + totalCartao;
-      const pago = pagoContas + (cartaoPago ? totalCartao : 0);
+      const total = totalContas + cartao.atual;
+      const totalPrevisto = totalContas + cartao.previsao;
+      const pago = pagoContas + (cartaoPago ? cartao.atual : 0);
       const falta = Math.max(0, total - pago);
       const pct = total > 0 ? Math.round((pago / total) * 100) : 0;
-      const pendentes = contas.filter((c) => c.status !== 'pago').length + (totalCartao > 0 && !cartaoPago ? 1 : 0);
+      const pendentes = contas.filter((c) => c.status !== 'pago').length + (cartao.atual > 0 && !cartaoPago ? 1 : 0);
 
       document.getElementById('resumoTotal').textContent = F.formatar(total);
+      const previsaoEl = document.getElementById('resumoPrevisao');
+      if (totalPrevisto - total > 0.004) {
+        previsaoEl.hidden = false;
+        previsaoEl.textContent = `Previsto ${F.formatar(totalPrevisto)}`;
+      } else {
+        previsaoEl.hidden = true;
+        previsaoEl.textContent = '';
+      }
       const selo = document.getElementById('resumoSelo');
-      if (total <= 0) {
+      if (total <= 0 && totalPrevisto <= 0.004) {
         selo.textContent = 'Nada lançado neste mês';
+        selo.classList.add('ok');
+      } else if (total <= 0) {
+        selo.textContent = 'Só previsão no cartão';
         selo.classList.add('ok');
       } else if (pendentes === 0) {
         selo.textContent = 'Tudo pago';
@@ -589,9 +609,12 @@
       document.getElementById('kpiContasSub').textContent = contas.length
         ? `${contasPagas} de ${contas.length} pagas`
         : 'Nenhuma conta';
-      document.getElementById('kpiCartao').textContent = F.formatar(totalCartao);
-      document.getElementById('kpiCartaoSub').textContent = totalCartao > 0
-        ? (cartaoPago ? 'Fatura paga' : 'Fatura pendente')
+      document.getElementById('kpiCartao').textContent = F.formatar(cartao.atual);
+      const foraFatura = cartao.previsao - cartao.atual;
+      document.getElementById('kpiCartaoSub').textContent = cartao.previsao > 0
+        ? (foraFatura > 0.004
+          ? `Atual · previsto ${F.formatar(cartao.previsao)}`
+          : (cartaoPago ? 'Fatura paga' : 'Fatura pendente'))
         : 'Sem compras no mês';
       const debitos = data.debito || [];
       document.getElementById('kpiDebito').textContent = F.formatar(totalDebito);
@@ -615,18 +638,18 @@
     function renderizarContas(data) {
       montarChipsContas();
       const contas = data.contas || [];
-      const totalCartao = soma(data.cartao);
+      const cartao = F.saldosCartao(data.cartao);
       const cartaoStatus = data.cartaoStatus || 'pendente';
       const lista = document.getElementById('listaContas');
       lista.innerHTML = '';
 
-      const mostrarCartao = totalCartao > 0 && (filtroContas === 'todas' || filtroContas === cartaoStatus);
+      const mostrarCartao = cartao.previsao > 0 && (filtroContas === 'todas' || filtroContas === cartaoStatus);
       const filtradas = contas
         .filter((c) => filtroContas === 'todas' || (filtroContas === 'pago' ? c.status === 'pago' : c.status !== 'pago'))
         .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 
       if (!mostrarCartao && !filtradas.length) {
-        const msg = contas.length || totalCartao > 0
+        const msg = contas.length || cartao.previsao > 0
           ? 'Nenhuma conta neste filtro.'
           : 'Nenhuma conta cadastrada neste mês.';
         lista.innerHTML = `<div class="ct-vazio">${msg}</div>`;
@@ -635,12 +658,14 @@
 
       if (mostrarCartao) {
         const qtd = (data.cartao || []).length;
+        const fora = cartao.previsao - cartao.atual;
+        const previsto = fora > 0.004 ? ` · previsto ${F.formatar(cartao.previsao)}` : '';
         lista.appendChild(montarItem({
           icone: ICONE_CARTAO,
           classeIcone: 'cartao',
           titulo: 'Fatura do cartão',
-          subtitulo: `${plural(qtd, 'compra', 'compras')} · ver em Cartões`,
-          valor: totalCartao,
+          subtitulo: `${plural(qtd, 'compra', 'compras')}${previsto} · ver em Cartões`,
+          valor: cartao.atual,
           status: cartaoStatus,
           onClick: () => { window.location.href = 'cartoes.html'; },
           onStatus: async (pill) => {

@@ -21,6 +21,14 @@ def run_migrations(engine: Engine) -> None:
                 "ON compra_cartao (serie_uuid)"
             )
         )
+        # Recorrências antigas já estavam sendo somadas na fatura. O padrão
+        # TRUE preserva esse saldo; só as novas nascem como previsão.
+        conn.execute(
+            text(
+                "ALTER TABLE compra_cartao ADD COLUMN IF NOT EXISTS "
+                "na_fatura BOOLEAN NOT NULL DEFAULT TRUE"
+            )
+        )
 
         # Índices compostos (id_usuario, data): as leituras de mês/ano sempre
         # filtram por usuário + intervalo de data. Sem isto o Postgres varre

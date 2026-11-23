@@ -21,7 +21,7 @@
   <script src="js/fin-run-once.js"></script>
   <script src="js/fin-config.js?v=1"></script>
   <script src="js/fin-sdk.js?v=6"></script>
-  <script src="js/fin-financeiro-shared.js?v=8"></script>
+  <script src="js/fin-financeiro-shared.js?v=10"></script>
   <script src="sidebar.js?v=9"></script>
   <style>
     * { box-sizing: border-box; }
@@ -159,6 +159,14 @@
     .home-selo.ok {
       background: #e8f7ee;
       color: var(--positive);
+    }
+
+    .home-previsao {
+      display: block;
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #2563eb;
     }
 
     .home-medidor {
@@ -463,6 +471,7 @@
         <div class="home-rot">Saldo disponível</div>
         <div class="home-saldo-valor" id="saldoValor">R$ 0,00</div>
         <span class="home-selo" id="saldoSelo">—</span>
+        <small class="home-previsao" id="saldoPrevisao" hidden></small>
       </div>
       <div class="home-medidor">
         <div class="home-rot">Receita comprometida</div>
@@ -598,12 +607,21 @@
 
     function calcularTotais(data) {
       const contas = (data.contas || []).reduce((a, i) => a + Number(i.valor || 0), 0);
-      const cartao = (data.cartao || []).reduce((a, i) => a + Number(i.valor || 0), 0);
+      const cartao = F.saldosCartao(data.cartao);
       const debito = (data.debito || []).reduce((a, i) => a + Number(i.valor || 0), 0);
       const receitas = (data.adicionais || []).reduce((a, i) => a + Number(i.valor || 0), 0);
       const reservado = (data.reservado || []).reduce((a, i) => a + Number(i.valor || 0), 0);
-      const despesas = contas + cartao + debito;
-      return { despesas, receitas, reservado, saldo: receitas - despesas - reservado };
+      const despesas = contas + cartao.atual + debito;
+      const despesasPrevistas = contas + cartao.previsao + debito;
+      return {
+        despesas,
+        receitas,
+        reservado,
+        saldo: receitas - despesas - reservado,
+        saldoPrevisto: receitas - despesasPrevistas - reservado,
+        cartaoAtual: cartao.atual,
+        cartaoPrevisao: cartao.previsao,
+      };
     }
 
     function mesAnterior(ano, mes) {
@@ -639,6 +657,15 @@
         texto.textContent = Math.round(pct) + '% da receita do mês já foi gasta';
       } else {
         texto.textContent = Math.round(pct) + '% da receita do mês foi gasta';
+      }
+
+      const previsao = document.getElementById('saldoPrevisao');
+      if (t.saldo - t.saldoPrevisto > 0.004) {
+        previsao.hidden = false;
+        previsao.textContent = `Saldo previsto ${F.formatar(t.saldoPrevisto)}`;
+      } else {
+        previsao.hidden = true;
+        previsao.textContent = '';
       }
 
       document.getElementById('receitasValor').textContent = F.formatar(t.receitas);
@@ -688,7 +715,7 @@
         mapa[cat] = (mapa[cat] || 0) + val;
       };
       (data.contas || []).forEach(add);
-      (data.cartao || []).forEach(add);
+      (data.cartao || []).filter((item) => F.compraNaFatura(item)).forEach(add);
       (data.debito || []).forEach(add);
       return Object.entries(mapa).sort((a, b) => b[1] - a[1]);
     }
@@ -793,9 +820,12 @@
       const pendentes = (data.contas || [])
         .filter((c) => c.status !== 'pago')
         .map((c) => ({ titulo: c.nome, sub: c.categoria, valor: Number(c.valor || 0) }));
-      const totalCartao = (data.cartao || []).reduce((s, i) => s + Number(i.valor || 0), 0);
-      if (totalCartao > 0 && (data.cartaoStatus || 'pendente') !== 'pago') {
-        pendentes.push({ titulo: 'Cartão de crédito', sub: 'Fatura do mês', valor: totalCartao });
+      const cartao = F.saldosCartao(data.cartao);
+      if (cartao.atual > 0 && (data.cartaoStatus || 'pendente') !== 'pago') {
+        const sub = cartao.previsao - cartao.atual > 0.004
+          ? `Fatura do mês · previsto ${F.formatar(cartao.previsao)}`
+          : 'Fatura do mês';
+        pendentes.push({ titulo: 'Cartão de crédito', sub, valor: cartao.atual });
       }
       pendentes.sort((a, b) => b.valor - a.valor);
       const topPendentes = pendentes.slice(0, 5);

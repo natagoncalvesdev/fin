@@ -470,6 +470,7 @@ class CompraCartaoCreate(BaseModel):
     totalParcelas: int = Field(default=1, ge=1, le=48)
     recorrente: bool = False
     descricao: str = Field(default="", max_length=2000)
+    naFatura: bool = False
 
 
 class CompraCartaoUpdate(BaseModel):
@@ -477,6 +478,7 @@ class CompraCartaoUpdate(BaseModel):
     valor: float | None = Field(default=None, gt=0)
     categoria: str | None = None
     descricao: str | None = Field(default=None, max_length=2000)
+    naFatura: bool | None = None
 
 
 class CompraCartaoMover(BaseModel):
@@ -510,6 +512,7 @@ def create_compra_cartao(
             total_parcelas=body.totalParcelas,
             recorrente=body.recorrente,
             descricao=body.descricao,
+            na_fatura=body.naFatura,
         )
     except ValueError as exc:
         raise _bad_request(exc) from exc
@@ -537,6 +540,7 @@ def update_compra_cartao(
             valor=body.valor,
             categoria=body.categoria,
             descricao=body.descricao.strip() if body.descricao is not None else None,
+            na_fatura=body.naFatura,
         )
     except ValueError as exc:
         raise _not_found(exc) from exc

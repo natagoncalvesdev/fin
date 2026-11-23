@@ -158,6 +158,10 @@ class CompraCartao(Base):
     parcela_atual: Mapped[int] = mapped_column(Integer, default=1)
     parcela_total: Mapped[int] = mapped_column(Integer, default=1)
     recorrente: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Recorrências nascem fora da fatura (previsão) até a pessoa confirmar
+    # que a cobrança daquele mês já apareceu. Compras avulsas e parcelas
+    # já aconteceram, então entram na fatura direto.
+    na_fatura: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     serie_uuid: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
 
     cartao: Mapped["Cartao"] = relationship()

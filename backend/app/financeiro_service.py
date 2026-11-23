@@ -269,6 +269,7 @@ def compra_to_dict(item: CompraCartao) -> dict:
         data["descricao"] = desc
     if item.recorrente:
         data["recorrente"] = True
+    data["naFatura"] = bool(item.na_fatura)
     return data
 
 
@@ -756,6 +757,7 @@ def atualizar_compra_cartao(
     valor: float | None = None,
     categoria: str | None = None,
     descricao: str | None = None,
+    na_fatura: bool | None = None,
 ) -> CompraCartao:
     item = _get_compra_cartao(db, usuario, item_uuid)
     if not item:
@@ -768,6 +770,8 @@ def atualizar_compra_cartao(
         item.id_categoria = _resolver_categoria(db, usuario.id, categoria)
     if descricao is not None:
         item.descricao = _descricao_api(descricao) or None
+    if na_fatura is not None and item.recorrente:
+        item.na_fatura = na_fatura
     db.flush()
     return item
 
@@ -856,6 +860,7 @@ def inserir_compra_cartao(
     total_parcelas: int = 1,
     recorrente: bool = False,
     descricao: str = "",
+    na_fatura: bool = False,
 ) -> dict[str, Any]:
     """Cria a(s) linha(s) de uma compra no cartão (parcelada ou recorrente).
 
@@ -896,6 +901,7 @@ def inserir_compra_cartao(
                     parcela_atual=1,
                     parcela_total=1,
                     recorrente=True,
+                    na_fatura=bool(na_fatura) if i == 0 else False,
                     serie_uuid=serie,
                 )
             )
@@ -921,6 +927,7 @@ def inserir_compra_cartao(
                     parcela_atual=i + 1,
                     parcela_total=total_parcelas,
                     recorrente=False,
+                    na_fatura=True,
                     serie_uuid=serie,
                 )
             )

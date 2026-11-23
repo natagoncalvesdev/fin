@@ -482,6 +482,7 @@ class CompraCartaoUpdate(BaseModel):
 class CompraCartaoMover(BaseModel):
     ano: int
     mes: str
+    valor: float | None = Field(default=None, gt=0)
 
 
 class ComprasCartaoResponse(BaseModel):
@@ -552,7 +553,9 @@ def move_compra_cartao(
 ):
     _checar_mes(body.mes)
     try:
-        item = mover_compra_cartao(db, current_user, item_id, ano=body.ano, mes=body.mes)
+        item = mover_compra_cartao(
+            db, current_user, item_id, ano=body.ano, mes=body.mes, valor=body.valor
+        )
     except ValueError as exc:
         raise _not_found(exc) from exc
     db.commit()

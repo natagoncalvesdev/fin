@@ -220,6 +220,9 @@
     .lt-scroll.arrastando * { pointer-events: none; }
     .lt-trilho { display: flex; width: max-content; user-select: none; -webkit-user-select: none; }
     .lt-trilho svg { display: block; flex: none; }
+    .lt-trilho .lt-mes { fill: transparent; cursor: pointer; }
+    .lt-trilho .lt-mes:hover,
+    .lt-trilho .lt-mes:focus-visible { fill: rgba(37, 99, 235, 0.08); }
     .lt-load { flex: none; display: grid; place-items: center; }
     .lt-load span { display: flex; gap: 5px; margin-bottom: 40px; }
     .lt-load i {
@@ -418,12 +421,87 @@
       color: var(--text-secondary);
     }
 
-    .anticipate-card-valor {
-      width: 96px;
+    .anticipate-card-valores {
+      width: 108px;
       text-align: right;
+    }
+
+    .anticipate-card-valor {
       font-size: 13px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
+    }
+
+    .anticipate-card-de {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-decoration: line-through;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .anticipate-card-de[hidden] { display: none; }
+
+    .anticipate-desconto {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .anticipate-desconto[hidden] { display: none !important; }
+
+    .anticipate-desconto-rotulo {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .anticipate-desconto-rotulo small {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .anticipate-desconto-input {
+      width: 112px;
+      padding: 8px 10px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      background: #fff;
+      font: 700 14px/1.2 var(--font-family);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: #15803d;
+    }
+
+    .anticipate-desconto-input:focus {
+      outline: 0;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
+    }
+
+    .anticipate-desconto-input::placeholder { color: #94a3b8; font-weight: 600; }
+
+    @media (max-width: 640px) {
+      .anticipate-card-top {
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-areas:
+          "info info"
+          "stepper valor";
+      }
+
+      .anticipate-card-info { grid-area: info; }
+      .anticipate-stepper { grid-area: stepper; }
+      .anticipate-card-valores {
+        grid-area: valor;
+        width: auto;
+        align-self: center;
+      }
     }
 
     .anticipate-linhas {
@@ -469,13 +547,22 @@
 
     .anticipate-total {
       display: none;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 12px;
+      flex-direction: column;
+      gap: 6px;
       padding: 2px 2px 0;
     }
 
     .anticipate-total.visible { display: flex; }
+
+    .anticipate-total-linha {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .anticipate-total-linha.desconto { display: none; }
+    .anticipate-total-linha.desconto.visible { display: flex; }
 
     .anticipate-total-label {
       color: var(--text-secondary);
@@ -486,6 +573,13 @@
     .anticipate-total-valor {
       font-size: 15px;
       font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .anticipate-total-desconto {
+      font-size: 14px;
+      font-weight: 700;
+      color: #15803d;
       font-variant-numeric: tabular-nums;
     }
   </style>
@@ -542,7 +636,7 @@
         </button>
       </div>
       <div class="linha-tempo" id="linhaTempo"></div>
-      <p class="linha-nota">Arraste para os lados para ver outros meses. Nas faturas futuras aparece só o que já está comprometido: compras recorrentes e parcelas.</p>
+      <p class="linha-nota">Arraste para os lados para ver outros meses e clique em um mês para abrir a fatura. Nas faturas futuras aparece só o que já está comprometido: compras recorrentes e parcelas.</p>
     </section>
 
     <section class="section-card">
@@ -658,11 +752,17 @@
         <h3>Adiantar parcelas</h3>
         <button type="button" class="fin-entry-x" id="btnFecharAdiantar" aria-label="Fechar">&times;</button>
       </div>
-      <p class="anticipate-hint">Todas as parcelas futuras aparecem abaixo. O + destaca da última para as anteriores, e essas são as que entram neste mês.</p>
+      <p class="anticipate-hint">O + antecipa da última parcela para as anteriores. Cada compra tem o próprio desconto, calculado a 5,5% ao ano, e o valor pode ser editado antes de concluir.</p>
       <div id="anticipateList" class="anticipate-list"><p class="info-text">Buscando parcelas futuras…</p></div>
       <div id="anticipateTotal" class="anticipate-total">
-        <span class="anticipate-total-label">Total a adiantar</span>
-        <span id="anticipateTotalValor" class="anticipate-total-valor"></span>
+        <div id="anticipateTotalDescontoLinha" class="anticipate-total-linha desconto">
+          <span class="anticipate-total-label">Descontos</span>
+          <span id="anticipateTotalDesconto" class="anticipate-total-desconto"></span>
+        </div>
+        <div class="anticipate-total-linha">
+          <span class="anticipate-total-label">Total a pagar</span>
+          <span id="anticipateTotalValor" class="anticipate-total-valor"></span>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" id="btnCancelarAdiantar">Cancelar</button>
@@ -936,6 +1036,7 @@
         return {
           off: alvo.off,
           ano: alvo.ano,
+          mes: alvo.mes,
           janeiro: alvo.mes === F.MESES[0],
           label: abrev.charAt(0).toUpperCase() + abrev.slice(1),
           valor,
@@ -983,9 +1084,20 @@
       return scroll;
     }
 
+    function abrirFaturaDaLinha(indice) {
+      const ponto = linhaPontos[indice];
+      if (!ponto || !periodo || ponto.selecionado) return;
+      const ano = Number(ponto.ano);
+      if (!F.MESES.includes(ponto.mes) || ano < F.ANO_BASE || ano > F.ANO_LIMITE) return;
+      periodo.irPara(String(ano), ponto.mes);
+      document.getElementById('painelFatura').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
     function ligarInteracaoLinha(host, scroll) {
       let arrasto = null;
+      let ignorarClique = false;
       scroll.addEventListener('pointerdown', (ev) => {
+        ignorarClique = false;
         if (ev.pointerType !== 'mouse' || ev.button !== 0) return;
         arrasto = { x: ev.clientX, inicio: scroll.scrollLeft, id: ev.pointerId };
       });
@@ -1000,11 +1112,21 @@
         scroll.scrollLeft = arrasto.inicio - dx;
       });
       const soltar = () => {
+        ignorarClique = scroll.classList.contains('arrastando');
         arrasto = null;
         scroll.classList.remove('arrastando');
       };
       scroll.addEventListener('pointerup', soltar);
       scroll.addEventListener('pointercancel', soltar);
+      scroll.addEventListener('click', (ev) => {
+        if (ignorarClique) {
+          ignorarClique = false;
+          return;
+        }
+        const alvo = ev.target.closest('[data-indice]');
+        if (!alvo) return;
+        abrirFaturaDaLinha(Number(alvo.dataset.indice));
+      });
       scroll.addEventListener('scroll', verificarBordasLinha, { passive: true });
       host.querySelector('.lt-seta.esq').addEventListener('click', () => {
         scroll.scrollBy({ left: -colunaLinha() * 3, behavior: 'smooth' });
@@ -1059,6 +1181,9 @@
         g += `<text x="${xs[i]}" y="${ys[i] - 16}" ${fonte} font-size="${destaque ? 13 : 11}" font-weight="${destaque ? 700 : 600}" fill="#0f172a">${esc(F.formatar(p.valor))}</text>`;
         g += `<text x="${xs[i]}" y="188" ${fonte} font-size="12" font-weight="${destaque ? 700 : 600}" fill="${destaque ? '#0f172a' : '#64748b'}">${esc(p.label)}</text>`;
         g += `<text x="${xs[i]}" y="206" ${fonte} font-size="11" font-weight="${p.atual ? 600 : 400}" fill="${p.atual ? '#2563eb' : '#94a3b8'}">${esc(p.rotulo)}</text>`;
+      });
+      pontos.forEach((p, i) => {
+        g += `<rect class="lt-mes" data-indice="${i}" x="${xs[i] - col / 2}" y="0" width="${col}" height="${H}" role="button" aria-label="Abrir fatura de ${esc(p.mes)} de ${p.ano}"/>`;
       });
       const borda = (lado) => (ltEstado.fim[lado]
         ? `<div class="lt-load" style="width:${LT_BORDA_FIM}px;height:${H}px"></div>`
@@ -1388,15 +1513,101 @@
     }
 
     // --- Adiantar parcela (sempre da última para as anteriores) ---
+    // Desconto de antecipação: valor presente a 5,5% ao ano (taxa efetiva).
+    // 6× R$ 98,42 com 1 a 6 meses de antecedência = R$ 9,13 de desconto.
+    const TAXA_ANTECIPACAO_ANUAL = 0.055;
+    const TAXA_ANTECIPACAO_MENSAL = Math.pow(1 + TAXA_ANTECIPACAO_ANUAL, 1 / 12) - 1;
     const anticipateModal = document.getElementById('anticipateModal');
     const anticipateTotalEl = document.getElementById('anticipateTotal');
     const anticipateTotalValorEl = document.getElementById('anticipateTotalValor');
+    const anticipateTotalDescontoEl = document.getElementById('anticipateTotalDesconto');
+    const anticipateTotalDescontoLinhaEl = document.getElementById('anticipateTotalDescontoLinha');
 
     function ordemUltimaParcela(item) {
       const match = String(item.parcelas || '').match(/(\d+)\s*\/\s*(\d+)/);
       const numero = match ? Number(match[1]) : 0;
       const mesIdx = Math.max(0, F.MESES.indexOf(item.origemMes));
       return numero * 100000 + Number(item.origemAno || 0) * 100 + mesIdx;
+    }
+
+    function centavosDeValor(valor) {
+      return Math.round((Number(valor) || 0) * 100);
+    }
+
+    function reaisDeCentavos(centavos) {
+      return Number((centavos / 100).toFixed(2));
+    }
+
+    function mesesAntecedencia(item) {
+      const origem = F.MESES.indexOf(item.origemMes);
+      const atual = F.MESES.indexOf(periodo.mes);
+      if (origem < 0 || atual < 0) return 1;
+      const meses = (Number(item.origemAno) - Number(periodo.ano)) * 12 + (origem - atual);
+      return Math.max(meses, 1);
+    }
+
+    function itensSelecionadosDoGrupo(grupo) {
+      return grupo.itens.slice(0, grupo.quantidade);
+    }
+
+    function descontoMaximoCentavos(itens) {
+      if (!itens.length) return 0;
+      const bruto = itens.reduce((soma, item) => soma + centavosDeValor(item.valor), 0);
+      return Math.max(0, bruto - itens.length);
+    }
+
+    function descontoCalculadoCentavos(itens) {
+      if (!itens.length) return 0;
+      const bruto = itens.reduce((soma, item) => soma + centavosDeValor(item.valor), 0);
+      const presente = itens.reduce((soma, item) => {
+        const valor = Number(item.valor) || 0;
+        const meses = mesesAntecedencia(item);
+        return soma + valor / Math.pow(1 + TAXA_ANTECIPACAO_MENSAL, meses);
+      }, 0);
+      const desconto = bruto - Math.round(presente * 100);
+      return Math.max(0, Math.min(desconto, descontoMaximoCentavos(itens)));
+    }
+
+    function descontoEfetivoCentavos(grupo) {
+      const itens = itensSelecionadosDoGrupo(grupo);
+      if (!itens.length) return 0;
+      const maximo = descontoMaximoCentavos(itens);
+      const atual = Number.isInteger(grupo.descontoCentavos)
+        ? grupo.descontoCentavos
+        : descontoCalculadoCentavos(itens);
+      return Math.max(0, Math.min(atual, maximo));
+    }
+
+    function partesDescontoCentavos(itens, descontoCentavos) {
+      const centavos = itens.map((item) => centavosDeValor(item.valor));
+      const bruto = centavos.reduce((soma, valor) => soma + valor, 0);
+      const desconto = Math.max(0, Math.min(descontoCentavos, descontoMaximoCentavos(itens)));
+      const partes = centavos.map(() => 0);
+      if (!desconto || !bruto) return partes;
+      const fracoes = centavos.map((valor, indice) => {
+        const exato = (desconto * valor) / bruto;
+        const base = Math.floor(exato);
+        return { indice, base, resto: exato - base, folga: valor - 1 };
+      });
+      let usado = 0;
+      fracoes.forEach((fracao) => {
+        const aplicar = Math.min(fracao.base, Math.max(0, fracao.folga));
+        partes[fracao.indice] = aplicar;
+        usado += aplicar;
+      });
+      const ordem = fracoes.slice().sort((a, b) => b.resto - a.resto || a.indice - b.indice);
+      let cursor = 0;
+      let guard = 0;
+      while (usado < desconto && ordem.length && guard < centavos.length * 3) {
+        const fracao = ordem[cursor % ordem.length];
+        if (partes[fracao.indice] < fracao.folga) {
+          partes[fracao.indice] += 1;
+          usado += 1;
+        }
+        cursor += 1;
+        guard += 1;
+      }
+      return partes;
     }
 
     function chaveGrupoAdiantar(item) {
@@ -1410,17 +1621,38 @@
     }
 
     function atualizarTotalAdiantar() {
-      const soma = parcelasSelecionadas().reduce((acc, item) => acc + Number(item.valor || 0), 0);
-      anticipateTotalValorEl.textContent = F.formatar(soma);
-      anticipateTotalEl.classList.toggle('visible', gruposAdiantar.length > 0);
+      let bruto = 0;
+      let desconto = 0;
+      gruposAdiantar.forEach((grupo) => {
+        const itens = itensSelecionadosDoGrupo(grupo);
+        bruto += itens.reduce((soma, item) => soma + centavosDeValor(item.valor), 0);
+        desconto += descontoEfetivoCentavos(grupo);
+      });
+      const liquido = Math.max(0, bruto - desconto);
+      anticipateTotalValorEl.textContent = F.formatar(reaisDeCentavos(liquido));
+      anticipateTotalDescontoEl.textContent = `− ${F.formatar(reaisDeCentavos(desconto))}`;
+      anticipateTotalDescontoLinhaEl.classList.toggle('visible', desconto > 0);
+      anticipateTotalEl.classList.toggle('visible', liquido > 0 || desconto > 0);
     }
 
-    function atualizarCardAdiantar(card, grupo) {
-      const soma = grupo.itens.slice(0, grupo.quantidade).reduce((s, it) => s + Number(it.valor || 0), 0);
+    function atualizarCardAdiantar(card, grupo, opcoes) {
+      const atualizarInput = !opcoes || opcoes.atualizarInput !== false;
+      const itens = itensSelecionadosDoGrupo(grupo);
+      const bruto = itens.reduce((soma, item) => soma + centavosDeValor(item.valor), 0);
+      const desconto = descontoEfetivoCentavos(grupo);
+      const liquido = Math.max(0, bruto - desconto);
       card.querySelector('.anticipate-qtd').textContent = String(grupo.quantidade);
       card.querySelector('[data-acao="menos"]').disabled = grupo.quantidade <= 0;
       card.querySelector('[data-acao="mais"]').disabled = grupo.quantidade >= grupo.itens.length;
-      card.querySelector('.anticipate-card-valor').textContent = F.formatar(soma);
+      card.querySelector('.anticipate-card-valor').textContent = F.formatar(reaisDeCentavos(liquido));
+      const de = card.querySelector('.anticipate-card-de');
+      de.hidden = desconto <= 0;
+      if (desconto > 0) de.textContent = `de ${F.formatar(reaisDeCentavos(bruto))}`;
+      const descontoBox = card.querySelector('.anticipate-desconto');
+      descontoBox.hidden = grupo.quantidade <= 0;
+      if (atualizarInput) {
+        F.definirMoeda(card.querySelector('.anticipate-desconto-input'), reaisDeCentavos(desconto));
+      }
       card.querySelectorAll('.anticipate-linha').forEach((linha, indice) => {
         linha.classList.toggle('selecionada', indice < grupo.quantidade);
       });
@@ -1478,9 +1710,15 @@
 
         stepper.append(menos, qtd, max, mais);
 
+        const valores = document.createElement('div');
+        valores.className = 'anticipate-card-valores';
         const valorSel = document.createElement('div');
         valorSel.className = 'anticipate-card-valor';
-        topo.append(info, stepper, valorSel);
+        const valorDe = document.createElement('div');
+        valorDe.className = 'anticipate-card-de';
+        valorDe.hidden = true;
+        valores.append(valorSel, valorDe);
+        topo.append(info, stepper, valores);
 
         const linhas = document.createElement('div');
         linhas.className = 'anticipate-linhas';
@@ -1495,7 +1733,28 @@
           linhas.appendChild(linha);
         });
 
-        card.append(topo, linhas);
+        const descontoBox = document.createElement('div');
+        descontoBox.className = 'anticipate-desconto';
+        descontoBox.hidden = true;
+
+        const rotulo = document.createElement('div');
+        rotulo.className = 'anticipate-desconto-rotulo';
+        const rotuloTitulo = document.createElement('span');
+        rotuloTitulo.textContent = 'Desconto';
+        const rotuloTaxa = document.createElement('small');
+        rotuloTaxa.textContent = '5,5% ao ano';
+        rotulo.append(rotuloTitulo, rotuloTaxa);
+
+        const descontoInput = document.createElement('input');
+        descontoInput.type = 'text';
+        descontoInput.className = 'anticipate-desconto-input';
+        descontoInput.placeholder = '0,00';
+        descontoInput.setAttribute('aria-label', `Desconto de ${grupo.nome}`);
+        descontoInput.autocomplete = 'off';
+        F.ligarMascaraMoeda(descontoInput);
+
+        descontoBox.append(rotulo, descontoInput);
+        card.append(topo, descontoBox, linhas);
         atualizarCardAdiantar(card, grupo);
         lista.appendChild(card);
       });
@@ -1550,7 +1809,26 @@
       if (!grupo) return;
       if (btn.dataset.acao === 'mais' && grupo.quantidade < grupo.itens.length) grupo.quantidade += 1;
       if (btn.dataset.acao === 'menos' && grupo.quantidade > 0) grupo.quantidade -= 1;
+      grupo.descontoCentavos = descontoCalculadoCentavos(itensSelecionadosDoGrupo(grupo));
       atualizarCardAdiantar(card, grupo);
+      atualizarTotalAdiantar();
+    });
+
+    document.getElementById('anticipateList').addEventListener('input', (ev) => {
+      const input = ev.target.closest('.anticipate-desconto-input');
+      if (!input) return;
+      const card = input.closest('[data-grupo]');
+      if (!card) return;
+      const grupo = gruposAdiantar[Number(card.dataset.grupo)];
+      if (!grupo) return;
+      const maximo = descontoMaximoCentavos(itensSelecionadosDoGrupo(grupo));
+      let centavos = Math.round(F.lerMoeda(input) * 100);
+      if (centavos > maximo) {
+        centavos = maximo;
+        F.definirMoeda(input, reaisDeCentavos(centavos));
+      }
+      grupo.descontoCentavos = centavos;
+      atualizarCardAdiantar(card, grupo, { atualizarInput: false });
       atualizarTotalAdiantar();
     });
 
@@ -1565,19 +1843,53 @@
         window.finToast?.('Escolha quantas parcelas adiantar.', { type: 'error' });
         return;
       }
+      const novoValor = new Map();
+      gruposAdiantar.forEach((grupo) => {
+        const itens = itensSelecionadosDoGrupo(grupo);
+        const desconto = descontoEfetivoCentavos(grupo);
+        if (!itens.length || desconto <= 0) return;
+        const partes = partesDescontoCentavos(itens, desconto);
+        itens.forEach((item, indice) => {
+          const original = centavosDeValor(item.valor);
+          const liquido = original - partes[indice];
+          if (liquido !== original) novoValor.set(item.id, reaisDeCentavos(liquido));
+        });
+      });
+
       let ok = 0;
+      let descontoFalhou = false;
       for (const item of selecionados) {
         try {
-          await F.api(`/api/financeiro/compras-cartao/${item.id}/mover`, {
+          const valor = novoValor.get(item.id);
+          const body = { ano: Number(periodo.ano), mes: periodo.mes };
+          if (valor != null) body.valor = valor;
+          const res = await F.api(`/api/financeiro/compras-cartao/${item.id}/mover`, {
             method: 'PUT',
-            body: JSON.stringify({ ano: Number(periodo.ano), mes: periodo.mes }),
+            body: JSON.stringify(body),
           });
+          const gravado = centavosDeValor(res?.data?.valor);
+          if (valor != null && gravado !== centavosDeValor(valor)) {
+            try {
+              await F.api(`/api/financeiro/compras-cartao/${item.id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ valor }),
+              });
+            } catch (err) {
+              descontoFalhou = true;
+              console.error('Erro ao aplicar desconto da antecipação:', err);
+            }
+          }
           ok += 1;
         } catch (err) {
           console.error('Erro ao adiantar parcela:', err);
         }
       }
-      window.finToast?.(`${ok} parcela(s) adiantada(s).`, { type: ok === selecionados.length ? 'success' : 'error' });
+      const descontoTotal = gruposAdiantar.reduce((soma, grupo) => soma + descontoEfetivoCentavos(grupo), 0);
+      const tudoCerto = ok === selecionados.length && !descontoFalhou;
+      const comDesconto = tudoCerto && descontoTotal > 0
+        ? ` Descontos: ${F.formatar(reaisDeCentavos(descontoTotal))}.`
+        : '';
+      window.finToast?.(`${ok} parcela(s) adiantada(s).${comDesconto}`, { type: tudoCerto ? 'success' : 'error' });
       fecharModalAdiantar();
       observador && observador.forcar();
     }

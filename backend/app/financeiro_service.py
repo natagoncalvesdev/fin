@@ -803,15 +803,27 @@ def remover_compra_cartao(
 
 
 def mover_compra_cartao(
-    db: Session, usuario: Usuario, item_uuid: str, *, ano: int, mes: str
+    db: Session,
+    usuario: Usuario,
+    item_uuid: str,
+    *,
+    ano: int,
+    mes: str,
+    valor: float | None = None,
 ) -> CompraCartao:
-    """Move uma parcela para outro mês (usado para 'adiantar parcela')."""
+    """Move uma parcela para outro mês (usado para 'adiantar parcela').
+
+    `valor`, quando informado, já é o valor da parcela com o desconto de
+    antecipação aplicado — a troca de mês e de valor acontece junta.
+    """
     item = _get_compra_cartao(db, usuario, item_uuid)
     if not item:
         raise ValueError("Compra não encontrada.")
     get_or_create_mes(db, usuario, ano, mes)
     inicio, _ = periodo_mes(ano, mes)
     item.data_competencia = inicio
+    if valor is not None:
+        item.valor = valor
     db.flush()
     return item
 
